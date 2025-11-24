@@ -29,60 +29,89 @@ func (a *ApiDefinition) ConfigRouter() *chi.Mux {
 
 	// the routing should start with /api/<capability>/<version>/<resources>/... (GET, POST, DELETE, PUT, ...)
 	r.Route("/api", func(r chi.Router) {
-		// Product api V1 /api/product/v1/products
-		r.Route("/product/v1/products", func(r chi.Router) {
-			handler := product.NewHandler(a.DB)
-			r.Get("/", handler.GetProducts)
-			// /api/product/v1/products/{productId}
-			r.Route("/{productId}", func(r chi.Router) {
-				r.Get("/", handler.GetProduct)
-			})
-		})
-		// Category api V1 /api/category/v1/categories
-		r.Route("/category/v1", func(r chi.Router) {
-			handler := category.NewHandler(a.DB)
-			r.Route("/categories", func(r chi.Router) {
-				r.Post("/", handler.CreateCategory)
-			})
-			r.Post("/translations", handler.CreateTranslations)
-		})
-
-		// Product Management api V1 /api/product-management/v1
-		r.Route("/product-management/v1", func(r chi.Router) {
-			r.Route("/products", func(r chi.Router) {
-				handler := product_management.NewHandler(a.DB)
-				r.Get("/", handler.GetProducts)
-				r.Post("/", handler.CreateProduct)
-				r.Route("/{productId}", func(r chi.Router) {
-					r.Get("/", handler.GetProduct)
-					r.Delete("/", handler.DeleteProduct)
-					r.Put("/", handler.UpdateProduct)
-				})
-			})
-		})
-
-		// Management api V1 /api/management/v1
-		r.Route("/management/v1", func(r chi.Router) {
-			handler := management.NewHandler(a.DB)
-			r.Route("/categories", func(r chi.Router) {
-				r.Get("/", handler.GetCategories)
-			})
-			r.Post("/translations", handler.CreateTranslations)
-		})
-		// CMS api V1 /api/cms/v1/translations
-		r.Route("/cms/v1/translations", func(r chi.Router) {
-			handler := cms.NewHandler(a.DB)
-			r.Get("/{language}/{id}", handler.GetTranslation)
-		})
-		// Payment api V1 /api/payment/v1/payments
-		r.Route("/payment/v1/payments", func(r chi.Router) {})
-		// Payment api V1 /api/payment/v1/payments
-		r.Route("/order/v1/orders", func(r chi.Router) {})
-		// Shopping Basket api V1 /api/shopping-basket/v1/shopping-baskets
-		r.Route("/shopping-basket/v1/shopping-baskets", func(r chi.Router) {})
-
+		productV1Routing(r, a)
+		categoryV1Routing(r, a)
+		productManagementV1Routing(r, a)
+		managementV1Routing(r, a)
+		cmsV1Routing(r, a)
+		paymentV1Routing(r, a)
+		orderV1Routing(r, a)
+		shoppingBasketV1Routing(r, a)
 	})
 	return r
+}
+
+// Shopping Basket api V1 /api/shopping-basket/v1/shopping-baskets
+func shoppingBasketV1Routing(r chi.Router, _ *ApiDefinition) chi.Router {
+	return r.Route("/shopping-basket/v1/shopping-baskets", func(r chi.Router) {})
+}
+
+// Product Management api V1 /api/product-management/v1
+func productManagementV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
+	return r.Route("/product-management/v1", func(r chi.Router) {
+		r.Route("/products", func(r chi.Router) {
+			handler := product_management.NewHandler(a.DB)
+			r.Get("/", handler.GetProducts)
+			r.Post("/", handler.CreateProduct)
+			r.Route("/{productId}", func(r chi.Router) {
+				r.Get("/", handler.GetProduct)
+				r.Delete("/", handler.DeleteProduct)
+				r.Put("/", handler.UpdateProduct)
+			})
+		})
+	})
+}
+
+// Order api V1 /api/order/v1/orders
+func orderV1Routing(r chi.Router, _ *ApiDefinition) chi.Router {
+	return r.Route("/order/v1/orders", func(r chi.Router) {})
+}
+
+// Category api V1 /api/category/v1/categories
+func categoryV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
+	return r.Route("/category/v1", func(r chi.Router) {
+		handler := category.NewHandler(a.DB)
+		r.Route("/categories", func(r chi.Router) {
+			r.Post("/", handler.CreateCategory)
+		})
+		r.Post("/translations", handler.CreateTranslations)
+	})
+}
+
+// Payment api V1 /api/payment/v1/payments
+func paymentV1Routing(r chi.Router, _ *ApiDefinition) chi.Router {
+	return r.Route("/payment/v1/payments", func(r chi.Router) {})
+}
+
+// CMS api V1 /api/cms/v1/translations
+func cmsV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
+	return r.Route("/cms/v1/translations", func(r chi.Router) {
+		handler := cms.NewHandler(a.DB)
+		r.Get("/{language}/{id}", handler.GetTranslation)
+	})
+}
+
+// Management api V1 /api/management/v1
+func managementV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
+	return r.Route("/management/v1", func(r chi.Router) {
+		handler := management.NewHandler(a.DB)
+		r.Route("/categories", func(r chi.Router) {
+			r.Get("/", handler.GetCategories)
+		})
+		r.Post("/translations", handler.CreateTranslations)
+	})
+}
+
+// Product api V1 /api/product/v1/products
+func productV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
+	return r.Route("/product/v1/products", func(r chi.Router) {
+		handler := product.NewHandler(a.DB)
+		r.Get("/", handler.GetProducts)
+		// /api/product/v1/products/{productId}
+		r.Route("/{productId}", func(r chi.Router) {
+			r.Get("/", handler.GetProduct)
+		})
+	})
 }
 
 func (a *ApiDefinition) Run(r *chi.Mux) {
