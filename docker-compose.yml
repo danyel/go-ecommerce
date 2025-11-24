@@ -1,0 +1,19 @@
+services:
+  ecommerce-database:
+    image: postgres
+    container_name: ecommerce-database
+    volumes:
+      - ecommerce-volume:/data/postgres
+    environment:
+      - POSTGRES_USER=ecommerce
+      - POSTGRES_PASSWORD=ecommerce
+      - PGDATA=/data/postgres
+      - POSGRES_DB=ecommerce
+    ports:
+      - "5401:5432"
+    networks:
+      - infrastructure
+volumes:
+  ecommerce-volume:
+networks:
+  infrastructure:

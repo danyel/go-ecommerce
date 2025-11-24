@@ -1,0 +1,22 @@
+-- +goose Up
+-- +goose StatementBegin
+CREATE TABLE PRODUCTS (
+    ID UUID PRIMARY KEY,
+    NAME TEXT NOT NULL,
+    DESCRIPTION TEXT NOT NULL,
+    BRAND VARCHAR(50) NOT NULL,
+    CODE VARCHAR(50) NOT NULL,
+    PRICE INT default 0,
+    STOCK INT default 0,
+    IMAGE_URL TEXT,
+    CATEGORY VARCHAR(50),
+    SUB_CATEGORY VARCHAR(50),
+    CREATED_AT TIMESTAMP default now(),
+    UPDATED_AT TIMESTAMP default now()
+);
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE PRODUCTS;
+-- +goose StatementEnd
