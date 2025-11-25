@@ -16,3 +16,12 @@ type AddChild struct {
 	ID      uuid.UUID `json:"id"`
 	ChildId uuid.UUID `json:"child_id"`
 }
+
+type CreateCms struct {
+	Value    string `json:"value"`
+	Language string `json:"language"`
+}
+
+type CmsId struct {
+	ID uuid.UUID `json:"id"`
+}

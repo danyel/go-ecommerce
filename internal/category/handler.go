@@ -1,9 +1,9 @@
 package category
 
 import (
-	"encoding/json"
 	"net/http"
 
+	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
 	requestUtil "github.com/dnoulet/ecommerce/internal/util/request"
 	"gorm.io/gorm"
 )
@@ -16,6 +16,7 @@ type CategoryHandler interface {
 
 type categoryHandler struct {
 	categoryService CategoryService
+	Handler         commonHandler.ResponseHandler
 }
 
 func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -23,18 +24,14 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 	var categoryId CategoryId
 	var err error
 	if err = requestUtil.ValidateRequest(r, &createCategory); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		h.Handler.StatusBadRequest(w)
 		return
 	}
 	if categoryId, err = h.categoryService.CreateCategory(createCategory); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		h.Handler.StatusInternalServerError(w)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(categoryId); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	h.Handler.WriteResponse(w, categoryId)
 }
 
 func (h *categoryHandler) CreateTranslations(_ http.ResponseWriter, _ *http.Request) {}
@@ -42,6 +39,7 @@ func (h *categoryHandler) CreateTranslations(_ http.ResponseWriter, _ *http.Requ
 func NewHandler(DB *gorm.DB) CategoryHandler {
 	handler := &categoryHandler{
 		NewCategoryService(DB),
+		commonHandler.NewResponseHandler(),
 	}
 	return handler
 }

@@ -1,7 +1,7 @@
 package category
 
 import (
-	repository "github.com/dnoulet/ecommerce/internal/common"
+	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -14,11 +14,11 @@ type CategoryService interface {
 }
 
 type categoryService struct {
-	categoryRepository repository.CrudRepository[CategoryModel]
+	categoryRepository commonRepository.CrudRepository[CategoryModel]
 }
 
 func (s *categoryService) GetCategories() []Category {
-	categoryModels := s.categoryRepository.FindAll(repository.SearchCriteria{Preloads: []string{"Children"}})
+	categoryModels := s.categoryRepository.FindAll(commonRepository.SearchCriteria{Preloads: []string{"Children"}})
 	return mapCategories(categoryModels)
 }
 
@@ -42,8 +42,8 @@ func (s *categoryService) CreateCategory(createCategory CreateCategory) (Categor
 	}
 	var children []*CategoryModel
 	if len(createCategory.Children) > 0 {
-		children = s.categoryRepository.FindAll(repository.SearchCriteria{
-			WhereClause: repository.WhereClause{
+		children = s.categoryRepository.FindAll(commonRepository.SearchCriteria{
+			WhereClause: commonRepository.WhereClause{
 				Query:  "id IN ?",
 				Params: []interface{}{createCategory.Children},
 			},
@@ -84,8 +84,7 @@ func mapCategory(categoryModel CategoryModel) Category {
 }
 
 func NewCategoryService(DB *gorm.DB) CategoryService {
-	service := &categoryService{
-		categoryRepository: repository.NewCrudRepository[CategoryModel](DB),
+	return &categoryService{
+		categoryRepository: commonRepository.NewCrudRepository[CategoryModel](DB),
 	}
-	return service
 }

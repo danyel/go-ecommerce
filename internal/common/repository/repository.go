@@ -1,4 +1,4 @@
-package repository
+package commonRepository
 
 import (
 	"github.com/google/uuid"

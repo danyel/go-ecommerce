@@ -87,6 +87,7 @@ func paymentV1Routing(r chi.Router, _ *ApiDefinition) chi.Router {
 func cmsV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 	return r.Route("/cms/v1/translations", func(r chi.Router) {
 		handler := cms.NewHandler(a.DB)
+		r.Get("/", handler.GetTranslations)
 		r.Get("/{language}/{id}", handler.GetTranslation)
 	})
 }

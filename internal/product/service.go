@@ -1,7 +1,7 @@
 package product
 
 import (
-	repository "github.com/dnoulet/ecommerce/internal/common"
+	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -13,12 +13,12 @@ type ProductService interface {
 }
 
 type productService struct {
-	productRepository repository.CrudRepository[ProductModel]
+	productRepository commonRepository.CrudRepository[ProductModel]
 }
 
 func (s *productService) GetProducts() []Product {
 	orderBy := "created_at asc"
-	products := s.productRepository.FindAll(repository.SearchCriteria{OrderBy: &orderBy})
+	products := s.productRepository.FindAll(commonRepository.SearchCriteria{OrderBy: &orderBy})
 	return MapToProduct(products)
 }
 func (s *productService) GetProduct(uuid uuid.UUID) (Product, error) {
@@ -59,6 +59,6 @@ func MapToProduct(productModels []*ProductModel) []Product {
 }
 
 func NewProductService(DB *gorm.DB) ProductService {
-	s := &productService{repository.NewCrudRepository[ProductModel](DB)}
+	s := &productService{commonRepository.NewCrudRepository[ProductModel](DB)}
 	return s
 }

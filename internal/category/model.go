@@ -3,12 +3,13 @@ package category
 import "github.com/google/uuid"
 
 type CreateCategory struct {
+	Code     string      `json:"code"`
 	Name     string      `json:"name"`
 	Children []uuid.UUID `json:"children"`
 }
 
 type Category struct {
-	ID       uuid.UUID  `json:"id"`
+	Code     string     `json:"code"`
 	Name     string     `json:"name"`
 	Children []Category `json:"children,omitempty"`
 }
