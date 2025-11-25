@@ -13,16 +13,7 @@ type Category struct {
 	Children []Category `json:"children,omitempty"`
 }
 
-type RemoveChild struct {
-	ID      uuid.UUID `json:"id"`
-	ChildId uuid.UUID `json:"child_id"`
-}
-
-type AddChild struct {
-	ID      uuid.UUID `json:"id"`
-	ChildId uuid.UUID `json:"child_id"`
-}
-
+//goland:noinspection GoNameStartsWithPackageName
 type CategoryId struct {
 	ID uuid.UUID `json:"id"`
 }

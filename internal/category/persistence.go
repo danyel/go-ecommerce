@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 type CategoryModel struct {
 	ID        uuid.UUID        `gorm:"type:uuid;primaryKey"`
 	Name      string           `gorm:"type:text;not null"`
@@ -19,7 +20,7 @@ func (c *CategoryModel) TableName() string {
 	return "ecommerce.categories"
 }
 
-func (c *CategoryModel) BeforeCreate(tx *gorm.DB) (err error) {
+func (c *CategoryModel) BeforeCreate(_ *gorm.DB) (err error) {
 	if c.ID == uuid.Nil {
 		c.ID = uuid.New()
 	}
