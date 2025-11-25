@@ -7,9 +7,37 @@ import (
 )
 
 //goland:noinspection GoNameStartsWithPackageName
-type ProductService struct {
-	GetProducts func() []Product
-	GetProduct  func(uuid uuid.UUID) (Product, error)
+type ProductService interface {
+	GetProducts() []Product
+	GetProduct(uuid uuid.UUID) (Product, error)
+}
+
+type productService struct {
+	productRepository repository.CrudRepository[ProductModel]
+}
+
+func (s *productService) GetProducts() []Product {
+	orderBy := "created_at asc"
+	products := s.productRepository.FindAll(repository.SearchCriteria{OrderBy: &orderBy})
+	return MapToProduct(products)
+}
+func (s *productService) GetProduct(uuid uuid.UUID) (Product, error) {
+	var product Product
+	productModel, err := s.productRepository.FindById(uuid)
+	if err != nil {
+		return product, err
+	}
+	return Product{
+		Code:        productModel.Code,
+		Price:       productModel.Price,
+		Stock:       productModel.Stock,
+		Category:    productModel.Category,
+		ImageUrl:    productModel.ImageUrl,
+		Brand:       productModel.Brand,
+		Description: productModel.Description,
+		Name:        productModel.Name,
+		ID:          productModel.ID,
+	}, nil
 }
 
 func MapToProduct(productModels []*ProductModel) []Product {
@@ -31,30 +59,6 @@ func MapToProduct(productModels []*ProductModel) []Product {
 }
 
 func NewProductService(DB *gorm.DB) ProductService {
-	productRepository := repository.NewCrudRepository[ProductModel](DB)
-	return ProductService{
-		GetProducts: func() []Product {
-			orderBy := "created_at asc"
-			products := productRepository.FindAll(repository.SearchCriteria{OrderBy: &orderBy})
-			return MapToProduct(products)
-		},
-		GetProduct: func(uuid uuid.UUID) (Product, error) {
-			var product Product
-			productModel, err := productRepository.FindById(uuid)
-			if err != nil {
-				return product, err
-			}
-			return Product{
-				Code:        productModel.Code,
-				Price:       productModel.Price,
-				Stock:       productModel.Stock,
-				Category:    productModel.Category,
-				ImageUrl:    productModel.ImageUrl,
-				Brand:       productModel.Brand,
-				Description: productModel.Description,
-				Name:        productModel.Name,
-				ID:          productModel.ID,
-			}, nil
-		},
-	}
+	s := &productService{repository.NewCrudRepository[ProductModel](DB)}
+	return s
 }

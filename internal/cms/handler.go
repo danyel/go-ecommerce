@@ -6,11 +6,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type CmsHandler struct {
+//goland:noinspection GoNameStartsWithPackageName
+type CmsHandler interface {
+	GetTranslation(w http.ResponseWriter, r *http.Request)
 }
 
-func (h *CmsHandler) GetTranslation(w http.ResponseWriter, r *http.Request) {}
+type cmsHandler struct{}
 
-func NewHandler(DB *gorm.DB) CmsHandler {
-	return CmsHandler{}
+func (h *cmsHandler) GetTranslation(_ http.ResponseWriter, _ *http.Request) {}
+
+func NewHandler(_ *gorm.DB) CmsHandler {
+	return &cmsHandler{}
 }

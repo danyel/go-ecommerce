@@ -8,12 +8,75 @@ import (
 )
 
 //goland:noinspection GoNameStartsWithPackageName
-type ProductService struct {
-	GetProducts   func() []product.Product
-	GetProduct    func(uuid uuid.UUID) (product.Product, error)
-	DeleteProduct func(uuid uuid.UUID) error
-	UpdateProduct func(uuid uuid.UUID, updateProduct UpdateProduct) error
-	CreateProduct func(createProduct CreateProduct) (ProductId, error)
+type ProductService interface {
+	GetProducts() []product.Product
+	GetProduct(uuid uuid.UUID) (product.Product, error)
+	DeleteProduct(uuid uuid.UUID) error
+	UpdateProduct(uuid uuid.UUID, updateProduct UpdateProduct) error
+	CreateProduct(createProduct CreateProduct) (ProductId, error)
+}
+
+type productService struct {
+	productRepository repository.CrudRepository[product.ProductModel]
+}
+
+func (s *productService) GetProducts() []product.Product {
+	orderBy := "created_at asc"
+	products := s.productRepository.FindAll(repository.SearchCriteria{OrderBy: &orderBy})
+	return MapToProduct(products)
+}
+
+func (s *productService) GetProduct(uuid uuid.UUID) (product.Product, error) {
+	var p product.Product
+	productModel, err := s.productRepository.FindById(uuid)
+	if err != nil {
+		return p, err
+	}
+	return product.Product{
+		Code:        productModel.Code,
+		Price:       productModel.Price,
+		Stock:       productModel.Stock,
+		Category:    productModel.Category,
+		ImageUrl:    productModel.ImageUrl,
+		Brand:       productModel.Brand,
+		Description: productModel.Description,
+		Name:        productModel.Name,
+		ID:          productModel.ID,
+	}, nil
+}
+func (s *productService) DeleteProduct(uuid uuid.UUID) error {
+	return s.productRepository.Delete(uuid)
+}
+func (s *productService) UpdateProduct(uuid uuid.UUID, updateProduct UpdateProduct) error {
+	p, err := s.productRepository.FindById(uuid)
+	if err != nil {
+		return err
+	}
+	p.Name = updateProduct.Name
+	p.Brand = updateProduct.Brand
+	p.Description = updateProduct.Description
+	p.Stock = updateProduct.Stock
+	p.Category = updateProduct.Category
+	p.ImageUrl = updateProduct.ImageUrl
+	p.Price = updateProduct.Price
+	return s.productRepository.Update(p)
+}
+func (s *productService) CreateProduct(createProduct CreateProduct) (ProductId, error) {
+	var productId ProductId
+	p := product.ProductModel{
+		Code:        createProduct.Code,
+		Price:       createProduct.Price,
+		Category:    createProduct.Category,
+		ImageUrl:    createProduct.ImageUrl,
+		Brand:       createProduct.Brand,
+		Description: createProduct.Description,
+		Name:        createProduct.Name,
+	}
+	err := s.productRepository.Create(&p)
+	if err != nil {
+		return productId, err
+	}
+	return ProductId{ID: p.ID}, nil
 }
 
 func MapToProduct(productModels []*product.ProductModel) []product.Product {
@@ -35,64 +98,7 @@ func MapToProduct(productModels []*product.ProductModel) []product.Product {
 }
 
 func NewProductService(DB *gorm.DB) ProductService {
-	productRepository := repository.NewCrudRepository[product.ProductModel](DB)
-	return ProductService{
-		GetProducts: func() []product.Product {
-			orderBy := "created_at asc"
-			products := productRepository.FindAll(repository.SearchCriteria{OrderBy: &orderBy})
-			return MapToProduct(products)
-		},
-		GetProduct: func(uuid uuid.UUID) (product.Product, error) {
-			var p product.Product
-			productModel, err := productRepository.FindById(uuid)
-			if err != nil {
-				return p, err
-			}
-			return product.Product{
-				Code:        productModel.Code,
-				Price:       productModel.Price,
-				Stock:       productModel.Stock,
-				Category:    productModel.Category,
-				ImageUrl:    productModel.ImageUrl,
-				Brand:       productModel.Brand,
-				Description: productModel.Description,
-				Name:        productModel.Name,
-				ID:          productModel.ID,
-			}, nil
-		},
-		DeleteProduct: func(uuid uuid.UUID) error {
-			return productRepository.Delete(uuid)
-		},
-		UpdateProduct: func(uuid uuid.UUID, updateProduct UpdateProduct) error {
-			p, err := productRepository.FindById(uuid)
-			if err != nil {
-				return err
-			}
-			p.Name = updateProduct.Name
-			p.Brand = updateProduct.Brand
-			p.Description = updateProduct.Description
-			p.Stock = updateProduct.Stock
-			p.Category = updateProduct.Category
-			p.ImageUrl = updateProduct.ImageUrl
-			p.Price = updateProduct.Price
-			return productRepository.Update(p)
-		},
-		CreateProduct: func(createProduct CreateProduct) (ProductId, error) {
-			var productId ProductId
-			p := product.ProductModel{
-				Code:        createProduct.Code,
-				Price:       createProduct.Price,
-				Category:    createProduct.Category,
-				ImageUrl:    createProduct.ImageUrl,
-				Brand:       createProduct.Brand,
-				Description: createProduct.Description,
-				Name:        createProduct.Name,
-			}
-			err := productRepository.Create(&p)
-			if err != nil {
-				return productId, err
-			}
-			return ProductId{ID: p.ID}, nil
-		},
+	return &productService{
+		repository.NewCrudRepository[product.ProductModel](DB),
 	}
 }

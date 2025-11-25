@@ -7,10 +7,56 @@ import (
 )
 
 //goland:noinspection GoNameStartsWithPackageName
-type CategoryService struct {
-	GetCategories  func() []Category
-	GetCategory    func(categoryID uuid.UUID) (Category, error)
-	CreateCategory func(createCategory CreateCategory) (CategoryId, error)
+type CategoryService interface {
+	GetCategories() []Category
+	GetCategory(categoryID uuid.UUID) (Category, error)
+	CreateCategory(createCategory CreateCategory) (CategoryId, error)
+}
+
+type categoryService struct {
+	categoryRepository repository.CrudRepository[CategoryModel]
+}
+
+func (s *categoryService) GetCategories() []Category {
+	categoryModels := s.categoryRepository.FindAll(repository.SearchCriteria{Preloads: []string{"Children"}})
+	return mapCategories(categoryModels)
+}
+
+func (s *categoryService) GetCategory(categoryID uuid.UUID) (Category, error) {
+	var category Category
+	categoryModel, err := s.categoryRepository.FindById(categoryID)
+	if err != nil {
+		return category, err
+	}
+	return mapCategory(*categoryModel), err
+}
+func (s *categoryService) CreateCategory(createCategory CreateCategory) (CategoryId, error) {
+	var err error
+	var categoryId CategoryId
+	category := &CategoryModel{
+		Name: createCategory.Name,
+	}
+
+	if err := s.categoryRepository.Create(category); err != nil {
+		return categoryId, err
+	}
+	var children []*CategoryModel
+	if len(createCategory.Children) > 0 {
+		children = s.categoryRepository.FindAll(repository.SearchCriteria{
+			WhereClause: repository.WhereClause{
+				Query:  "id IN ?",
+				Params: []interface{}{createCategory.Children},
+			},
+		})
+	}
+
+	if len(children) > 0 {
+		if err = s.categoryRepository.AssocAppend(category, createCategory.Name, createCategory.Children); err != nil {
+			return categoryId, err
+		}
+	}
+	categoryId.ID = category.ID
+	return categoryId, err
 }
 
 func mapCategories(models []*CategoryModel) []Category {
@@ -38,47 +84,8 @@ func mapCategory(categoryModel CategoryModel) Category {
 }
 
 func NewCategoryService(DB *gorm.DB) CategoryService {
-	categoryRepository := repository.NewCrudRepository[CategoryModel](DB)
-	return CategoryService{
-		GetCategories: func() []Category {
-			categoryModels := categoryRepository.FindAll(repository.SearchCriteria{Preloads: []string{"Children"}})
-			return mapCategories(categoryModels)
-		},
-		GetCategory: func(categoryID uuid.UUID) (Category, error) {
-			var category Category
-			categoryModel, err := categoryRepository.FindById(categoryID)
-			if err != nil {
-				return category, err
-			}
-			return mapCategory(*categoryModel), err
-		},
-		CreateCategory: func(createCategory CreateCategory) (CategoryId, error) {
-			var err error
-			var categoryId CategoryId
-			category := &CategoryModel{
-				Name: createCategory.Name,
-			}
-
-			if err := categoryRepository.Create(category); err != nil {
-				return categoryId, err
-			}
-			var children []*CategoryModel
-			if len(createCategory.Children) > 0 {
-				children = categoryRepository.FindAll(repository.SearchCriteria{
-					WhereClause: repository.WhereClause{
-						Query:  "id IN ?",
-						Params: []interface{}{createCategory.Children},
-					},
-				})
-			}
-
-			if len(children) > 0 {
-				if err = categoryRepository.AssocAppend(category, createCategory.Name, createCategory.Children); err != nil {
-					return categoryId, err
-				}
-			}
-			categoryId.ID = category.ID
-			return categoryId, err
-		},
+	service := &categoryService{
+		categoryRepository: repository.NewCrudRepository[CategoryModel](DB),
 	}
+	return service
 }
