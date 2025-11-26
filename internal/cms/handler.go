@@ -30,13 +30,13 @@ func (h *cmsHandler) GetTranslation(w http.ResponseWriter, r *http.Request) {
 		h.Handler.StatusNotFound(w)
 		return
 	}
-	h.Handler.WriteResponse(w, translation)
+	h.Handler.WriteResponse(http.StatusOK, w, translation)
 }
 
 func (h *cmsHandler) GetTranslations(w http.ResponseWriter, r *http.Request) {
 	language := r.URL.Query().Get("language")
 
-	h.Handler.WriteResponse(w, h.cmsService.GetTranslations(language))
+	h.Handler.WriteResponse(http.StatusOK, w, h.cmsService.GetTranslations(language))
 }
 
 func NewHandler(db *gorm.DB) CmsHandler {

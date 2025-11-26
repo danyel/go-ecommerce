@@ -1,19 +1,18 @@
 package integration
 
 import (
-	"bytes"
-	"encoding/json"
-	"net/http"
 	"testing"
 
 	"github.com/dnoulet/ecommerce/internal/category"
 	"github.com/dnoulet/ecommerce/internal/cms"
 	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
+	"github.com/dnoulet/ecommerce/internal/management"
+	productmanagement "github.com/dnoulet/ecommerce/internal/product-management"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler(t *testing.T) {
-	app := SetupTestApp(t)
+	app := SetupWebIntegration(t)
 
 	t.Run("Product Handler", func(t *testing.T) {
 		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](app.DB)
@@ -21,25 +20,20 @@ func TestHandler(t *testing.T) {
 			c := category.CategoryModel{Name: "test", Children: []*category.CategoryModel{}}
 			e := categoryRepository.Create(&c)
 			assert.Nil(t, e)
-			body := map[string]any{
-				"brand":       "Apple",
-				"name":        "iPhone 16",
-				"description": "test device",
-				"code":        "some code",
-				"price":       10,
-				"image_url":   "image_url",
-				"categoryId":  c.ID.String(),
+			body := &productmanagement.CreateProduct{
+				Brand:       "Apple",
+				Name:        "iPhone 16",
+				Description: "test device",
+				Code:        "some code",
+				Price:       10,
+				ImageUrl:    "image_url",
+				CategoryId:  c.ID,
 			}
-			b, _ := json.Marshal(body)
-
-			res, err := http.Post(app.Server.URL+"/api/product-management/v1/products", "application/json", bytes.NewBuffer(b))
-			if err != nil {
-				t.Fatalf("HTTP request failed: %v", err)
-			}
-
-			if res.StatusCode != http.StatusCreated {
-				t.Fatalf("expected status 201, got %d", res.StatusCode)
-			}
+			var productId productmanagement.ProductId
+			app.Post(app.Server.URL+"/api/product-management/v1/products", "application/json", body).
+				GetResponseBody(&productId).
+				AssertStatusCreated()
+			assert.NotNil(t, productId.ID)
 		})
 	})
 
@@ -54,13 +48,10 @@ func TestHandler(t *testing.T) {
 
 		t.Run("TestCmsHandler", func(t *testing.T) {
 			t.Run("CmsHandler retrieve dutch", func(t *testing.T) {
-				resp, err := http.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_be")
-
-				assert.Nil(t, err)
-				assert.Equal(t, http.StatusOK, resp.StatusCode)
 				var translations []cms.Translation
-				err = json.NewDecoder(resp.Body).Decode(&translations)
-				assert.Nil(t, err)
+				app.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_be").
+					GetResponseBody(&translations).
+					AssertStatusOk()
 				assert.Equal(t, 3, len(translations))
 				assert.Equal(t, "code", translations[0].Code)
 				assert.Equal(t, "Value_nl", translations[0].Value)
@@ -71,12 +62,10 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("CmsHandler retrieve french", func(t *testing.T) {
-				resp, err := http.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_fr")
-				assert.Nil(t, err)
-				assert.Equal(t, http.StatusOK, resp.StatusCode)
 				var translations []cms.Translation
-				err = json.NewDecoder(resp.Body).Decode(&translations)
-				assert.Nil(t, err)
+				app.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_fr").
+					GetResponseBody(&translations).
+					AssertStatusOk()
 				assert.Equal(t, 3, len(translations))
 				assert.Equal(t, "code", translations[0].Code)
 				assert.Equal(t, "Value_fr", translations[0].Value)
@@ -87,12 +76,10 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("CmsHandler retrieve all", func(t *testing.T) {
-				resp, err := http.Get(app.Server.URL + "/api/cms/v1/translations")
-				assert.Nil(t, err)
-				assert.Equal(t, http.StatusOK, resp.StatusCode)
 				var translations []cms.Translation
-				err = json.NewDecoder(resp.Body).Decode(&translations)
-				assert.Nil(t, err)
+				app.Get(app.Server.URL + "/api/cms/v1/translations").
+					GetResponseBody(&translations).
+					AssertStatusOk()
 				assert.Equal(t, 6, len(translations))
 				assert.Equal(t, "code", translations[0].Code)
 				assert.Equal(t, "Value_nl", translations[0].Value)
@@ -109,14 +96,34 @@ func TestHandler(t *testing.T) {
 			})
 
 			t.Run("CmsHandler retrieve none because of invalid language", func(t *testing.T) {
-				resp, err := http.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_de")
-				assert.Nil(t, err)
-				assert.Equal(t, http.StatusOK, resp.StatusCode)
 				var translations []cms.Translation
-				err = json.NewDecoder(resp.Body).Decode(&translations)
-				assert.Nil(t, err)
+				app.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_de").
+					GetResponseBody(&translations).
+					AssertStatusOk()
 				assert.Equal(t, 0, len(translations))
 			})
+		})
+	})
+
+	t.Run("Management Handler", func(t *testing.T) {
+		t.Run("ManagementHandler: Create a new translation but it already exist so return 400", func(t *testing.T) {
+			body := &management.CreateCms{
+				Code:     "code",
+				Language: "nl_be",
+				Value:    "Value_nl",
+			}
+			app.Post(app.Server.URL+"/api/management/v1/translations", "application/json", body).
+				AssertBadRequest()
+		})
+
+		t.Run("ManagementHandler: Create a new translation and 201 is return", func(t *testing.T) {
+			body := &management.CreateCms{
+				Code:     "unknown",
+				Language: "nl_fr",
+				Value:    "Value_fr",
+			}
+			app.Post(app.Server.URL+"/api/management/v1/translations", "application/json", body).
+				AssertStatusCreated()
 		})
 	})
 }

@@ -6,15 +6,15 @@ import (
 	"gorm.io/gorm"
 )
 
-type CmsService interface {
+type ManagementService interface {
 	CreateTranslation(createCms CreateCms) (cmsId CmsId, err error)
 }
 
-type cmsService struct {
+type managementService struct {
 	cmsRepository commonRepository.CrudRepository[cms.CmsModel]
 }
 
-func (s *cmsService) CreateTranslation(createCms CreateCms) (cmsId CmsId, err error) {
+func (s *managementService) CreateTranslation(createCms CreateCms) (cmsId CmsId, err error) {
 	cmsModel := &cms.CmsModel{
 		Value:    createCms.Value,
 		Language: createCms.Language,
@@ -25,6 +25,6 @@ func (s *cmsService) CreateTranslation(createCms CreateCms) (cmsId CmsId, err er
 	return CmsId{cmsModel.ID}, nil
 }
 
-func NewCmsService(DB *gorm.DB) CmsService {
-	return &cmsService{commonRepository.NewCrudRepository[cms.CmsModel](DB)}
+func NewManagementService(DB *gorm.DB) ManagementService {
+	return &managementService{commonRepository.NewCrudRepository[cms.CmsModel](DB)}
 }

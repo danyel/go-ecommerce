@@ -31,7 +31,7 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 		h.Handler.StatusInternalServerError(w)
 		return
 	}
-	h.Handler.WriteResponse(w, categoryId)
+	h.Handler.WriteResponse(http.StatusCreated, w, categoryId)
 }
 
 func (h *categoryHandler) CreateTranslations(_ http.ResponseWriter, _ *http.Request) {}

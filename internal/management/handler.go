@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/dnoulet/ecommerce/internal/category"
+	"github.com/dnoulet/ecommerce/internal/cms"
 	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
+	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
 	requestutil "github.com/dnoulet/ecommerce/internal/util/request"
 	"gorm.io/gorm"
 )
@@ -17,9 +19,10 @@ type ManagementHandler interface {
 }
 
 type managementHandler struct {
-	categoryService category.CategoryService
-	cmsService      CmsService
-	handler         commonHandler.ResponseHandler
+	categoryService   category.CategoryService
+	managementService ManagementService
+	handler           commonHandler.ResponseHandler
+	cmsService        cms.CmsService
 }
 
 func (h *managementHandler) GetCategories(w http.ResponseWriter, _ *http.Request) {
@@ -38,17 +41,24 @@ func (h *managementHandler) CreateTranslations(w http.ResponseWriter, r *http.Re
 		h.handler.StatusBadRequest(w)
 		return
 	}
-	if cmsId, err = h.cmsService.CreateTranslation(createCms); err != nil {
+
+	// we can not create a new translation for the same code and language!
+	if _, err = h.cmsService.GetTranslation(createCms.Code, createCms.Language); err == nil {
+		h.handler.StatusBadRequest(w)
+	}
+
+	if cmsId, err = h.managementService.CreateTranslation(createCms); err != nil {
 		h.handler.StatusInternalServerError(w)
 		return
 	}
-	h.handler.WriteResponse(w, cmsId)
+	h.handler.WriteResponse(http.StatusCreated, w, cmsId)
 }
 
 func NewHandler(DB *gorm.DB) ManagementHandler {
 	return &managementHandler{
-		categoryService: category.NewCategoryService(DB),
-		handler:         commonHandler.NewResponseHandler(),
-		cmsService:      NewCmsService(DB),
+		categoryService:   category.NewCategoryService(DB),
+		handler:           commonHandler.NewResponseHandler(),
+		managementService: NewManagementService(DB),
+		cmsService:        cms.NewCmsService(commonRepository.NewCrudRepository[cms.CmsModel](DB)),
 	}
 }

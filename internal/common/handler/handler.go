@@ -6,7 +6,7 @@ import (
 )
 
 type ResponseHandler interface {
-	WriteResponse(w http.ResponseWriter, v any)
+	WriteResponse(status int, w http.ResponseWriter, v any)
 	StatusBadRequest(w http.ResponseWriter)
 	StatusNotFound(w http.ResponseWriter)
 	StatusInternalServerError(w http.ResponseWriter)
@@ -16,9 +16,9 @@ type ResponseHandler interface {
 type responseHandler struct {
 }
 
-func (r *responseHandler) WriteResponse(w http.ResponseWriter, v any) {
+func (r *responseHandler) WriteResponse(status int, w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(v); err != nil {
 		r.StatusInternalServerError(w)
 	}
