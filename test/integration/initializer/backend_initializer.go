@@ -1,4 +1,4 @@
-package integration
+package initializer
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 
 type BackendInitializer struct {
 	context *context.Context
-	DB      *gorm.DB
+	db      *gorm.DB
 	pg      *tcpostgres.PostgresContainer
 }
 
@@ -93,6 +93,10 @@ func (b *BackendInitializer) Terminate() {
 	}
 }
 
+func (b *BackendInitializer) Db() *gorm.DB {
+	return b.db
+}
+
 func (b *BackendInitializer) Run() {
 	databaseConfiguration := b.initializeDatabaseConfiguration()
 	pg, err := b.initializeTestContainer(&databaseConfiguration)
@@ -101,7 +105,7 @@ func (b *BackendInitializer) Run() {
 	}
 	b.updateDatabaseConfiguration(pg, &databaseConfiguration)
 	b.initializeMigrationScripts(pg)
-	b.DB, err = b.connect(&databaseConfiguration)
+	b.db, err = b.connect(&databaseConfiguration)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}

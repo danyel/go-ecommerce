@@ -8,19 +8,21 @@ import (
 	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
 	"github.com/dnoulet/ecommerce/internal/management"
 	productmanagement "github.com/dnoulet/ecommerce/internal/product-management"
+	"github.com/dnoulet/ecommerce/test/integration/initializer"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler(t *testing.T) {
-	app := SetupWebIntegration(t)
+	wi := initializer.SetupWebIntegration(t)
 
 	t.Run("Product Handler", func(t *testing.T) {
-		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](app.DB)
+		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](wi.Db())
+
 		t.Run("CreateProduct", func(t *testing.T) {
 			c := category.CategoryModel{Name: "test", Children: []*category.CategoryModel{}}
 			e := categoryRepository.Create(&c)
 			assert.Nil(t, e)
-			body := &productmanagement.CreateProduct{
+			b := &productmanagement.CreateProduct{
 				Brand:       "Apple",
 				Name:        "iPhone 16",
 				Description: "test device",
@@ -30,7 +32,7 @@ func TestHandler(t *testing.T) {
 				CategoryId:  c.ID,
 			}
 			var productId productmanagement.ProductId
-			app.Post(app.Server.URL+"/api/product-management/v1/products", "application/json", body).
+			wi.Post(wi.ForUrl("/api/product-management/v1/products"), "application/json", b).
 				GetResponseBody(&productId).
 				AssertStatusCreated()
 			assert.NotNil(t, productId.ID)
@@ -38,7 +40,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("CMS Handler", func(t *testing.T) {
-		f := NewFixture(commonRepository.NewCrudRepository[cms.CmsModel](app.DB))
+		f := NewFixture(commonRepository.NewCrudRepository[cms.CmsModel](wi.Db()))
 		f.SaveModel(&cms.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"})
 		f.SaveModel(&cms.CmsModel{Code: "code", Language: "nl_fr", Value: "Value_fr"})
 		f.SaveModel(&cms.CmsModel{Code: "another_code", Language: "nl_be", Value: "AnotherValue_nl"})
@@ -49,7 +51,7 @@ func TestHandler(t *testing.T) {
 		t.Run("TestCmsHandler", func(t *testing.T) {
 			t.Run("CmsHandler retrieve dutch", func(t *testing.T) {
 				var translations []cms.Translation
-				app.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_be").
+				wi.Get(wi.ForUrl("/api/cms/v1/translations?language=nl_be")).
 					GetResponseBody(&translations).
 					AssertStatusOk()
 				assert.Equal(t, 3, len(translations))
@@ -63,7 +65,7 @@ func TestHandler(t *testing.T) {
 
 			t.Run("CmsHandler retrieve french", func(t *testing.T) {
 				var translations []cms.Translation
-				app.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_fr").
+				wi.Get(wi.ForUrl("/api/cms/v1/translations?language=nl_fr")).
 					GetResponseBody(&translations).
 					AssertStatusOk()
 				assert.Equal(t, 3, len(translations))
@@ -77,7 +79,7 @@ func TestHandler(t *testing.T) {
 
 			t.Run("CmsHandler retrieve all", func(t *testing.T) {
 				var translations []cms.Translation
-				app.Get(app.Server.URL + "/api/cms/v1/translations").
+				wi.Get(wi.ForUrl("/api/cms/v1/translations")).
 					GetResponseBody(&translations).
 					AssertStatusOk()
 				assert.Equal(t, 6, len(translations))
@@ -97,7 +99,7 @@ func TestHandler(t *testing.T) {
 
 			t.Run("CmsHandler retrieve none because of invalid language", func(t *testing.T) {
 				var translations []cms.Translation
-				app.Get(app.Server.URL + "/api/cms/v1/translations?language=nl_de").
+				wi.Get(wi.ForUrl("/api/cms/v1/translations?language=nl_de")).
 					GetResponseBody(&translations).
 					AssertStatusOk()
 				assert.Equal(t, 0, len(translations))
@@ -107,22 +109,22 @@ func TestHandler(t *testing.T) {
 
 	t.Run("Management Handler", func(t *testing.T) {
 		t.Run("ManagementHandler: Create a new translation but it already exist so return 400", func(t *testing.T) {
-			body := &management.CreateCms{
+			b := &management.CreateCms{
 				Code:     "code",
 				Language: "nl_be",
 				Value:    "Value_nl",
 			}
-			app.Post(app.Server.URL+"/api/management/v1/translations", "application/json", body).
+			wi.Post(wi.ForUrl("/api/management/v1/translations"), "application/json", b).
 				AssertBadRequest()
 		})
 
 		t.Run("ManagementHandler: Create a new translation and 201 is return", func(t *testing.T) {
-			body := &management.CreateCms{
+			b := &management.CreateCms{
 				Code:     "unknown",
 				Language: "nl_fr",
 				Value:    "Value_fr",
 			}
-			app.Post(app.Server.URL+"/api/management/v1/translations", "application/json", body).
+			wi.Post(wi.ForUrl("/api/management/v1/translations"), "application/json", b).
 				AssertStatusCreated()
 		})
 	})

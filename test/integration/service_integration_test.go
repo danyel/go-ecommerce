@@ -7,16 +7,17 @@ import (
 	"github.com/dnoulet/ecommerce/internal/cms"
 	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
 	"github.com/dnoulet/ecommerce/internal/product"
+	"github.com/dnoulet/ecommerce/test/integration/initializer"
 	_ "github.com/lib/pq" // ← REQUIRED for Goose + sql.Open("postgres")
 	"github.com/stretchr/testify/assert"
 )
 
 func TestServiceIntegration(t *testing.T) {
-	initializer := NewBackendInitializer()
-	initializer.Run()
+	bi := initializer.NewBackendInitializer()
+	bi.Run()
 
 	t.Run("Category Testing", func(t *testing.T) {
-		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](initializer.DB)
+		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](bi.Db())
 
 		t.Run("Get Categories Before Creation", func(t *testing.T) {
 			findAll := categoryRepository.FindAll(commonRepository.SearchCriteria{})
@@ -36,7 +37,7 @@ func TestServiceIntegration(t *testing.T) {
 	})
 
 	t.Run("Cms Testing", func(t *testing.T) {
-		cmsRepository := commonRepository.NewCrudRepository[cms.CmsModel](initializer.DB)
+		cmsRepository := commonRepository.NewCrudRepository[cms.CmsModel](bi.Db())
 		f := NewFixture[cms.CmsModel](cmsRepository)
 		cmsService := cms.NewCmsService(cmsRepository)
 
@@ -103,8 +104,8 @@ func TestServiceIntegration(t *testing.T) {
 	})
 
 	t.Run("Product Testing", func(t *testing.T) {
-		productRepository := commonRepository.NewCrudRepository[product.ProductModel](initializer.DB)
-		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](initializer.DB)
+		productRepository := commonRepository.NewCrudRepository[product.ProductModel](bi.Db())
+		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](bi.Db())
 
 		t.Run("Create Product ", func(t *testing.T) {
 			c := category.CategoryModel{Name: "test", Children: []*category.CategoryModel{}}
