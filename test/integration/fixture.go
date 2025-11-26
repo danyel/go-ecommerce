@@ -1,0 +1,22 @@
+package integration
+
+import (
+	"log"
+
+	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
+)
+
+type Fixture[T any] struct {
+	repository commonRepository.CrudRepository[T]
+}
+
+func (f Fixture[T]) SaveModel(t *T) {
+	e := f.repository.Create(t)
+	if e != nil {
+		log.Fatal(e)
+	}
+}
+
+func NewFixture[T any](repository commonRepository.CrudRepository[T]) Fixture[T] {
+	return Fixture[T]{repository}
+}

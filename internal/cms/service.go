@@ -4,13 +4,11 @@ import (
 	"fmt"
 
 	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type CmsService interface {
 	GetTranslations(language string) []Translation
-	GetTranslation(id uuid.UUID, language string) (Translation, error)
+	GetTranslation(code string, language string) (Translation, error)
 }
 
 type cmsService struct {
@@ -38,10 +36,10 @@ func (s *cmsService) GetTranslations(language string) []Translation {
 	return translations
 }
 
-func (s *cmsService) GetTranslation(id uuid.UUID, language string) (Translation, error) {
+func (s *cmsService) GetTranslation(code string, language string) (Translation, error) {
 	cms := s.cmsRepository.FindAll(commonRepository.SearchCriteria{WhereClause: commonRepository.WhereClause{
-		Query:  "id = ? AND language = ?",
-		Params: []interface{}{id, language},
+		Query:  "code = ? AND language = ?",
+		Params: []interface{}{code, language},
 	}})
 
 	if len(cms) == 0 {
@@ -55,6 +53,6 @@ func (s *cmsService) GetTranslation(id uuid.UUID, language string) (Translation,
 	}, nil
 }
 
-func NewCmsService(DB *gorm.DB) CmsService {
-	return &cmsService{cmsRepository: commonRepository.NewCrudRepository[CmsModel](DB)}
+func NewCmsService(cmsRepository commonRepository.CrudRepository[CmsModel]) CmsService {
+	return &cmsService{cmsRepository}
 }

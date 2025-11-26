@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
+	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -22,15 +22,11 @@ type cmsHandler struct {
 
 func (h *cmsHandler) GetTranslation(w http.ResponseWriter, r *http.Request) {
 	language := chi.URLParam(r, "language")
-	var cmsId uuid.UUID
+	code := chi.URLParam(r, "code")
 	var translation Translation
 	var err error
 
-	if cmsId, err = uuid.Parse(chi.URLParam(r, "id")); err != nil {
-		h.Handler.StatusBadRequest(w)
-		return
-	}
-	if translation, err = h.cmsService.GetTranslation(cmsId, language); err != nil {
+	if translation, err = h.cmsService.GetTranslation(code, language); err != nil {
 		h.Handler.StatusNotFound(w)
 		return
 	}
@@ -45,7 +41,7 @@ func (h *cmsHandler) GetTranslations(w http.ResponseWriter, r *http.Request) {
 
 func NewHandler(db *gorm.DB) CmsHandler {
 	return &cmsHandler{
-		NewCmsService(db),
+		NewCmsService(commonRepository.NewCrudRepository[CmsModel](db)),
 		commonHandler.NewResponseHandler(),
 	}
 }

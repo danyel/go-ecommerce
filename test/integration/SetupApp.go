@@ -30,7 +30,6 @@ func SetupTestApp(t *testing.T) *TestApp {
 
 	t.Cleanup(func() {
 		ts.Close()
-		initializer.Terminate()
 	})
 
 	return &TestApp{
