@@ -18,10 +18,10 @@ type CmsModel struct {
 }
 
 func (p *CmsModel) TableName() string {
-	return "ecommerce.cms"
+	return "cms"
 }
 
-func (p *CmsModel) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *CmsModel) BeforeCreate(_ *gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}

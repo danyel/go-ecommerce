@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE CMS
+CREATE TABLE ecommerce.CMS
 (
     ID         UUID PRIMARY KEY,
     CODE       TEXT       NOT NULL,
@@ -13,5 +13,5 @@ CREATE TABLE CMS
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE CMS;
+DROP TABLE ecommerce.CMS;
 -- +goose StatementEnd

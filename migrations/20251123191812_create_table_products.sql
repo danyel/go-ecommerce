@@ -1,6 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE PRODUCTS (
+CREATE SCHEMA IF NOT EXISTS ecommerce;
+CREATE TABLE ecommerce.PRODUCTS (
     ID UUID PRIMARY KEY,
     NAME TEXT NOT NULL,
     DESCRIPTION TEXT NOT NULL,
@@ -18,5 +19,5 @@ CREATE TABLE PRODUCTS (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE PRODUCTS;
+DROP TABLE ecommerce.PRODUCTS;
 -- +goose StatementEnd

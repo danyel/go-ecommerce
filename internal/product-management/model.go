@@ -22,7 +22,7 @@ type UpdateProduct struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Price       uint32    `json:"price"`
-	Category    uuid.UUID `json:"category"`
+	CategoryId  uuid.UUID `json:"category_id"`
 	ImageUrl    string    `json:"image_url"`
 	Stock       uint32    `json:"stock"`
 }
@@ -33,7 +33,7 @@ type CreateProduct struct {
 	Description string    `json:"description"`
 	Code        string    `json:"code"`
 	Price       uint32    `json:"price"`
-	Category    uuid.UUID `json:"category"`
+	CategoryId  uuid.UUID `json:"categoryId"`
 	ImageUrl    string    `json:"image_url"`
 }
 

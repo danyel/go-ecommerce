@@ -36,7 +36,7 @@ func (s *productService) GetProduct(uuid uuid.UUID) (product.Product, error) {
 		Code:        productModel.Code,
 		Price:       productModel.Price,
 		Stock:       productModel.Stock,
-		Category:    productModel.Category,
+		CategoryId:  productModel.CategoryId,
 		ImageUrl:    productModel.ImageUrl,
 		Brand:       productModel.Brand,
 		Description: productModel.Description,
@@ -56,7 +56,7 @@ func (s *productService) UpdateProduct(uuid uuid.UUID, updateProduct UpdateProdu
 	p.Brand = updateProduct.Brand
 	p.Description = updateProduct.Description
 	p.Stock = updateProduct.Stock
-	p.Category = updateProduct.Category
+	p.CategoryId = updateProduct.CategoryId
 	p.ImageUrl = updateProduct.ImageUrl
 	p.Price = updateProduct.Price
 	return s.productRepository.Update(p)
@@ -66,7 +66,7 @@ func (s *productService) CreateProduct(createProduct CreateProduct) (ProductId, 
 	p := product.ProductModel{
 		Code:        createProduct.Code,
 		Price:       createProduct.Price,
-		Category:    createProduct.Category,
+		CategoryId:  createProduct.CategoryId,
 		ImageUrl:    createProduct.ImageUrl,
 		Brand:       createProduct.Brand,
 		Description: createProduct.Description,
@@ -85,7 +85,7 @@ func MapToProduct(productModels []*product.ProductModel) []product.Product {
 		result[i] = product.Product{
 			Code:        p.Code,
 			Price:       p.Price,
-			Category:    p.Category,
+			CategoryId:  p.CategoryId,
 			ImageUrl:    p.ImageUrl,
 			Brand:       p.Brand,
 			Description: p.Description,

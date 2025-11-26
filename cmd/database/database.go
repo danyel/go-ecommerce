@@ -10,7 +10,7 @@ import (
 )
 
 func Connect(database *config.DatabaseConfiguration) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", database.Host, database.Port, database.Username, database.Password, database.Database)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s", database.Host, database.Port, database.Username, database.Password, database.Database, database.Schema)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -18,6 +18,6 @@ func Connect(database *config.DatabaseConfiguration) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	log.Println("Successfully connected to the database")
+	log.Printf("Successfully connected to the database[%s]\n", dsn)
 	return db, nil
 }

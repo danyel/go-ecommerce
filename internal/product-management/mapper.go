@@ -25,7 +25,7 @@ type categoryMapper struct{}
 func (p *productMapper) MapProducts(models []product.Product) []Product {
 	result := make([]Product, len(models))
 	for i, productModel := range models {
-		categoryModel, _ := p.categoryService.GetCategory(productModel.Category)
+		categoryModel, _ := p.categoryService.GetCategory(productModel.CategoryId)
 		result[i] = Product{
 			Code:        productModel.Code,
 			Price:       productModel.Price,
@@ -41,7 +41,7 @@ func (p *productMapper) MapProducts(models []product.Product) []Product {
 	return result
 }
 func (p *productMapper) MapProduct(productModel product.Product) Product {
-	categoryModel, _ := p.categoryService.GetCategory(productModel.Category)
+	categoryModel, _ := p.categoryService.GetCategory(productModel.CategoryId)
 	return Product{
 		Code:        productModel.Code,
 		Price:       productModel.Price,

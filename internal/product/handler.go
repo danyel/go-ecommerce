@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -49,7 +48,7 @@ func (h *productHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewHandler(DB *gorm.DB) ProductHandler {
-	h := &productHandler{NewProductService(DB)}
+func NewHandler(p ProductService) ProductHandler {
+	h := &productHandler{p}
 	return h
 }

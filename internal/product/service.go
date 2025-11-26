@@ -31,7 +31,7 @@ func (s *productService) GetProduct(uuid uuid.UUID) (Product, error) {
 		Code:        productModel.Code,
 		Price:       productModel.Price,
 		Stock:       productModel.Stock,
-		Category:    productModel.Category,
+		CategoryId:  productModel.CategoryId,
 		ImageUrl:    productModel.ImageUrl,
 		Brand:       productModel.Brand,
 		Description: productModel.Description,
@@ -46,7 +46,7 @@ func MapToProduct(productModels []*ProductModel) []Product {
 		result[i] = Product{
 			Code:        product.Code,
 			Price:       product.Price,
-			Category:    product.Category,
+			CategoryId:  product.CategoryId,
 			ImageUrl:    product.ImageUrl,
 			Brand:       product.Brand,
 			Description: product.Description,

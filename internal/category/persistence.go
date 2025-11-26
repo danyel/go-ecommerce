@@ -17,7 +17,7 @@ type CategoryModel struct {
 }
 
 func (c *CategoryModel) TableName() string {
-	return "ecommerce.categories"
+	return "categories"
 }
 
 func (c *CategoryModel) BeforeCreate(_ *gorm.DB) (err error) {

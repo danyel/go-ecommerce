@@ -10,6 +10,7 @@ type DatabaseConfiguration struct {
 	Username string
 	Password string
 	Database string
+	Schema   string
 }
 
 type ApplicationConfiguration struct {
@@ -25,6 +26,7 @@ func NewDatabaseConfiguration() DatabaseConfiguration {
 		Username: "ecommerce",
 		Password: "ecommerce",
 		Database: "ecommerce",
+		Schema:   "ecommerce",
 	}
 }
 

@@ -106,7 +106,7 @@ func managementV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 // Product api V1 /api/product/v1/products
 func productV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 	return r.Route("/product/v1/products", func(r chi.Router) {
-		handler := product.NewHandler(a.DB)
+		handler := product.NewHandler(product.NewProductService(a.DB))
 		r.Get("/", handler.GetProducts)
 		// /api/product/v1/products/{productId}
 		r.Route("/{productId}", func(r chi.Router) {

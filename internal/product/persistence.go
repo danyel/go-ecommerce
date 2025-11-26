@@ -15,7 +15,7 @@ type ProductModel struct {
 	Description string
 	Code        string
 	Price       uint32
-	Category    uuid.UUID
+	CategoryId  uuid.UUID `gorm:"type:uuid"`
 	ImageUrl    string
 	Stock       uint32
 	CreatedAt   time.Time
@@ -23,10 +23,10 @@ type ProductModel struct {
 }
 
 func (p *ProductModel) TableName() string {
-	return "ecommerce.products"
+	return "products"
 }
 
-func (p *ProductModel) BeforeCreate(tx *gorm.DB) (err error) {
+func (p *ProductModel) BeforeCreate(_ *gorm.DB) (err error) {
 	if p.ID == uuid.Nil {
 		p.ID = uuid.New()
 	}
