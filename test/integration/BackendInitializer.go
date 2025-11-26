@@ -13,7 +13,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO fix this thing ....
 type BackendInitializer struct {
 	context *context.Context
 	DB      *gorm.DB
@@ -39,7 +38,7 @@ func (b *BackendInitializer) updateDatabaseConfiguration(c *tcpostgres.PostgresC
 
 func (b *BackendInitializer) initializeTestContainer(d *config.DatabaseConfiguration) (*tcpostgres.PostgresContainer, error) {
 	pg, err := tcpostgres.Run(*b.context,
-		"postgres:16-alpine",
+		"postgres:18-alpine",
 		tcpostgres.WithDatabase(d.Database),
 		tcpostgres.WithUsername(d.Username),
 		tcpostgres.WithPassword(d.Password),
