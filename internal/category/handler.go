@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
-	requestUtil "github.com/dnoulet/ecommerce/internal/util/request"
 	"gorm.io/gorm"
 )
 
@@ -23,7 +22,7 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 	var createCategory CreateCategory
 	var categoryId CategoryId
 	var err error
-	if err = requestUtil.ValidateRequest(r, &createCategory); err != nil {
+	if err = commonHandler.ValidateRequest[CreateCategory](r, &createCategory); err != nil {
 		h.Handler.StatusBadRequest(w)
 		return
 	}

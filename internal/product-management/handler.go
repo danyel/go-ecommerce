@@ -6,9 +6,9 @@ import (
 
 	"github.com/dnoulet/ecommerce/internal/category"
 	"github.com/dnoulet/ecommerce/internal/cms"
+	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
 	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
 	"github.com/dnoulet/ecommerce/internal/product"
-	util "github.com/dnoulet/ecommerce/internal/util/request"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -55,7 +55,7 @@ func (h *productManagementHandler) UpdateProduct(w http.ResponseWriter, r *http.
 	productId := chi.URLParam(r, "productId")
 	parse, err := uuid.Parse(productId)
 	var updateProduct UpdateProduct
-	if err = util.ValidateRequest(r, &updateProduct); err != nil {
+	if err = commonHandler.ValidateRequest(r, &updateProduct); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -69,7 +69,7 @@ func (h *productManagementHandler) CreateProduct(w http.ResponseWriter, r *http.
 	var productId ProductId
 	var err error
 
-	if err = util.ValidateRequest(r, &createProduct); err != nil {
+	if err = commonHandler.ValidateRequest[CreateProduct](r, &createProduct); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 

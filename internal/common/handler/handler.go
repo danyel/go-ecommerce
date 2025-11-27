@@ -3,6 +3,9 @@ package commonHandler
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 )
 
 type ResponseHandler interface {
@@ -14,6 +17,22 @@ type ResponseHandler interface {
 }
 
 type responseHandler struct {
+}
+
+func GetId(r *http.Request, key string) (uuid.UUID, error) {
+	productId := chi.URLParam(r, key)
+	return uuid.Parse(productId)
+}
+
+func ValidateRequest[T any](req *http.Request, model *T) error {
+	decoder := json.NewDecoder(req.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(model); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *responseHandler) WriteResponse(status int, w http.ResponseWriter, v any) {

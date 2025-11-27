@@ -12,6 +12,7 @@ import (
 	"github.com/dnoulet/ecommerce/cmd/router"
 	"github.com/dnoulet/ecommerce/internal/management"
 	productmanagement "github.com/dnoulet/ecommerce/internal/product-management"
+	shoppingbasket "github.com/dnoulet/ecommerce/internal/shopping-basket"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -41,6 +42,18 @@ func (wi *WebIntegration) ManagementPostTranslations(b *management.CreateCms) *W
 
 func (wi *WebIntegration) ProductManagementGetProducts() *WebIntegration {
 	return wi.Get(wi.forUrl("/api/product-management/v1/products"))
+}
+
+func (wi *WebIntegration) ShoppingBasketCreate() *WebIntegration {
+	return wi.Post(wi.forUrl("/api/shopping-basket/v1/shopping-baskets"), nil)
+}
+
+func (wi *WebIntegration) ShoppingBasketAddItem(id string, a shoppingbasket.AddItem) *WebIntegration {
+	return wi.Post(wi.forUrl("/api/shopping-basket/v1/shopping-baskets/"+id), a)
+}
+
+func (wi *WebIntegration) GetShoppingBasket(id string) *WebIntegration {
+	return wi.Get(wi.forUrl("/api/shopping-basket/v1/shopping-baskets/" + id))
 }
 
 func (wi *WebIntegration) ProductManagementGetProductById(i string) *WebIntegration {

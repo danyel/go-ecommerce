@@ -10,6 +10,7 @@ import (
 	"github.com/dnoulet/ecommerce/internal/management"
 	"github.com/dnoulet/ecommerce/internal/product"
 	"github.com/dnoulet/ecommerce/internal/product-management"
+	shopping_basket "github.com/dnoulet/ecommerce/internal/shopping-basket"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"gorm.io/gorm"
@@ -42,8 +43,15 @@ func (a *ApiDefinition) ConfigRouter() *chi.Mux {
 }
 
 // Shopping Basket api V1 /api/shopping-basket/v1/shopping-baskets
-func shoppingBasketV1Routing(r chi.Router, _ *ApiDefinition) chi.Router {
-	return r.Route("/shopping-basket/v1/shopping-baskets", func(r chi.Router) {})
+func shoppingBasketV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
+	return r.Route("/shopping-basket/v1/shopping-baskets", func(r chi.Router) {
+		h := shopping_basket.NewHandler(a.DB)
+		r.Post("/", h.CreateShoppingBasket)
+		r.Route("/{shoppingBasketId}", func(r chi.Router) {
+			r.Post("/", h.AddItemToShoppingBasket)
+			r.Get("/", h.GetShoppingBasket)
+		})
+	})
 }
 
 // Product Management api V1 /api/product-management/v1

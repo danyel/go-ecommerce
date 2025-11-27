@@ -8,7 +8,6 @@ import (
 	"github.com/dnoulet/ecommerce/internal/cms"
 	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
 	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
-	requestutil "github.com/dnoulet/ecommerce/internal/util/request"
 	"gorm.io/gorm"
 )
 
@@ -37,7 +36,7 @@ func (h *managementHandler) CreateTranslations(w http.ResponseWriter, r *http.Re
 	var createCms CreateCms
 	var err error
 	var cmsId CmsId
-	if err = requestutil.ValidateRequest[CreateCms](r, &createCms); err != nil {
+	if err = commonHandler.ValidateRequest[CreateCms](r, &createCms); err != nil {
 		h.handler.StatusBadRequest(w)
 		return
 	}
