@@ -1,3 +1,9 @@
+![Build](https://github.com/danyel/go-ecommerce/actions/workflows/go.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/danyel/go-ecommerce/badge.svg?branch=main)](https://coveralls.io/github/danyel/go-ecommerce?branch=main)
+[![Go Report Card](https://goreportcard.com/badge/github.com/danyel/go-ecommerce)](https://goreportcard.com/report/github.com/danyel/go-ecommerce)
+![GitHub release](https://img.shields.io/github/v/release/danyel/go-ecommerce)
+![License](https://img.shields.io/github/license/danyel/go-ecommerce)
+
 # Go-Commerce
 
 A Rest API for an e-commerce application, written in golang.\
