@@ -1,8 +1,8 @@
 package management
 
 import (
-	"github.com/dnoulet/ecommerce/internal/cms"
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
+	"github.com/danyel/ecommerce/internal/cms"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	"gorm.io/gorm"
 )
 

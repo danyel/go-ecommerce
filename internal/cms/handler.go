@@ -3,8 +3,8 @@ package cms
 import (
 	"net/http"
 
-	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
+	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )

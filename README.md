@@ -60,13 +60,13 @@ go run cmd/main.go
 #### Integration tests
 
 ```shell
-go test github.com/dnoulet/ecommerce/test/integration
+go test github.com/danyel/ecommerce/test/integration
 ```
 
 #### Mock tests
 
 ```shell
-go test github.com/dnoulet/ecommerce/test/mock
+go test github.com/danyel/ecommerce/test/mock
 ```
 
 ## API

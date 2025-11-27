@@ -1,9 +1,9 @@
 package product_management
 
 import (
-	"github.com/dnoulet/ecommerce/internal/category"
-	"github.com/dnoulet/ecommerce/internal/cms"
-	"github.com/dnoulet/ecommerce/internal/product"
+	"github.com/danyel/ecommerce/internal/category"
+	"github.com/danyel/ecommerce/internal/cms"
+	"github.com/danyel/ecommerce/internal/product"
 )
 
 type CategoryMapper interface {

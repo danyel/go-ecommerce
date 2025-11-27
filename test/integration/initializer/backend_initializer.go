@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/dnoulet/ecommerce/cmd/config"
-	"github.com/dnoulet/ecommerce/cmd/database"
+	"github.com/danyel/ecommerce/cmd/config"
+	"github.com/danyel/ecommerce/cmd/database"
 	_ "github.com/lib/pq" // ← REQUIRED for Goose + sql.Open("postgres")
 	"github.com/pressly/goose/v3"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"

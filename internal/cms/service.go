@@ -3,7 +3,7 @@ package cms
 import (
 	"fmt"
 
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 )
 
 type CmsService interface {

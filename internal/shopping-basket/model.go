@@ -1,7 +1,7 @@
 package shopping_basket
 
 import (
-	productmanagement "github.com/dnoulet/ecommerce/internal/product-management"
+	productmanagement "github.com/danyel/ecommerce/internal/product-management"
 	"github.com/google/uuid"
 )
 

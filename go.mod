@@ -1,4 +1,4 @@
-module github.com/dnoulet/ecommerce
+module github.com/danyel/ecommerce
 
 go 1.25.4
 

@@ -3,14 +3,14 @@ package integration
 import (
 	"testing"
 
-	"github.com/dnoulet/ecommerce/internal/category"
-	"github.com/dnoulet/ecommerce/internal/cms"
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
-	"github.com/dnoulet/ecommerce/internal/management"
-	"github.com/dnoulet/ecommerce/internal/product"
-	productmanagement "github.com/dnoulet/ecommerce/internal/product-management"
-	shoppingbasket "github.com/dnoulet/ecommerce/internal/shopping-basket"
-	"github.com/dnoulet/ecommerce/test/integration/initializer"
+	"github.com/danyel/ecommerce/internal/category"
+	"github.com/danyel/ecommerce/internal/cms"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	"github.com/danyel/ecommerce/internal/management"
+	"github.com/danyel/ecommerce/internal/product"
+	productmanagement "github.com/danyel/ecommerce/internal/product-management"
+	shoppingbasket "github.com/danyel/ecommerce/internal/shopping-basket"
+	"github.com/danyel/ecommerce/test/integration/initializer"
 )
 
 func TestHandler(t *testing.T) {

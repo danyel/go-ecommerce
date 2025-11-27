@@ -3,11 +3,11 @@ package integration
 import (
 	"testing"
 
-	"github.com/dnoulet/ecommerce/internal/category"
-	"github.com/dnoulet/ecommerce/internal/cms"
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
-	"github.com/dnoulet/ecommerce/internal/product"
-	"github.com/dnoulet/ecommerce/test/integration/initializer"
+	"github.com/danyel/ecommerce/internal/category"
+	"github.com/danyel/ecommerce/internal/cms"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	"github.com/danyel/ecommerce/internal/product"
+	"github.com/danyel/ecommerce/test/integration/initializer"
 	_ "github.com/lib/pq" // ← REQUIRED for Goose + sql.Open("postgres")
 	"github.com/stretchr/testify/assert"
 )

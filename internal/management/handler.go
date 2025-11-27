@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/dnoulet/ecommerce/internal/category"
-	"github.com/dnoulet/ecommerce/internal/cms"
-	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
+	"github.com/danyel/ecommerce/internal/category"
+	"github.com/danyel/ecommerce/internal/cms"
+	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	"gorm.io/gorm"
 )
 

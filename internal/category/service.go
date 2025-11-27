@@ -1,7 +1,7 @@
 package category
 
 import (
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

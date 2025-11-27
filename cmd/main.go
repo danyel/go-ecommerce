@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/dnoulet/ecommerce/cmd/config"
-	"github.com/dnoulet/ecommerce/cmd/database"
-	"github.com/dnoulet/ecommerce/cmd/router"
+	"github.com/danyel/ecommerce/cmd/config"
+	"github.com/danyel/ecommerce/cmd/database"
+	"github.com/danyel/ecommerce/cmd/router"
 )
 
 // project setup is done here ..

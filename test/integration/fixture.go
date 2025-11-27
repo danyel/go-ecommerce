@@ -3,7 +3,7 @@ package integration
 import (
 	"log"
 
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 )
 
 type Fixture[T any] struct {

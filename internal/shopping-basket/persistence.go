@@ -3,7 +3,7 @@ package shopping_basket
 import (
 	"time"
 
-	"github.com/dnoulet/ecommerce/internal/product"
+	"github.com/danyel/ecommerce/internal/product"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

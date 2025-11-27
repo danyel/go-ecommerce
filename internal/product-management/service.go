@@ -1,8 +1,8 @@
 package product_management
 
 import (
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
-	"github.com/dnoulet/ecommerce/internal/product"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	"github.com/danyel/ecommerce/internal/product"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

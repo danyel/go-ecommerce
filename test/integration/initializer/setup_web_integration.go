@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dnoulet/ecommerce/cmd/config"
-	"github.com/dnoulet/ecommerce/cmd/router"
-	"github.com/dnoulet/ecommerce/internal/management"
-	productmanagement "github.com/dnoulet/ecommerce/internal/product-management"
-	shoppingbasket "github.com/dnoulet/ecommerce/internal/shopping-basket"
+	"github.com/danyel/ecommerce/cmd/config"
+	"github.com/danyel/ecommerce/cmd/router"
+	"github.com/danyel/ecommerce/internal/management"
+	productmanagement "github.com/danyel/ecommerce/internal/product-management"
+	shoppingbasket "github.com/danyel/ecommerce/internal/shopping-basket"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )

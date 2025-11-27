@@ -1,11 +1,11 @@
 package shopping_basket
 
 import (
-	"github.com/dnoulet/ecommerce/internal/category"
-	"github.com/dnoulet/ecommerce/internal/cms"
-	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
-	"github.com/dnoulet/ecommerce/internal/product"
-	productmanagement "github.com/dnoulet/ecommerce/internal/product-management"
+	"github.com/danyel/ecommerce/internal/category"
+	"github.com/danyel/ecommerce/internal/cms"
+	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	"github.com/danyel/ecommerce/internal/product"
+	productmanagement "github.com/danyel/ecommerce/internal/product-management"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

@@ -3,7 +3,7 @@ package category
 import (
 	"net/http"
 
-	commonHandler "github.com/dnoulet/ecommerce/internal/common/handler"
+	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
 	"gorm.io/gorm"
 )
 
