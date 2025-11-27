@@ -2,6 +2,7 @@ package product_management
 
 import (
 	"github.com/dnoulet/ecommerce/internal/category"
+	"github.com/dnoulet/ecommerce/internal/cms"
 	"github.com/dnoulet/ecommerce/internal/product"
 )
 
@@ -18,6 +19,7 @@ type ProductMapper interface {
 type productMapper struct {
 	categoryService category.CategoryService
 	mapCategory     func(model category.Category) Category
+	cmsService      cms.CmsService
 }
 
 type categoryMapper struct{}
@@ -25,31 +27,22 @@ type categoryMapper struct{}
 func (p *productMapper) MapProducts(models []product.Product) []Product {
 	result := make([]Product, len(models))
 	for i, productModel := range models {
-		categoryModel, _ := p.categoryService.GetCategory(productModel.CategoryId)
-		result[i] = Product{
-			Code:        productModel.Code,
-			Price:       productModel.Price,
-			Category:    p.mapCategory(categoryModel),
-			ImageUrl:    productModel.ImageUrl,
-			Brand:       productModel.Brand,
-			Description: productModel.Description,
-			Name:        productModel.Name,
-			ID:          productModel.ID,
-			Stock:       productModel.Stock,
-		}
+		result[i] = p.MapProduct(productModel)
 	}
 	return result
 }
 func (p *productMapper) MapProduct(productModel product.Product) Product {
 	categoryModel, _ := p.categoryService.GetCategory(productModel.CategoryId)
+	description, _ := p.cmsService.GetTranslation(productModel.Description, "nl_BE")
+	name, _ := p.cmsService.GetTranslation(productModel.Name, "nl_BE")
 	return Product{
 		Code:        productModel.Code,
 		Price:       productModel.Price,
 		Category:    p.mapCategory(categoryModel),
 		ImageUrl:    productModel.ImageUrl,
 		Brand:       productModel.Brand,
-		Description: productModel.Description,
-		Name:        productModel.Name,
+		Description: description.Value,
+		Name:        name.Value,
 		ID:          productModel.ID,
 		Stock:       productModel.Stock,
 	}
@@ -77,8 +70,8 @@ func (c *categoryMapper) MapCategory(model category.Category) Category {
 	}
 }
 
-func NewProductMapper(p category.CategoryService) ProductMapper {
-	return &productMapper{categoryService: p, mapCategory: NewCategoryMapper().MapCategory}
+func NewProductMapper(p category.CategoryService, c cms.CmsService) ProductMapper {
+	return &productMapper{categoryService: p, mapCategory: NewCategoryMapper().MapCategory, cmsService: c}
 }
 
 func NewCategoryMapper() CategoryMapper {

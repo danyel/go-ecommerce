@@ -14,10 +14,10 @@ type ProductModel struct {
 	Name        string
 	Description string
 	Code        string
-	Price       uint32
-	CategoryId  uuid.UUID `gorm:"type:uuid"`
+	Price       int
+	CategoryId  uuid.UUID
 	ImageUrl    string
-	Stock       uint32
+	Stock       int
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

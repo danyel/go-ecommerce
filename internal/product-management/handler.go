@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/dnoulet/ecommerce/internal/category"
+	"github.com/dnoulet/ecommerce/internal/cms"
+	commonRepository "github.com/dnoulet/ecommerce/internal/common/repository"
 	"github.com/dnoulet/ecommerce/internal/product"
 	util "github.com/dnoulet/ecommerce/internal/util/request"
 	"github.com/go-chi/chi/v5"
@@ -104,8 +106,9 @@ func (h *productManagementHandler) GetProduct(w http.ResponseWriter, r *http.Req
 
 func NewHandler(DB *gorm.DB) ProductManagementHandler {
 	categoryService := category.NewCategoryService(DB)
+	cmsService := cms.NewCmsService(commonRepository.NewCrudRepository[cms.CmsModel](DB))
 	return &productManagementHandler{
 		productService: NewProductService(DB),
-		productMapper:  NewProductMapper(categoryService),
+		productMapper:  NewProductMapper(categoryService, cmsService),
 	}
 }

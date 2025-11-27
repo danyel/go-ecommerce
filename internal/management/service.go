@@ -16,6 +16,7 @@ type managementService struct {
 
 func (s *managementService) CreateTranslation(createCms CreateCms) (cmsId CmsId, err error) {
 	cmsModel := &cms.CmsModel{
+		Code:     createCms.Code,
 		Value:    createCms.Value,
 		Language: createCms.Language,
 	}

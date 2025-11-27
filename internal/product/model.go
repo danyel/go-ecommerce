@@ -10,8 +10,8 @@ type Product struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Code        string    `json:"code"`
-	Price       uint32    `json:"price"`
+	Price       int       `json:"price"`
 	CategoryId  uuid.UUID `json:"category_id"`
 	ImageUrl    string    `json:"image_url"`
-	Stock       uint32    `json:"stock"`
+	Stock       int       `json:"stock"`
 }

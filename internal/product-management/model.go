@@ -10,10 +10,10 @@ type Product struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Code        string    `json:"code"`
-	Price       uint32    `json:"price"`
+	Price       int       `json:"price"`
 	Category    Category  `json:"category"`
 	ImageUrl    string    `json:"image_url"`
-	Stock       uint32    `json:"stock"`
+	Stock       int       `json:"stock"`
 	//Translations []Translations `json:"translations"`
 }
 
@@ -21,10 +21,10 @@ type UpdateProduct struct {
 	Brand       string    `json:"brand"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
-	Price       uint32    `json:"price"`
+	Price       int       `json:"price"`
 	CategoryId  uuid.UUID `json:"category_id"`
 	ImageUrl    string    `json:"image_url"`
-	Stock       uint32    `json:"stock"`
+	Stock       int       `json:"stock"`
 }
 
 type CreateProduct struct {
@@ -32,8 +32,8 @@ type CreateProduct struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Code        string    `json:"code"`
-	Price       uint32    `json:"price"`
-	CategoryId  uuid.UUID `json:"categoryId"`
+	Price       int       `json:"price"`
+	CategoryId  uuid.UUID `json:"category_id"`
 	ImageUrl    string    `json:"image_url"`
 }
 

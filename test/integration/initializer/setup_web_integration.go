@@ -39,6 +39,14 @@ func (wi *WebIntegration) ManagementPostTranslations(b *management.CreateCms) *W
 	return wi.Post(wi.forUrl("/api/management/v1/translations"), b)
 }
 
+func (wi *WebIntegration) ProductManagementGetProducts() *WebIntegration {
+	return wi.Get(wi.forUrl("/api/product-management/v1/products"))
+}
+
+func (wi *WebIntegration) ProductManagementGetProductById(i string) *WebIntegration {
+	return wi.Get(wi.forUrl("/api/product-management/v1/products/" + i))
+}
+
 func (wi *WebIntegration) forUrl(url string) string {
 	return wi.s.URL + url
 }

@@ -30,6 +30,7 @@ func (s *categoryService) GetCategory(categoryID uuid.UUID) (Category, error) {
 	}
 	return mapCategory(*categoryModel), err
 }
+
 func (s *categoryService) CreateCategory(createCategory CreateCategory) (CategoryId, error) {
 	var err error
 	var categoryId CategoryId
@@ -51,7 +52,7 @@ func (s *categoryService) CreateCategory(createCategory CreateCategory) (Categor
 	}
 
 	if len(children) > 0 {
-		if err = s.categoryRepository.AssocAppend(category, createCategory.Name, createCategory.Children); err != nil {
+		if err = s.categoryRepository.AssocAppend(category, "Children", children); err != nil {
 			return categoryId, err
 		}
 	}

@@ -38,7 +38,7 @@ func TestServiceIntegration(t *testing.T) {
 
 	t.Run("Cms Testing", func(t *testing.T) {
 		cmsRepository := commonRepository.NewCrudRepository[cms.CmsModel](bi.Db())
-		f := NewFixture[cms.CmsModel](cmsRepository)
+		f := Database[cms.CmsModel](cmsRepository)
 		cmsService := cms.NewCmsService(cmsRepository)
 
 		t.Run("Create translation", func(t *testing.T) {
@@ -57,10 +57,10 @@ func TestServiceIntegration(t *testing.T) {
 		})
 
 		t.Run("Get translations", func(t *testing.T) {
-			f.SaveModel(&cms.CmsModel{Code: "another_code", Language: "nl_be", Value: "AnotherValue_nl"})
-			f.SaveModel(&cms.CmsModel{Code: "another_code", Language: "nl_fr", Value: "AnotherValue_fr"})
-			f.SaveModel(&cms.CmsModel{Code: "yet_another_code", Language: "nl_be", Value: "YetAnotherValue_nl"})
-			f.SaveModel(&cms.CmsModel{Code: "yet_another_code", Language: "nl_fr", Value: "YetAnotherValue_fr"})
+			f.Insert(&cms.CmsModel{Code: "another_code", Language: "nl_be", Value: "AnotherValue_nl"})
+			f.Insert(&cms.CmsModel{Code: "another_code", Language: "nl_fr", Value: "AnotherValue_fr"})
+			f.Insert(&cms.CmsModel{Code: "yet_another_code", Language: "nl_be", Value: "YetAnotherValue_nl"})
+			f.Insert(&cms.CmsModel{Code: "yet_another_code", Language: "nl_fr", Value: "YetAnotherValue_fr"})
 
 			t.Run("Given 3 codes in 2 languages When retrieving for dutch Then 3 codes have been returned", func(t *testing.T) {
 				translations := cmsService.GetTranslations("nl_be")
