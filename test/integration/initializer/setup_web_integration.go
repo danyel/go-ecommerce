@@ -3,12 +3,15 @@ package initializer
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/dnoulet/ecommerce/cmd/config"
 	"github.com/dnoulet/ecommerce/cmd/router"
+	"github.com/dnoulet/ecommerce/internal/management"
+	productmanagement "github.com/dnoulet/ecommerce/internal/product-management"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -20,7 +23,23 @@ type WebIntegration struct {
 	r  *http.Response
 }
 
-func (wi *WebIntegration) ForUrl(url string) string {
+func (wi *WebIntegration) ProductManagementPostProducts(b *productmanagement.CreateProduct) *WebIntegration {
+	return wi.Post(wi.forUrl("/api/product-management/v1/products"), b)
+}
+
+func (wi *WebIntegration) GetTranslations(l string) *WebIntegration {
+	u := "/api/cms/v1/translations"
+	if l != "" {
+		u += fmt.Sprintf("?language=%s", l)
+	}
+	return wi.Get(wi.forUrl(u))
+}
+
+func (wi *WebIntegration) ManagementPostTranslations(b *management.CreateCms) *WebIntegration {
+	return wi.Post(wi.forUrl("/api/management/v1/translations"), b)
+}
+
+func (wi *WebIntegration) forUrl(url string) string {
 	return wi.s.URL + url
 }
 
@@ -35,10 +54,10 @@ func (wi *WebIntegration) Get(url string) *WebIntegration {
 	return wi
 }
 
-func (wi *WebIntegration) Post(url, contentType string, body any) *WebIntegration {
+func (wi *WebIntegration) Post(url string, body any) *WebIntegration {
 	b, _ := json.Marshal(body)
 	var err error
-	wi.r, err = http.Post(url, contentType, bytes.NewBuffer(b))
+	wi.r, err = http.Post(url, "application/json", bytes.NewBuffer(b))
 	assert.Nil(wi.t, err)
 	return wi
 }
@@ -49,16 +68,26 @@ func (wi *WebIntegration) GetResponseBody(b any) *WebIntegration {
 	return wi
 }
 
-func (wi *WebIntegration) AssertStatusCreated() {
-	assert.Equal(wi.t, http.StatusCreated, wi.r.StatusCode)
+func (wi *WebIntegration) AssertStatusCreated() *WebIntegration {
+	return wi.Equal(http.StatusCreated, wi.r.StatusCode)
 }
 
-func (wi *WebIntegration) AssertStatusOk() {
-	assert.Equal(wi.t, http.StatusOK, wi.r.StatusCode)
+func (wi *WebIntegration) IsNotNil(b any) *WebIntegration {
+	assert.NotNil(wi.t, b)
+	return wi
 }
 
-func (wi *WebIntegration) AssertBadRequest() {
-	assert.Equal(wi.t, http.StatusBadRequest, wi.r.StatusCode)
+func (wi *WebIntegration) AssertStatusOk() *WebIntegration {
+	return wi.Equal(http.StatusOK, wi.r.StatusCode)
+}
+
+func (wi *WebIntegration) Equal(expected, actual interface{}, msgAndArgs ...interface{}) *WebIntegration {
+	assert.Equal(wi.t, expected, actual, msgAndArgs...)
+	return wi
+}
+
+func (wi *WebIntegration) AssertBadRequest() *WebIntegration {
+	return wi.Equal(http.StatusBadRequest, wi.r.StatusCode)
 }
 
 func SetupWebIntegration(t *testing.T) *WebIntegration {

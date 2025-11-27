@@ -20,8 +20,7 @@ func TestHandler(t *testing.T) {
 
 		t.Run("CreateProduct", func(t *testing.T) {
 			c := category.CategoryModel{Name: "test", Children: []*category.CategoryModel{}}
-			e := categoryRepository.Create(&c)
-			assert.Nil(t, e)
+			assert.Nil(t, categoryRepository.Create(&c))
 			b := &productmanagement.CreateProduct{
 				Brand:       "Apple",
 				Name:        "iPhone 16",
@@ -32,10 +31,10 @@ func TestHandler(t *testing.T) {
 				CategoryId:  c.ID,
 			}
 			var productId productmanagement.ProductId
-			wi.Post(wi.ForUrl("/api/product-management/v1/products"), "application/json", b).
+			wi.ProductManagementPostProducts(b).
 				GetResponseBody(&productId).
-				AssertStatusCreated()
-			assert.NotNil(t, productId.ID)
+				AssertStatusCreated().
+				IsNotNil(productId.ID)
 		})
 	})
 
@@ -51,58 +50,58 @@ func TestHandler(t *testing.T) {
 		t.Run("TestCmsHandler", func(t *testing.T) {
 			t.Run("CmsHandler retrieve dutch", func(t *testing.T) {
 				var translations []cms.Translation
-				wi.Get(wi.ForUrl("/api/cms/v1/translations?language=nl_be")).
+				wi.GetTranslations("nl_be").
 					GetResponseBody(&translations).
-					AssertStatusOk()
-				assert.Equal(t, 3, len(translations))
-				assert.Equal(t, "code", translations[0].Code)
-				assert.Equal(t, "Value_nl", translations[0].Value)
-				assert.Equal(t, "another_code", translations[1].Code)
-				assert.Equal(t, "AnotherValue_nl", translations[1].Value)
-				assert.Equal(t, "yet_another_code", translations[2].Code)
-				assert.Equal(t, "YetAnotherValue_nl", translations[2].Value)
+					AssertStatusOk().
+					Equal(3, len(translations)).
+					Equal("code", translations[0].Code).
+					Equal("Value_nl", translations[0].Value).
+					Equal("another_code", translations[1].Code).
+					Equal("AnotherValue_nl", translations[1].Value).
+					Equal("yet_another_code", translations[2].Code).
+					Equal("YetAnotherValue_nl", translations[2].Value)
 			})
 
 			t.Run("CmsHandler retrieve french", func(t *testing.T) {
 				var translations []cms.Translation
-				wi.Get(wi.ForUrl("/api/cms/v1/translations?language=nl_fr")).
+				wi.GetTranslations("nl_fr").
 					GetResponseBody(&translations).
-					AssertStatusOk()
-				assert.Equal(t, 3, len(translations))
-				assert.Equal(t, "code", translations[0].Code)
-				assert.Equal(t, "Value_fr", translations[0].Value)
-				assert.Equal(t, "another_code", translations[1].Code)
-				assert.Equal(t, "AnotherValue_fr", translations[1].Value)
-				assert.Equal(t, "yet_another_code", translations[2].Code)
-				assert.Equal(t, "YetAnotherValue_fr", translations[2].Value)
+					AssertStatusOk().
+					Equal(3, len(translations)).
+					Equal("code", translations[0].Code).
+					Equal("Value_fr", translations[0].Value).
+					Equal("another_code", translations[1].Code).
+					Equal("AnotherValue_fr", translations[1].Value).
+					Equal("yet_another_code", translations[2].Code).
+					Equal("YetAnotherValue_fr", translations[2].Value)
 			})
 
 			t.Run("CmsHandler retrieve all", func(t *testing.T) {
 				var translations []cms.Translation
-				wi.Get(wi.ForUrl("/api/cms/v1/translations")).
+				wi.GetTranslations("").
 					GetResponseBody(&translations).
-					AssertStatusOk()
-				assert.Equal(t, 6, len(translations))
-				assert.Equal(t, "code", translations[0].Code)
-				assert.Equal(t, "Value_nl", translations[0].Value)
-				assert.Equal(t, "code", translations[1].Code)
-				assert.Equal(t, "Value_fr", translations[1].Value)
-				assert.Equal(t, "another_code", translations[2].Code)
-				assert.Equal(t, "AnotherValue_nl", translations[2].Value)
-				assert.Equal(t, "another_code", translations[3].Code)
-				assert.Equal(t, "AnotherValue_fr", translations[3].Value)
-				assert.Equal(t, "yet_another_code", translations[4].Code)
-				assert.Equal(t, "YetAnotherValue_nl", translations[4].Value)
-				assert.Equal(t, "yet_another_code", translations[5].Code)
-				assert.Equal(t, "YetAnotherValue_fr", translations[5].Value)
+					AssertStatusOk().
+					Equal(6, len(translations)).
+					Equal("code", translations[0].Code).
+					Equal("Value_nl", translations[0].Value).
+					Equal("code", translations[1].Code).
+					Equal("Value_fr", translations[1].Value).
+					Equal("another_code", translations[2].Code).
+					Equal("AnotherValue_nl", translations[2].Value).
+					Equal("another_code", translations[3].Code).
+					Equal("AnotherValue_fr", translations[3].Value).
+					Equal("yet_another_code", translations[4].Code).
+					Equal("YetAnotherValue_nl", translations[4].Value).
+					Equal("yet_another_code", translations[5].Code).
+					Equal("YetAnotherValue_fr", translations[5].Value)
 			})
 
 			t.Run("CmsHandler retrieve none because of invalid language", func(t *testing.T) {
 				var translations []cms.Translation
-				wi.Get(wi.ForUrl("/api/cms/v1/translations?language=nl_de")).
+				wi.GetTranslations("nl_de").
 					GetResponseBody(&translations).
-					AssertStatusOk()
-				assert.Equal(t, 0, len(translations))
+					AssertStatusOk().
+					Equal(0, len(translations))
 			})
 		})
 	})
@@ -114,7 +113,7 @@ func TestHandler(t *testing.T) {
 				Language: "nl_be",
 				Value:    "Value_nl",
 			}
-			wi.Post(wi.ForUrl("/api/management/v1/translations"), "application/json", b).
+			wi.ManagementPostTranslations(b).
 				AssertBadRequest()
 		})
 
@@ -124,7 +123,10 @@ func TestHandler(t *testing.T) {
 				Language: "nl_fr",
 				Value:    "Value_fr",
 			}
-			wi.Post(wi.ForUrl("/api/management/v1/translations"), "application/json", b).
+			var i management.CmsId
+			wi.ManagementPostTranslations(b).
+				GetResponseBody(&i).
+				IsNotNil(i.ID).
 				AssertStatusCreated()
 		})
 	})
