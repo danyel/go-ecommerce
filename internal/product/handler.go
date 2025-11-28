@@ -2,8 +2,10 @@ package product
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
 
+	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -14,11 +16,41 @@ type ProductHandler interface {
 	GetProduct(w http.ResponseWriter, r *http.Request)
 }
 
-type productHandler struct {
+type productApiHandler struct {
+	productService ProductService
+}
+type productHtmlHandler struct {
 	productService ProductService
 }
 
-func (h *productHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
+func (h *productHtmlHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
+	tmp := template.Must(template.ParseFiles("templates/products/products.tmpl"))
+	products := h.productService.GetProducts()
+	err := tmp.Execute(w, products)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (h *productHtmlHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+	id, err := commonHandler.GetId(r, "productId")
+	var product Product
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+	if product, err = h.productService.GetProduct(id); err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+	tmp := template.Must(template.ParseFiles("templates/products/product.tmpl"))
+	err = tmp.Execute(w, product)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (h *productApiHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(h.productService.GetProducts()); err != nil {
@@ -26,7 +58,7 @@ func (h *productHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func (h *productHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+func (h *productApiHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	var product Product
 	var productId uuid.UUID
 	var err error
@@ -48,7 +80,11 @@ func (h *productHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewHandler(p ProductService) ProductHandler {
-	h := &productHandler{p}
+func NewHtmlHandler(p ProductService) ProductHandler {
+	h := &productHtmlHandler{p}
+	return h
+}
+func NewApiHandler(p ProductService) ProductHandler {
+	h := &productApiHandler{p}
 	return h
 }

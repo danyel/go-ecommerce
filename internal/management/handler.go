@@ -7,7 +7,6 @@ import (
 	"github.com/danyel/ecommerce/internal/category"
 	"github.com/danyel/ecommerce/internal/cms"
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	"gorm.io/gorm"
 )
 
@@ -58,6 +57,6 @@ func NewHandler(DB *gorm.DB) ManagementHandler {
 		categoryService:   category.NewCategoryService(DB),
 		handler:           commonHandler.NewResponseHandler(),
 		managementService: NewManagementService(DB),
-		cmsService:        cms.NewCmsService(commonRepository.NewCrudRepository[cms.CmsModel](DB)),
+		cmsService:        cms.NewCmsService(DB),
 	}
 }

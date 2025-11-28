@@ -26,7 +26,7 @@ func (m *MockProductService) GetProduct(uuid uuid.UUID) (product.Product, error)
 
 func TestProductHandler(t *testing.T) {
 	mockProductService := new(MockProductService)
-	h := product.NewHandler(mockProductService)
+	h := product.NewApiHandler(mockProductService)
 	mh := Run(t)
 
 	t.Run("GetProducts", func(t *testing.T) {

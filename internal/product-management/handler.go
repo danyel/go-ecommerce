@@ -7,7 +7,6 @@ import (
 	"github.com/danyel/ecommerce/internal/category"
 	"github.com/danyel/ecommerce/internal/cms"
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	"github.com/danyel/ecommerce/internal/product"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -25,14 +24,13 @@ type ProductManagementHandler interface {
 
 type productManagementHandler struct {
 	productService ProductService
-	productMapper  ProductMapper
+	productMapper  product.ProductMapper
 }
 
 func (h *productManagementHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
 	products := h.productService.GetProducts()
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(h.productMapper.MapProducts(products)); err != nil {
+	if err := json.NewEncoder(w).Encode(products); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -99,16 +97,16 @@ func (h *productManagementHandler) GetProduct(w http.ResponseWriter, r *http.Req
 	}
 	w.Header().Set("Content-Type", "application/json")
 	http.StatusText(200)
-	if err = json.NewEncoder(w).Encode(h.productMapper.MapProduct(productModel)); err != nil {
+	if err = json.NewEncoder(w).Encode(productModel); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func NewHandler(DB *gorm.DB) ProductManagementHandler {
 	categoryService := category.NewCategoryService(DB)
-	cmsService := cms.NewCmsService(commonRepository.NewCrudRepository[cms.CmsModel](DB))
+	cmsService := cms.NewCmsService(DB)
 	return &productManagementHandler{
 		productService: NewProductService(DB),
-		productMapper:  NewProductMapper(categoryService, cmsService),
+		productMapper:  product.NewProductMapper(categoryService, cmsService),
 	}
 }

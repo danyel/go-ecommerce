@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	"gorm.io/gorm"
 )
 
 type CmsService interface {
@@ -53,6 +54,7 @@ func (s *cmsService) GetTranslation(code string, language string) (Translation, 
 	}, nil
 }
 
-func NewCmsService(cmsRepository commonRepository.CrudRepository[CmsModel]) CmsService {
+func NewCmsService(DB *gorm.DB) CmsService {
+	cmsRepository := commonRepository.NewCrudRepository[CmsModel](DB)
 	return &cmsService{cmsRepository}
 }

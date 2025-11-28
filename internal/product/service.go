@@ -1,6 +1,8 @@
 package product
 
 import (
+	"github.com/danyel/ecommerce/internal/category"
+	"github.com/danyel/ecommerce/internal/cms"
 	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -14,12 +16,13 @@ type ProductService interface {
 
 type productService struct {
 	productRepository commonRepository.CrudRepository[ProductModel]
+	productMapper     ProductMapper
 }
 
 func (s *productService) GetProducts() []Product {
 	orderBy := "created_at asc"
 	products := s.productRepository.FindAll(commonRepository.SearchCriteria{OrderBy: &orderBy})
-	return MapToProduct(products)
+	return s.productMapper.MapProducts(products)
 }
 func (s *productService) GetProduct(uuid uuid.UUID) (Product, error) {
 	var product Product
@@ -27,38 +30,11 @@ func (s *productService) GetProduct(uuid uuid.UUID) (Product, error) {
 	if err != nil {
 		return product, err
 	}
-	return Product{
-		Code:        productModel.Code,
-		Price:       productModel.Price,
-		Stock:       productModel.Stock,
-		CategoryId:  productModel.CategoryId,
-		ImageUrl:    productModel.ImageUrl,
-		Brand:       productModel.Brand,
-		Description: productModel.Description,
-		Name:        productModel.Name,
-		ID:          productModel.ID,
-	}, nil
-}
 
-func MapToProduct(productModels []*ProductModel) []Product {
-	result := make([]Product, len(productModels))
-	for i, product := range productModels {
-		result[i] = Product{
-			Code:        product.Code,
-			Price:       product.Price,
-			CategoryId:  product.CategoryId,
-			ImageUrl:    product.ImageUrl,
-			Brand:       product.Brand,
-			Description: product.Description,
-			Name:        product.Name,
-			ID:          product.ID,
-			Stock:       product.Stock,
-		}
-	}
-	return result
+	return s.productMapper.MapProduct(productModel), nil
 }
 
 func NewProductService(DB *gorm.DB) ProductService {
-	s := &productService{commonRepository.NewCrudRepository[ProductModel](DB)}
+	s := &productService{commonRepository.NewCrudRepository[ProductModel](DB), NewProductMapper(category.NewCategoryService(DB), cms.NewCmsService(DB))}
 	return s
 }

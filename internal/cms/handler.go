@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
@@ -41,7 +40,7 @@ func (h *cmsHandler) GetTranslations(w http.ResponseWriter, r *http.Request) {
 
 func NewHandler(db *gorm.DB) CmsHandler {
 	return &cmsHandler{
-		NewCmsService(commonRepository.NewCrudRepository[CmsModel](db)),
+		NewCmsService(db),
 		commonHandler.NewResponseHandler(),
 	}
 }

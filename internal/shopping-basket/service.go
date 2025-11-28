@@ -20,7 +20,7 @@ type shoppingBasketService struct {
 	r  commonRepository.CrudRepository[ShoppingBasketModel]
 	p  product.ProductService
 	pm productmanagement.ProductService
-	m  productmanagement.ProductMapper
+	m  product.ProductMapper
 }
 
 func (s *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
@@ -57,13 +57,13 @@ func (s *shoppingBasketService) GetShoppingBasket(u uuid.UUID) (ShoppingBasket, 
 		Id: id.ID,
 	}
 	if len(id.Items) > 0 {
-		ps := make([]productmanagement.Product, len(id.Items))
+		ps := make([]product.Product, len(id.Items))
 		for i, item := range id.Items {
 			d, e := s.p.GetProduct(item.ID)
 			if e != nil {
 				return ShoppingBasket{}, e
 			}
-			ps[i] = s.m.MapProduct(d)
+			ps[i] = d
 		}
 		sm.Items = ps
 	}
@@ -74,6 +74,6 @@ func NewService(db *gorm.DB) ShoppingBasketService {
 	r := commonRepository.NewCrudRepository[ShoppingBasketModel](db)
 	p := product.NewProductService(db)
 	s := productmanagement.NewProductService(db)
-	m := productmanagement.NewProductMapper(category.NewCategoryService(db), cms.NewCmsService(commonRepository.NewCrudRepository[cms.CmsModel](db)))
+	m := product.NewProductMapper(category.NewCategoryService(db), cms.NewCmsService(db))
 	return &shoppingBasketService{r, p, s, m}
 }

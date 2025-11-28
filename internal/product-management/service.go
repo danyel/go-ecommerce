@@ -18,17 +18,16 @@ type ProductService interface {
 
 type productService struct {
 	productRepository commonRepository.CrudRepository[product.ProductModel]
+	productService    product.ProductService
 }
 
 func (s *productService) GetProducts() []product.Product {
-	orderBy := "created_at asc"
-	products := s.productRepository.FindAll(commonRepository.SearchCriteria{OrderBy: &orderBy})
-	return MapToProduct(products)
+	return s.productService.GetProducts()
 }
 
 func (s *productService) GetProduct(uuid uuid.UUID) (product.Product, error) {
 	var p product.Product
-	productModel, err := s.productRepository.FindById(uuid)
+	productModel, err := s.productService.GetProduct(uuid)
 	if err != nil {
 		return p, err
 	}
@@ -36,7 +35,7 @@ func (s *productService) GetProduct(uuid uuid.UUID) (product.Product, error) {
 		Code:        productModel.Code,
 		Price:       productModel.Price,
 		Stock:       productModel.Stock,
-		CategoryId:  productModel.CategoryId,
+		Category:    productModel.Category,
 		ImageUrl:    productModel.ImageUrl,
 		Brand:       productModel.Brand,
 		Description: productModel.Description,
@@ -78,27 +77,9 @@ func (s *productService) CreateProduct(createProduct CreateProduct) (ProductId, 
 	}
 	return ProductId{ID: p.ID}, nil
 }
-
-func MapToProduct(productModels []*product.ProductModel) []product.Product {
-	result := make([]product.Product, len(productModels))
-	for i, p := range productModels {
-		result[i] = product.Product{
-			Code:        p.Code,
-			Price:       p.Price,
-			CategoryId:  p.CategoryId,
-			ImageUrl:    p.ImageUrl,
-			Brand:       p.Brand,
-			Description: p.Description,
-			Name:        p.Name,
-			ID:          p.ID,
-			Stock:       p.Stock,
-		}
-	}
-	return result
-}
-
 func NewProductService(DB *gorm.DB) ProductService {
 	return &productService{
 		commonRepository.NewCrudRepository[product.ProductModel](DB),
+		product.NewProductService(DB),
 	}
 }

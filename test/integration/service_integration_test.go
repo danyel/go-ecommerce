@@ -39,7 +39,7 @@ func TestServiceIntegration(t *testing.T) {
 	t.Run("Cms Testing", func(t *testing.T) {
 		cmsRepository := commonRepository.NewCrudRepository[cms.CmsModel](bi.Db())
 		f := Database[cms.CmsModel](cmsRepository)
-		cmsService := cms.NewCmsService(cmsRepository)
+		cmsService := cms.NewCmsService(bi.Db())
 
 		t.Run("Create translation", func(t *testing.T) {
 			e := cmsRepository.Create(&cms.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"})
