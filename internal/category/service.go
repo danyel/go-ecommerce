@@ -56,7 +56,7 @@ func (s *categoryService) CreateCategory(createCategory CreateCategory) (Categor
 			return categoryId, err
 		}
 	}
-	categoryId.ID = category.ID.String()
+	categoryId.ID = category.ID
 	return categoryId, err
 }
 
@@ -65,7 +65,7 @@ func mapCategories(models []*CategoryModel) []Category {
 
 	for i, m := range models {
 		categories[i] = Category{
-			ID:   m.ID.String(),
+			ID:   m.ID,
 			Name: m.Name,
 			// Important: children as pointers
 			Children: mapCategories(m.Children),
@@ -77,7 +77,7 @@ func mapCategories(models []*CategoryModel) []Category {
 
 func mapCategory(categoryModel CategoryModel) Category {
 	return Category{
-		ID:   categoryModel.ID.String(),
+		ID:   categoryModel.ID,
 		Name: categoryModel.Name,
 		// Important: children as pointers
 		Children: mapCategories(categoryModel.Children),
