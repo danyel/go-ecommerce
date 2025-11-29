@@ -1,0 +1,35 @@
+services:
+  dev_environment:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    container_name: go_dev_env
+    volumes:
+      - ..:/workspace:cached             # mount project for JetBrains / VS Code DevContainers
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /workspace
+    command: sleep infinity             # DevContainer overrides this when attaching
+    environment:
+      DATABASE_URL: postgres://ecommerce:ecommerce@ecommerce-database:5432/ecommerce?sslmode=disable
+      POSTGRES_HOST: ecommerce-database
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ecommerce
+      POSTGRES_DB: ecommerce
+
+    depends_on:
+      - ecommerce-database
+
+  ecommerce-database:
+    image: postgres
+    container_name: ecommerce-database
+    volumes:
+      - ecommerce-volume:/data/postgres
+    environment:
+      - POSTGRES_USER=ecommerce
+      - POSTGRES_PASSWORD=ecommerce
+      - PGDATA=/data/postgres
+      - POSGRES_DB=ecommerce
+    ports:
+      - "5401:5432"
+volumes:
+  ecommerce-volume:

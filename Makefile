@@ -6,3 +6,6 @@ run:
 
 ui:
 	cd gocommerce && npm run dev
+
+migrate:
+	goose -dir ./migrations postgres "$$DATABASE_URL" up
