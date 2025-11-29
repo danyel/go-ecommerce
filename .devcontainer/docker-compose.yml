@@ -1,0 +1,25 @@
+services:
+  dev_environment:
+    image: mcr.microsoft.com/devcontainers/go:1
+    container_name: go_app
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+    depends_on:
+      - ecommerce-database
+    environment:
+      - DATABASE_URL=postgres://ecommerce:ecommerce@ecommerce-database:5432/ecommerce?sslmode=disable
+  ecommerce-database:
+    image: postgres
+    container_name: ecommerce-database
+    volumes:
+      - ecommerce-volume:/data/postgres
+    environment:
+      - POSTGRES_USER=ecommerce
+      - POSTGRES_PASSWORD=ecommerce
+      - PGDATA=/data/postgres
+      - POSGRES_DB=ecommerce
+    ports:
+      - "5401:5432"
+volumes:
+  ecommerce-volume:
