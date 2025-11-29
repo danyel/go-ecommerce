@@ -35,7 +35,7 @@ func (p *productMapper) MapProduct(productModel *ProductModel) Product {
 		Brand:       productModel.Brand,
 		Description: description.Value,
 		Name:        name.Value,
-		ID:          productModel.ID,
+		ID:          productModel.ID.String(),
 		Stock:       productModel.Stock,
 	}
 }

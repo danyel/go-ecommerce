@@ -2,7 +2,7 @@ package product
 
 import (
 	"encoding/json"
-	"html/template"
+	"log"
 	"net/http"
 
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
@@ -23,13 +23,10 @@ type productHtmlHandler struct {
 	productService ProductService
 }
 
-func (h *productHtmlHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
-	tmp := template.Must(template.ParseFiles("templates/products/products.tmpl"))
-	products := h.productService.GetProducts()
-	err := tmp.Execute(w, products)
-
+func (h *productHtmlHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
+	err := Products(h.productService.GetProducts()).Render(r.Context(), w)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
 	}
 }
 
@@ -42,12 +39,8 @@ func (h *productHtmlHandler) GetProduct(w http.ResponseWriter, r *http.Request) 
 	if product, err = h.productService.GetProduct(id); err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 	}
-	tmp := template.Must(template.ParseFiles("templates/products/product.tmpl"))
-	err = tmp.Execute(w, product)
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	err = ProductDetail(product).Render(r.Context(), w)
 }
 
 func (h *productApiHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {

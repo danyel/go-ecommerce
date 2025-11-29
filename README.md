@@ -20,6 +20,16 @@ I wanted to know how golang works and how to create a rest api.
 
 ## How to start
 
+### Air hot reload
+```shell
+go install github.com/air-verse/air@latest
+```
+
+### Template
+```shell
+go install github.com/a-h/templ/cmd/templ@latest
+```
+
 ### Goose
 
 ```shell
