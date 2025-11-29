@@ -28,19 +28,8 @@ func (a *ApiDefinition) ConfigRouter() *chi.Mux {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	// the routing should start with /api/<capability>/<version>/<resources>/... (GET, POST, DELETE, PUT, ...)
 	r.Route("/api", func(r chi.Router) {
 		productV1Routing(r, "/product/v1/products", product.NewApiHandler(product.NewProductService(a.DB)))
-		categoryV1Routing(r, a)
-		productManagementV1Routing(r, a)
-		managementV1Routing(r, a)
-		cmsV1Routing(r, a)
-		paymentV1Routing(r, a)
-		orderV1Routing(r, a)
-		shoppingBasketV1Routing(r, a)
-	})
-	r.Route("/", func(r chi.Router) {
-		productV1Routing(r, "/products", product.NewHtmlHandler(product.NewProductService(a.DB)))
 		categoryV1Routing(r, a)
 		productManagementV1Routing(r, a)
 		managementV1Routing(r, a)

@@ -2,10 +2,11 @@ package product
 
 import (
 	"github.com/danyel/ecommerce/internal/category"
+	"github.com/google/uuid"
 )
 
 type Product struct {
-	ID          string            `json:"id"`
+	ID          uuid.UUID         `json:"id"`
 	Brand       string            `json:"brand"`
 	Name        string            `json:"name"`
 	Description string            `json:"description"`

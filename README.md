@@ -33,7 +33,7 @@ go install github.com/a-h/templ/cmd/templ@latest
 ### Goose
 
 ```shell
-brew install goose
+go install github.com/pressly/goose/v3/cmd/goose@latest
 ```
 
 ### To fetch the dependencies
@@ -68,7 +68,7 @@ goose up
 ### Application
 
 ```shell
-go run cmd/main.go
+make run
 ```
 
 ### Run the test

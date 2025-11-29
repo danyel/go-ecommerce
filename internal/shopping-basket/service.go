@@ -41,7 +41,7 @@ func (s *shoppingBasketService) AddItemToShoppingBasket(u uuid.UUID, i AddItem) 
 	if err != nil {
 		return ShoppingBasket{}, err
 	}
-	id.Items = append(id.Items, &product.ProductModel{ID: i.ProductId})
+	id.Items = append(id.Items, &ShoppingBasketItemModel{ID: i.ProductId})
 	if err = s.r.AssocAppend(id, "Items", id.Items); err != nil {
 		return ShoppingBasket{}, err
 	}
@@ -57,13 +57,11 @@ func (s *shoppingBasketService) GetShoppingBasket(u uuid.UUID) (ShoppingBasket, 
 		Id: id.ID,
 	}
 	if len(id.Items) > 0 {
-		ps := make([]product.Product, len(id.Items))
+		ps := make([]ShoppingBasketItem, len(id.Items))
 		for i, item := range id.Items {
-			d, e := s.p.GetProduct(item.ID)
-			if e != nil {
-				return ShoppingBasket{}, e
+			ps[i] = ShoppingBasketItem{
+				item.ID, item.Name, item.Price, item.ImageUrl, item.Amount,
 			}
-			ps[i] = d
 		}
 		sm.Items = ps
 	}

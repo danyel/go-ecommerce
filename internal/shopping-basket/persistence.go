@@ -3,16 +3,23 @@ package shopping_basket
 import (
 	"time"
 
-	"github.com/danyel/ecommerce/internal/product"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ShoppingBasketModel struct {
-	ID        uuid.UUID               `gorm:"type:uuid;primaryKey"`
-	Items     []*product.ProductModel `gorm:"many2many:shopping_basket_items;joinForeignKey:ID;joinForeignKey:ShoppingBasketID;joinReferences:ID;joinReferences:ProductID"`
+	ID        uuid.UUID                  `gorm:"type:uuid;primaryKey"`
+	Items     []*ShoppingBasketItemModel `gorm:"many2many:shopping_basket_items;joinForeignKey:ID;joinForeignKey:ShoppingBasketID"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type ShoppingBasketItemModel struct {
+	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
+	Name     string
+	Price    int
+	ImageUrl string
+	Amount   int
 }
 
 func (c *ShoppingBasketModel) TableName() string {
@@ -20,6 +27,17 @@ func (c *ShoppingBasketModel) TableName() string {
 }
 
 func (c *ShoppingBasketModel) BeforeCreate(_ *gorm.DB) (err error) {
+	if c.ID == uuid.Nil {
+		c.ID = uuid.New()
+	}
+	return
+}
+
+func (c *ShoppingBasketItemModel) TableName() string {
+	return "shopping_basket_items"
+}
+
+func (c *ShoppingBasketItemModel) BeforeCreate(_ *gorm.DB) (err error) {
 	if c.ID == uuid.Nil {
 		c.ID = uuid.New()
 	}

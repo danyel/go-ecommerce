@@ -13,7 +13,8 @@
   "postCreateCommand": "go mod tidy",
   "forwardPorts": [
     5432,
-    8080
+    8080,
+    5173
   ],
   "remoteUser": "vscode"
 }  
