@@ -1,5 +1,7 @@
 package config
 
+import "os"
+
 type ServerConfiguration struct {
 	Addr string
 }
@@ -18,22 +20,20 @@ type ApplicationConfiguration struct {
 	ServerConfiguration   ServerConfiguration
 }
 
-// TODO this properties needs to be read from .env
 func NewDatabaseConfiguration() DatabaseConfiguration {
 	return DatabaseConfiguration{
-		Host:     "localhost",
-		Port:     "5401",
-		Username: "ecommerce",
-		Password: "ecommerce",
-		Database: "ecommerce",
-		Schema:   "ecommerce",
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		Username: os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Database: os.Getenv("DB_DATABASE"),
+		Schema:   os.Getenv("DB_SCHEMA"),
 	}
 }
 
-// TODO this properties needs to be read from .env
 func NewServerConfiguration() ServerConfiguration {
 	return ServerConfiguration{
-		Addr: ":8080",
+		Addr: os.Getenv("APP_PORT"),
 	}
 }
 
