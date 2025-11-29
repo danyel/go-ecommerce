@@ -194,23 +194,19 @@ func TestHandler(t *testing.T) {
 			a := shoppingbasket.AddItem{
 				ProductId: pm.ID,
 			}
-			wi.ShoppingBasketAddItem(shoppingId.Id.String(), a).
+			wi.ShoppingBasketAddItem(shoppingId.ID.String(), a).
 				AssertStatusOk()
 		})
 
 		t.Run("Get Shopping Basket", func(t *testing.T) {
 			var s shoppingbasket.ShoppingBasket
-			wi.GetShoppingBasket(shoppingId.Id.String()).
+			wi.GetShoppingBasket(shoppingId.ID.String()).
 				GetResponseBody(&s).
 				AssertStatusOk().
-				Equal(shoppingId.Id, s.Id).
+				Equal(shoppingId.ID, s.ID).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", s.Items[0].Name).
-				Equal("De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.", s.Items[0].Description).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", s.Items[0].ImageUrl).
-				Equal("GPU", s.Items[0].Category.Name).
-				Equal(669, s.Items[0].Price).
-				Equal("90YV0L71-M0NA00", s.Items[0].Code).
-				Equal("ASUS", s.Items[0].Brand)
+				Equal(669, s.Items[0].Price)
 		})
 	})
 }

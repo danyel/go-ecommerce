@@ -25,6 +25,7 @@ func (b *BackendInitializer) initializeDatabaseConfiguration() config.DatabaseCo
 	databaseConfiguration.Username = "test"
 	databaseConfiguration.Password = "test"
 	databaseConfiguration.Database = "ecommerce"
+	databaseConfiguration.Schema = "ecommerce"
 	return databaseConfiguration
 }
 

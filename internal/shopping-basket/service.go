@@ -21,6 +21,7 @@ type shoppingBasketService struct {
 	p  product.ProductService
 	pm productmanagement.ProductService
 	m  product.ProductMapper
+	si commonRepository.CrudRepository[ShoppingBasketItemModel]
 }
 
 func (s *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
@@ -30,7 +31,7 @@ func (s *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
 		return ShoppingBasket{}, err
 	}
 	r := ShoppingBasket{
-		Id: sb.ID,
+		ID: sb.ID,
 	}
 
 	return r, nil
@@ -38,13 +39,21 @@ func (s *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
 
 func (s *shoppingBasketService) AddItemToShoppingBasket(u uuid.UUID, i AddItem) (ShoppingBasket, error) {
 	id, err := s.r.FindById(u)
+	var prd product.Product
 	if err != nil {
 		return ShoppingBasket{}, err
 	}
-	id.Items = append(id.Items, &ShoppingBasketItemModel{ID: i.ProductId})
-	if err = s.r.AssocAppend(id, "Items", id.Items); err != nil {
+	if prd, err = s.p.GetProduct(i.ProductId); err != nil {
 		return ShoppingBasket{}, err
 	}
+
+	item := ShoppingBasketItemModel{ID: prd.ID, ShoppingBasketID: id.ID, Name: prd.Name, Price: prd.Price, ImageUrl: prd.ImageUrl, Amount: 1}
+	for _, it := range id.Items {
+		if it.ID == i.ProductId {
+			item.Amount = it.Amount + 1
+		}
+	}
+	err = s.si.Create(&item)
 	return s.GetShoppingBasket(u)
 }
 
@@ -54,7 +63,7 @@ func (s *shoppingBasketService) GetShoppingBasket(u uuid.UUID) (ShoppingBasket, 
 		return ShoppingBasket{}, err
 	}
 	sm := ShoppingBasket{
-		Id: id.ID,
+		ID: id.ID,
 	}
 	if len(id.Items) > 0 {
 		ps := make([]ShoppingBasketItem, len(id.Items))
@@ -73,5 +82,6 @@ func NewService(db *gorm.DB) ShoppingBasketService {
 	p := product.NewProductService(db)
 	s := productmanagement.NewProductService(db)
 	m := product.NewProductMapper(category.NewCategoryService(db), cms.NewCmsService(db))
-	return &shoppingBasketService{r, p, s, m}
+	si := commonRepository.NewCrudRepository[ShoppingBasketItemModel](db)
+	return &shoppingBasketService{r, p, s, m, si}
 }

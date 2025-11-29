@@ -2,10 +2,8 @@ package product
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
-	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -18,29 +16,6 @@ type ProductHandler interface {
 
 type productApiHandler struct {
 	productService ProductService
-}
-type productHtmlHandler struct {
-	productService ProductService
-}
-
-func (h *productHtmlHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
-	err := Products(h.productService.GetProducts()).Render(r.Context(), w)
-	if err != nil {
-		log.Println(err)
-	}
-}
-
-func (h *productHtmlHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
-	id, err := commonHandler.GetId(r, "productId")
-	var product Product
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-	}
-	if product, err = h.productService.GetProduct(id); err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-	}
-
-	err = ProductDetail(product).Render(r.Context(), w)
 }
 
 func (h *productApiHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
@@ -73,10 +48,6 @@ func (h *productApiHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewHtmlHandler(p ProductService) ProductHandler {
-	h := &productHtmlHandler{p}
-	return h
-}
 func NewApiHandler(p ProductService) ProductHandler {
 	h := &productApiHandler{p}
 	return h

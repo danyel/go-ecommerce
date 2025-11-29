@@ -8,18 +8,19 @@ import (
 )
 
 type ShoppingBasketModel struct {
-	ID        uuid.UUID                  `gorm:"type:uuid;primaryKey"`
-	Items     []*ShoppingBasketItemModel `gorm:"many2many:shopping_basket_items;joinForeignKey:ID;joinForeignKey:ShoppingBasketID"`
+	ID        uuid.UUID                 `gorm:"type:uuid;primaryKey"`
+	Items     []ShoppingBasketItemModel `gorm:"foreignKey:ShoppingBasketID"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type ShoppingBasketItemModel struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name     string
-	Price    int
-	ImageUrl string
-	Amount   int
+	ID               uuid.UUID `gorm:"type:uuid;primaryKey"`
+	ShoppingBasketID uuid.UUID `gorm:"type:uuid;not null;index"`
+	Name             string
+	Price            int
+	ImageUrl         string
+	Amount           int
 }
 
 func (c *ShoppingBasketModel) TableName() string {

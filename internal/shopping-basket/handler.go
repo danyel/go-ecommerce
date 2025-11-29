@@ -25,7 +25,7 @@ func (h *shoppingBasketHandler) CreateShoppingBasket(w http.ResponseWriter, _ *h
 		return
 	}
 
-	h.h.WriteResponse(http.StatusCreated, w, ShoppingId{Id: sh.Id})
+	h.h.WriteResponse(http.StatusCreated, w, ShoppingId{ID: sh.ID})
 }
 
 func (h *shoppingBasketHandler) AddItemToShoppingBasket(w http.ResponseWriter, r *http.Request) {

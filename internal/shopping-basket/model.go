@@ -9,7 +9,7 @@ type AddItem struct {
 }
 
 type ShoppingId struct {
-	Id uuid.UUID `json:"id"`
+	ID uuid.UUID `json:"id"`
 }
 
 type ShoppingBasketItem struct {
@@ -21,7 +21,7 @@ type ShoppingBasketItem struct {
 }
 
 type ShoppingBasket struct {
-	Id                  uuid.UUID            `json:"id"`
+	ID                  uuid.UUID            `json:"id"`
 	Items               []ShoppingBasketItem `json:"items"`
 	TotalPriceInclusive float32              `json:"total_price_inclusive"`
 	Tax                 float32              `json:"tax"`
