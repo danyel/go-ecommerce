@@ -17,9 +17,8 @@ type ShoppingBasketModel struct {
 type ShoppingBasketItemModel struct {
 	ID               uuid.UUID `gorm:"type:uuid;primaryKey"`
 	ShoppingBasketID uuid.UUID `gorm:"type:uuid;not null;index"`
-	Name             string
+	ProductId        uuid.UUID `gorm:"type:uuid;not null;index"`
 	Price            int
-	ImageUrl         string
 	Amount           int
 }
 

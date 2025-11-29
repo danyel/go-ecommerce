@@ -1,4 +1,4 @@
 .idea
 tmp
-gocommerce/node_modules
+**/node_modules
 gocommerce/package-lock.json

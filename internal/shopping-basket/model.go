@@ -13,11 +13,12 @@ type ShoppingId struct {
 }
 
 type ShoppingBasketItem struct {
-	ID       uuid.UUID `json:"id"`
-	Name     string    `json:"name"`
-	Price    int       `json:"price"`
-	ImageUrl string    `json:"image_url"`
-	Amount   int       `json:"amount"`
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Price     int       `json:"price"`
+	ProductId uuid.UUID `json:"product_id"`
+	ImageUrl  string    `json:"image_url"`
+	Amount    int       `json:"amount"`
 }
 
 type ShoppingBasket struct {

@@ -38,7 +38,7 @@ func (s *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
 }
 
 func (s *shoppingBasketService) AddItemToShoppingBasket(u uuid.UUID, i AddItem) (ShoppingBasket, error) {
-	id, err := s.r.FindById(u)
+	id, err := s.r.FindById(u, "Items")
 	var prd product.Product
 	if err != nil {
 		return ShoppingBasket{}, err
@@ -47,18 +47,24 @@ func (s *shoppingBasketService) AddItemToShoppingBasket(u uuid.UUID, i AddItem) 
 		return ShoppingBasket{}, err
 	}
 
-	item := ShoppingBasketItemModel{ID: prd.ID, ShoppingBasketID: id.ID, Name: prd.Name, Price: prd.Price, ImageUrl: prd.ImageUrl, Amount: 1}
+	item := ShoppingBasketItemModel{ID: uuid.Nil, ShoppingBasketID: id.ID, ProductId: prd.ID, Price: prd.Price, Amount: 1}
 	for _, it := range id.Items {
-		if it.ID == i.ProductId {
+		if it.ProductId == item.ProductId {
+			item.ID = it.ID
 			item.Amount = it.Amount + 1
 		}
 	}
-	err = s.si.Create(&item)
+	if item.ID == uuid.Nil {
+		err = s.si.Create(&item)
+	} else {
+		err = s.si.Update(&item)
+	}
 	return s.GetShoppingBasket(u)
 }
 
 func (s *shoppingBasketService) GetShoppingBasket(u uuid.UUID) (ShoppingBasket, error) {
 	id, err := s.r.FindById(u, "Items")
+	total := 0.0
 	if err != nil {
 		return ShoppingBasket{}, err
 	}
@@ -68,12 +74,18 @@ func (s *shoppingBasketService) GetShoppingBasket(u uuid.UUID) (ShoppingBasket, 
 	if len(id.Items) > 0 {
 		ps := make([]ShoppingBasketItem, len(id.Items))
 		for i, item := range id.Items {
+			pr, _ := s.pm.GetProduct(item.ProductId)
+			total += float64(pr.Price * item.Amount)
 			ps[i] = ShoppingBasketItem{
-				item.ID, item.Name, item.Price, item.ImageUrl, item.Amount,
+				item.ID, pr.Name, item.Price, pr.ID, pr.ImageUrl, item.Amount,
 			}
 		}
 		sm.Items = ps
 	}
+	sm.TotalPriceInclusive = float32(total)
+	sm.Tax = float32(total - (total / 1.21))
+	sm.TotalPriceExclusive = float32(total / 1.21)
+
 	return sm, nil
 }
 

@@ -1,4 +1,5 @@
 import {ShoppingBasket} from "lucide-react";
+import {useGlobalState} from "../../state/global-state.tsx";
 
 export interface HeaderComponentProperties {
     showShoppingCart: boolean;
@@ -6,6 +7,7 @@ export interface HeaderComponentProperties {
 }
 
 const HeaderComponent = (props: HeaderComponentProperties) => {
+    const globalStateType = useGlobalState();
     return (
         <header className="bg-white shadow-sm sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,7 +24,11 @@ const HeaderComponent = (props: HeaderComponentProperties) => {
                         <span
                             className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                             {/*todo the shopping cart total items*/}
-                            0
+                            {
+                                globalStateType.shoppingBasket.id && globalStateType.shoppingBasket.items.length > 0 ? globalStateType.shoppingBasket.items.reduce((accumulator, currentItem) => {
+                                    return accumulator + currentItem.amount;
+                                }, 0) : 0
+                            }
                         </span>
                     </button>
                 </div>

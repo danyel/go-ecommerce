@@ -29,7 +29,7 @@ func (a *ApiDefinition) ConfigRouter() *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Route("/api", func(r chi.Router) {
-		productV1Routing(r, "/product/v1/products", product.NewApiHandler(product.NewProductService(a.DB)))
+		productV1Routing(r, a)
 		categoryV1Routing(r, a)
 		productManagementV1Routing(r, a)
 		managementV1Routing(r, a)
@@ -115,8 +115,9 @@ func managementV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 }
 
 // Product api V1 /api/product/v1/products
-func productV1Routing(r chi.Router, b string, h product.ProductHandler) chi.Router {
-	return r.Route(b, func(r chi.Router) {
+func productV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
+	return r.Route("/product/v1/products", func(r chi.Router) {
+		h := product.NewApiHandler(product.NewProductService(a.DB))
 		r.Get("/", h.GetProducts)
 		// /api/product/v1/products/{productId}
 		r.Route("/{productId}", func(r chi.Router) {
