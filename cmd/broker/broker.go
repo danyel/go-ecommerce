@@ -19,7 +19,7 @@ type QueueConfig struct {
 }
 
 type Broker struct {
-	registry []Registry
+	registry []QueueRegistry
 	channel  *amqp.Channel
 }
 
@@ -40,14 +40,14 @@ func (b *Broker) CreateConnection(c *config.BrokerConfiguration) error {
 
 type HandlerFunc func([]byte) error
 
-type Registry struct {
+type QueueRegistry struct {
 	H HandlerFunc
 	C QueueConfig
 }
 
 func (b *Broker) RegisterConsumer(queue QueueConfig, handler HandlerFunc) {
 	if b.registry == nil {
-		b.registry = []Registry{{handler, queue}}
+		b.registry = []QueueRegistry{{handler, queue}}
 	}
 	notFound := true
 	for _, registry := range b.registry {
@@ -58,20 +58,11 @@ func (b *Broker) RegisterConsumer(queue QueueConfig, handler HandlerFunc) {
 	}
 
 	if notFound {
-		b.registry = append(b.registry, Registry{handler, queue})
+		b.registry = append(b.registry, QueueRegistry{handler, queue})
 	}
 }
 
-func (b *Broker) GetHandler(queue string) (HandlerFunc, error) {
-	for _, reg := range b.registry {
-		if reg.C.Queue == queue {
-			return reg.H, nil
-		}
-	}
-	return nil, fmt.Errorf("no handler registered for queue %s", queue)
-}
-
-func (b *Broker) Setup() error {
+func (b *Broker) setup() error {
 	for _, c := range b.registry {
 		if er := b.channel.ExchangeDeclare(c.C.Topic, "topic", true, false, false, false, nil); er != nil {
 			return er
@@ -90,14 +81,17 @@ func (b *Broker) Setup() error {
 func (b *Broker) Publish(queue string, v interface{}) error {
 	for _, r := range b.registry {
 		if r.C.Queue == queue {
-			body, _ := json.Marshal(v)
+			body, e := json.Marshal(v)
+			if e != nil {
+				return e
+			}
 			return b.channel.PublishWithContext(context.Background(), r.C.Topic, r.C.Queue, false, false, amqp.Publishing{ContentType: "application/json", Body: body})
 		}
 	}
 	return fmt.Errorf("no handler registered for queue %s", queue)
 }
 
-func (b *Broker) consume(r Registry) {
+func (b *Broker) consume(r QueueRegistry) {
 	var err error
 	var messages <-chan amqp.Delivery
 	if messages, err = b.channel.Consume(r.C.Queue, "", false, false, false, false, nil); err != nil {
@@ -124,12 +118,15 @@ func (b *Broker) consume(r Registry) {
 	log.Println("[Consumer] Listening:", r.C.Queue)
 }
 
-func (b *Broker) Start() {
+func (b *Broker) Start() error {
+	if err := b.setup(); err != nil {
+		return err
+	}
 	for _, registry := range b.registry {
 		go b.consume(registry)
 	}
 
-	select {}
+	return nil
 }
 
 func NewBroker() *Broker {

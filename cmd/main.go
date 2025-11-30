@@ -27,7 +27,9 @@ func main() {
 	}
 	b.RegisterConsumer(category.CategoryCreated, category.HandleCategoryCreated)
 	b.RegisterConsumer(category.CategoryCreated2, category.HandleCategoryCreated2)
-	b.Start()
+	if err = b.Start(); err != nil {
+		log.Println(err.Error())
+	}
 	r := router.ApiDefinition{
 		SC:     &sc,
 		DB:     db,
