@@ -118,8 +118,8 @@ func SetupWebIntegration(t *testing.T) *WebIntegration {
 	db := bi.Db()
 	sc := config.NewServerConfiguration()
 	ad := router.ApiDefinition{
-		ServerConfiguration: &sc,
-		DB:                  db,
+		SC: &sc,
+		DB: db,
 	}
 
 	ts := httptest.NewServer(ad.ConfigRouter())

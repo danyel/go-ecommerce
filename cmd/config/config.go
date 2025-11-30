@@ -15,9 +15,12 @@ type DatabaseConfiguration struct {
 	Schema   string
 }
 
-type ApplicationConfiguration struct {
-	DatabaseConfiguration DatabaseConfiguration
-	ServerConfiguration   ServerConfiguration
+type BrokerConfiguration struct {
+	Protocol string
+	Username string
+	Password string
+	Addr     string
+	Port     string
 }
 
 func NewDatabaseConfiguration() DatabaseConfiguration {
@@ -37,9 +40,12 @@ func NewServerConfiguration() ServerConfiguration {
 	}
 }
 
-func NewApplicationConfiguration(s ServerConfiguration, d DatabaseConfiguration) ApplicationConfiguration {
-	return ApplicationConfiguration{
-		ServerConfiguration:   s,
-		DatabaseConfiguration: d,
+func NewBrokerConfiguration() BrokerConfiguration {
+	return BrokerConfiguration{
+		Protocol: os.Getenv("BROKER_PROTOCOL"),
+		Addr:     os.Getenv("BROKER_ADDRESS"),
+		Port:     os.Getenv("BROKER_PORT"),
+		Username: os.Getenv("BROKER_USERNAME"),
+		Password: os.Getenv("BROKER_PASSWORD"),
 	}
 }

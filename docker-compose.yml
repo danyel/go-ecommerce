@@ -5,10 +5,10 @@ services:
       dockerfile: .devcontainer/Dockerfile
     container_name: go_dev_env
     volumes:
-      - ..:/workspace:cached             # mount project for JetBrains / VS Code DevContainers
+      - ..:/workspace:cached            
       - /var/run/docker.sock:/var/run/docker.sock
     working_dir: /workspace
-    command: sleep infinity             # DevContainer overrides this when attaching
+    command: sleep infinity
     environment:
       DATABASE_URL: postgres://ecommerce:ecommerce@ecommerce-database:5432/ecommerce?sslmode=disable
       POSTGRES_HOST: ecommerce-database
@@ -31,5 +31,14 @@ services:
       - POSGRES_DB=ecommerce
     ports:
       - "5401:5432"
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: developer
+      RABBITMQ_DEFAULT_PASS: developer
 volumes:
   ecommerce-volume:

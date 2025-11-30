@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/danyel/ecommerce/cmd/broker"
 	"github.com/danyel/ecommerce/cmd/config"
 	"github.com/danyel/ecommerce/internal/category"
 	"github.com/danyel/ecommerce/internal/cms"
@@ -17,8 +18,9 @@ import (
 )
 
 type ApiDefinition struct {
-	ServerConfiguration *config.ServerConfiguration
-	DB                  *gorm.DB
+	SC     *config.ServerConfiguration
+	DB     *gorm.DB
+	Broker *broker.Broker
 }
 
 func (a *ApiDefinition) ConfigRouter() *chi.Mux {
@@ -127,8 +129,8 @@ func productV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 }
 
 func (a *ApiDefinition) Run(r *chi.Mux) {
-	log.Printf("Running the server on port %s", a.ServerConfiguration.Addr)
-	if err := http.ListenAndServe(a.ServerConfiguration.Addr, r); err != nil {
+	log.Printf("Running the server on port %s", a.SC.Addr)
+	if err := http.ListenAndServe(a.SC.Addr, r); err != nil {
 		log.Fatal(err)
 	}
 

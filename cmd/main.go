@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 
+	"github.com/danyel/ecommerce/cmd/broker"
 	"github.com/danyel/ecommerce/cmd/config"
 	"github.com/danyel/ecommerce/cmd/database"
 	"github.com/danyel/ecommerce/cmd/router"
+	"github.com/danyel/ecommerce/internal/category"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
@@ -13,15 +15,23 @@ import (
 // project setup is done here ..
 func main() {
 	var err error
-	var connect *gorm.DB
+	var db *gorm.DB
 	err = godotenv.Load()
-	serverConfiguration := config.NewServerConfiguration()
-	databaseConfiguration := config.NewDatabaseConfiguration()
-	applicationConfiguration := config.NewApplicationConfiguration(serverConfiguration, databaseConfiguration)
-	connect, err = database.Connect(&applicationConfiguration.DatabaseConfiguration)
+	sc := config.NewServerConfiguration()
+	dc := config.NewDatabaseConfiguration()
+	bc := config.NewBrokerConfiguration()
+	db, err = database.Connect(&dc)
+	b := broker.NewBroker()
+	if b.CreateConnection(&bc) != nil {
+		log.Fatal(err)
+	}
+	b.RegisterConsumer(category.CategoryCreated, category.HandleCategoryCreated)
+	b.RegisterConsumer(category.CategoryCreated2, category.HandleCategoryCreated2)
+	b.Start()
 	r := router.ApiDefinition{
-		ServerConfiguration: &applicationConfiguration.ServerConfiguration,
-		DB:                  connect,
+		SC:     &sc,
+		DB:     db,
+		Broker: b,
 	}
 	if err != nil {
 		log.Fatal(err)
