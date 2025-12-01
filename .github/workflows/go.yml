@@ -13,14 +13,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.25.4'
-
-      - name: Build
-        run: go build -v ./...
-      # Install Dev Container CLI
       - name: Setup Dev Container CLI
         uses: devcontainers/ci@v0.3
         with:
@@ -29,4 +21,4 @@ jobs:
             devcontainer exec \
               --workspace-folder . \
               --docker-host=inherit \
-              bash -c "go test -v ./..."
+              bash -c "make full"

@@ -27,7 +27,5 @@
     "ms-azuretools.vscode-docker"
   ],
 
-  "postCreateCommand": "/workspace/.devcontainer/setup.sh",
-
   "remoteUser": "root"
 }
