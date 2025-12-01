@@ -95,12 +95,12 @@ func (b *Broker) consume(r QueueRegistry) {
 	var err error
 	var messages <-chan amqp.Delivery
 	if messages, err = b.channel.Consume(r.C.Queue, "", false, false, false, false, nil); err != nil {
-		log.Printf(err.Error())
+		log.Printf("Error on consuming messge: %s", err.Error())
 	}
 
 	for {
 		if messages, err = b.channel.Consume(r.C.Queue, "", false, false, false, false, nil); err != nil {
-			log.Printf(err.Error())
+			log.Printf("Error on consuming messge: %s", err.Error())
 			time.Sleep(30 * time.Second)
 		} else {
 			break
