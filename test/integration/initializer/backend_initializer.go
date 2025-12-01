@@ -21,7 +21,7 @@ type BackendInitializer struct {
 
 func (b *BackendInitializer) initializeDatabaseConfiguration() config.DatabaseConfiguration {
 	databaseConfiguration := config.NewDatabaseConfiguration()
-	databaseConfiguration.Host = "127.0.0.1"
+	databaseConfiguration.Host = "172.17.0.1"
 	databaseConfiguration.Username = "test"
 	databaseConfiguration.Password = "test"
 	databaseConfiguration.Database = "ecommerce"
@@ -59,7 +59,9 @@ func (b *BackendInitializer) initializeMigrationScripts(pg *tcpostgres.PostgresC
 		log.Fatalf("failed to get DSN: %v", err)
 	}
 
-	dsn = dsn + " sslmode=disable"
+	dsn = dsn + "sslmode=disable"
+
+	log.Printf("Migration url %s", dsn)
 
 	sqlDB, err := sql.Open("postgres", dsn)
 	if err != nil {

@@ -9,7 +9,8 @@
 React application with a golang backend.\
 With a rabbitmq broker for event sourcing and postgres as a database.\
 Golang (v1.25.4) for the backend development.\
-Typescript for the frontend.
+Typescript for the frontend.\
+The project is set up for dev container.
 
 ## Tech-stack
 
@@ -223,4 +224,12 @@ make integration_tests
 
 ```shell
 make mock_tests
+```
+
+### Dev container
+
+```shell
+git config --global --add safe.directory /workspace
+git config --global user.name <name>
+git config --global user.email <email>
 ```
