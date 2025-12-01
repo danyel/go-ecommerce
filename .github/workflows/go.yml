@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Setup Dev Container CLI
+      - name: Run build
         uses: devcontainers/ci@v0.3
         with:
           runCmd: |
@@ -21,4 +21,13 @@ jobs:
             devcontainer exec \
               --workspace-folder . \
               --docker-host=inherit \
-              bash -c "make full"
+              bash -c "go build -v ./.. "
+      - name: Run test
+        uses: devcontainers/ci@v0.3
+        with:
+          runCmd: |
+            # Run the devcontainer, with Docker socket mounted
+            devcontainer exec \
+              --workspace-folder . \
+              --docker-host=inherit \
+              bash -c "go test -v ./..."
