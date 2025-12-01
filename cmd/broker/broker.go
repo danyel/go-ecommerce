@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"time"
 
 	"github.com/danyel/ecommerce/cmd/config"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -19,8 +18,9 @@ type QueueConfig struct {
 }
 
 type Broker struct {
-	registry []QueueRegistry
-	channel  *amqp.Channel
+	registry   []QueueRegistry
+	channel    *amqp.Channel
+	registered []QueueConfig
 }
 
 func (b *Broker) CreateConnection(c *config.BrokerConfiguration) error {
@@ -64,23 +64,46 @@ func (b *Broker) RegisterConsumer(queue QueueConfig, handler HandlerFunc) {
 
 func (b *Broker) setup() error {
 	for _, c := range b.registry {
-		if er := b.channel.ExchangeDeclare(c.C.Topic, "topic", true, false, false, false, nil); er != nil {
-			return er
-		}
-		if _, er := b.channel.QueueDeclare(c.C.Queue, true, false, false, false, nil); er != nil {
-			return er
-		}
-		if er := b.channel.QueueBind(c.C.Queue, c.C.RoutingKey, c.C.Topic, false, nil); er != nil {
-			return er
+		if !b.alreadyRegistered(c.C) {
+			err := b.register(c)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
+func (b *Broker) register(c QueueRegistry) error {
+	if er := b.channel.ExchangeDeclare(c.C.Topic, "topic", true, false, false, false, nil); er != nil {
+		return er
+	}
+	if _, er := b.channel.QueueDeclare(c.C.Queue, true, false, false, false, nil); er != nil {
+		return er
+	}
+	if er := b.channel.QueueBind(c.C.Queue, c.C.RoutingKey, c.C.Topic, false, nil); er != nil {
+		return er
+	}
+	b.registered = append(b.registered, c.C)
+	return nil
+}
+
+func (b *Broker) alreadyRegistered(c QueueConfig) bool {
+	found := false
+	for _, d := range b.registered {
+		if c.Topic == d.Topic && c.Queue == d.Queue && c.RoutingKey == d.RoutingKey {
+			found = true
+			break
+		}
+	}
+
+	return found
+}
+
 func (b *Broker) Publish(queue string, v interface{}) error {
 	for _, r := range b.registry {
-		if r.C.Queue == queue {
+		if r.C.Queue == queue && b.alreadyRegistered(r.C) {
 			body, e := json.Marshal(v)
 			if e != nil {
 				return e
@@ -96,15 +119,6 @@ func (b *Broker) consume(r QueueRegistry) {
 	var messages <-chan amqp.Delivery
 	if messages, err = b.channel.Consume(r.C.Queue, "", false, false, false, false, nil); err != nil {
 		log.Printf("Error on consuming messge: %s", err.Error())
-	}
-
-	for {
-		if messages, err = b.channel.Consume(r.C.Queue, "", false, false, false, false, nil); err != nil {
-			log.Printf("Error on consuming messge: %s", err.Error())
-			time.Sleep(30 * time.Second)
-		} else {
-			break
-		}
 	}
 	go func() {
 		for msg := range messages {
@@ -123,8 +137,36 @@ func (b *Broker) Start() error {
 		return err
 	}
 	for _, registry := range b.registry {
-		go b.consume(registry)
+		if b.alreadyRegistered(registry.C) {
+			go b.consume(registry)
+		}
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				for _, registry := range b.registry {
+					if !b.alreadyRegistered(registry.C) {
+						err := b.register(registry)
+
+						if err != nil {
+							log.Printf("Error on registering registry: %s", err.Error())
+						} else {
+							b.registered = append(b.registered, registry.C)
+						}
+					}
+				}
+				if len(b.registered) == len(b.registry) {
+					cancel()
+				}
+			}
+
+		}
+	}()
 
 	return nil
 }

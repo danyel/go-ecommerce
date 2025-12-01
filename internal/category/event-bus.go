@@ -19,7 +19,7 @@ var CategoryCreated = broker.QueueConfig{
 
 var CategoryCreated2 = broker.QueueConfig{
 	Topic: ExchangeCategory,
-	Queue: "categories.category_created4",
+	Queue: "categories.category_created6",
 }
 
 type CategoryCreatedEvent struct {

@@ -6,31 +6,46 @@
 
 # Go-Commerce
 
-A Rest API for an e-commerce application, written in golang.\
-I wanted to know how golang works and how to create a rest api.
+React application with a golang backend.\
+With a rabbitmq broker for event sourcing and postgres as a database.\
+Golang (v1.25.4) for the backend development.\
+Typescript for the frontend.
 
 ## Tech-stack
 
-| Functionality | Framework       |
-|---------------|-----------------|
-| Router        | Chi             |
-| Database      | Gorm (postgres) |
-| Migration     | goose           |
-| DBMS          | docker          |
+| Functionality | Language/Framework/Tool/Technology |
+|---------------|------------------------------------|
+| Backend       | Golang                             |
+| Frontend      | Typescript                         |
+| CSS           | Tailwindcss                        |
+| Router        | Chi                                |
+| ORM           | Gorm *(maybe migrating to bun)*    |
+| Database      | Postgres                           |
+| Migration     | Goose                              |
+| Container     | Docker                             |
+| Broker        | Rabbitmq                           |
 
 ## How to start
 
-### Air hot reload
+### Tools
+
+To install all the tools at once use following command or install individually.
+
+```shell
+make tools
+```
+
+#### Air hot reload
+
+https://github.com/air-verse/air
+
 ```shell
 go install github.com/air-verse/air@latest
 ```
 
-### Template
-```shell
-go install github.com/a-h/templ/cmd/templ@latest
-```
+#### Goose
 
-### Goose
+https://github.com/pressly/goose
 
 ```shell
 go install github.com/pressly/goose/v3/cmd/goose@latest
@@ -42,11 +57,19 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 go mod tidy
 ```
 
-### Start the database
+### Start backend
+
+#### Prerequisites
+
+- docker
+
+##### Start the database
 
 ```shell
-docker compose up -d
+docker compose up -d ecommerce-database
 ```
+
+###### Configuration details
 
 | Key      | Value     |
 |----------|-----------|
@@ -59,30 +82,66 @@ docker compose up -d
 CREATE SCHEMA ecommerce;
 ```
 
-### Migrate the database
+###### Migrate the database
 
 ```shell
-goose up
+make migration
 ```
 
-### Application
+#### Broker (rabbitmq)
+
+###### Start the broker
+
+```shell
+docker compose up -d rabbitmq
+```
+
+###### Configuration details
+
+| Key      | Value     |
+|----------|-----------|
+| username | developer |
+| password | developer |
+| url      | localhost |
+| port     | 5672      |
+| protocol | amqp      |
 
 ```shell
 make run
 ```
 
-### Run the test
+### Start frontend
 
-#### Integration tests
+#### Prerequisites
+
+- Install npm and node
+
+##### Install dependencies
 
 ```shell
-go test github.com/danyel/ecommerce/test/integration
+npm i
 ```
 
-#### Mock tests
+#### Run frontend
 
 ```shell
-go test github.com/danyel/ecommerce/test/mock
+make ui
+```
+
+Access the application on http://localhost:5173/
+
+### Run the test
+
+###### Integration tests
+
+```shell
+make integration_tests
+```
+
+###### Mock tests
+
+```shell
+make mock_tests
 ```
 
 ## API
@@ -103,3 +162,53 @@ go test github.com/danyel/ecommerce/test/mock
 | management add translation        | POST /api/management/v1/translations               |
 | get products                      | GET /api/product/v1/products                       |
 | get product                       | GET /api/product/v1/products/{id}                  |
+
+### Makefile commands
+
+###### Build the projects
+
+```shell
+make build
+```
+
+###### Hotswap the application
+
+```shell
+make air
+```
+
+###### Run the react app
+
+```shell
+make ui 
+```
+
+###### Start the database migration
+
+```shell
+make migration
+```
+
+###### Build and test the application
+
+```shell
+make full
+```
+
+###### Install tools
+
+```shell
+make tools
+```
+
+###### Run integration tests
+
+```shell
+make integration_tests
+```
+
+###### Run mock tests
+
+```shell
+make mock_tests
+```
