@@ -20,7 +20,7 @@ Typescript for the frontend.
 | CSS           | Tailwindcss                        |
 | Router        | Chi                                |
 | ORM           | Gorm *(maybe migrating to bun)*    |
-| Database      | Postgres                           |
+| Database      | Postgres (18)                      |
 | Migration     | Goose                              |
 | Container     | Docker                             |
 | Broker        | Rabbitmq                           |
@@ -63,6 +63,18 @@ go mod tidy
 
 - docker
 
+###### All services up
+
+```shell
+make env_up
+```
+
+###### All services down
+
+```shell
+make env_down
+```
+
 ##### Start the database
 
 ```shell
@@ -76,7 +88,7 @@ docker compose up -d ecommerce-database
 | username | ecommerce |
 | password | ecommerce |
 | database | ecommerce |
-| port     | 5401      |
+| port     | 5432      |
 
 ```sql
 CREATE SCHEMA ecommerce;
