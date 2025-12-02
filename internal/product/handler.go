@@ -1,10 +1,9 @@
 package product
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
 	"github.com/google/uuid"
 )
 
@@ -15,40 +14,31 @@ type ProductHandler interface {
 }
 
 type productApiHandler struct {
-	productService ProductService
+	p ProductService
+	h commonHandler.ResponseHandler
 }
 
 func (h *productApiHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(h.productService.GetProducts()); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	h.h.WriteResponse(http.StatusOK, w, h.p.GetProducts())
 }
 
 func (h *productApiHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	var product Product
 	var productId uuid.UUID
 	var err error
-	productIdToParse := chi.URLParam(r, "productId")
-	if productId, err = uuid.Parse(productIdToParse); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	if productId, err = commonHandler.GetId(r, "productId"); err != nil {
+		h.h.StatusBadRequest(w)
 		return
 	}
 
-	if product, err = h.productService.GetProduct(productId); err != nil {
-		w.WriteHeader(http.StatusNotFound)
+	if product, err = h.p.GetProduct(productId); err != nil {
+		h.h.StatusNotFound(w)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	http.StatusText(200)
-
-	if err = json.NewEncoder(w).Encode(product); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	h.h.WriteResponse(http.StatusOK, w, product)
 }
 
 func NewApiHandler(p ProductService) ProductHandler {
-	h := &productApiHandler{p}
+	h := &productApiHandler{p, commonHandler.NewResponseHandler()}
 	return h
 }

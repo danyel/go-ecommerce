@@ -49,7 +49,7 @@ func shoppingBasketV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 		h := shoppingbasket.NewHandler(a.DB)
 		r.Post("/", h.CreateShoppingBasket)
 		r.Route("/{shoppingBasketId}", func(r chi.Router) {
-			r.Post("/", h.AddItemToShoppingBasket)
+			r.Put("/", h.UpdateShoppingBasketItem)
 			r.Get("/", h.GetShoppingBasket)
 		})
 	})
@@ -59,13 +59,13 @@ func shoppingBasketV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 func productManagementV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 	return r.Route("/product-management/v1", func(r chi.Router) {
 		r.Route("/products", func(r chi.Router) {
-			handler := product_management.NewHandler(a.DB)
-			r.Get("/", handler.GetProducts)
-			r.Post("/", handler.CreateProduct)
+			h := product_management.NewHandler(a.DB)
+			r.Get("/", h.GetProducts)
+			r.Post("/", h.CreateProduct)
 			r.Route("/{productId}", func(r chi.Router) {
-				r.Get("/", handler.GetProduct)
-				r.Delete("/", handler.DeleteProduct)
-				r.Put("/", handler.UpdateProduct)
+				r.Get("/", h.GetProduct)
+				r.Delete("/", h.DeleteProduct)
+				r.Put("/", h.UpdateProduct)
 			})
 		})
 	})
@@ -81,11 +81,11 @@ func orderV1Routing(r chi.Router, _ *ApiDefinition) chi.Router {
 // Category api V1 /api/category/v1/categories
 func categoryV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 	return r.Route("/category/v1", func(r chi.Router) {
-		handler := category.NewHandler(a.DB)
+		h := category.NewHandler(a.DB)
 		r.Route("/categories", func(r chi.Router) {
-			r.Post("/", handler.CreateCategory)
+			r.Post("/", h.CreateCategory)
 		})
-		r.Post("/translations", handler.CreateTranslations)
+		r.Post("/translations", h.CreateTranslations)
 	})
 }
 
@@ -99,20 +99,20 @@ func paymentV1Routing(r chi.Router, _ *ApiDefinition) chi.Router {
 // CMS api V1 /api/cms/v1/translations
 func cmsV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 	return r.Route("/cms/v1/translations", func(r chi.Router) {
-		handler := cms.NewHandler(a.DB)
-		r.Get("/", handler.GetTranslations)
-		r.Get("/{language}/{id}", handler.GetTranslation)
+		h := cms.NewHandler(a.DB)
+		r.Get("/", h.GetTranslations)
+		r.Get("/{language}/{id}", h.GetTranslation)
 	})
 }
 
 // Management api V1 /api/management/v1
 func managementV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 	return r.Route("/management/v1", func(r chi.Router) {
-		handler := management.NewHandler(a.DB)
+		h := management.NewHandler(a.DB)
 		r.Route("/categories", func(r chi.Router) {
-			r.Get("/", handler.GetCategories)
+			r.Get("/", h.GetCategories)
 		})
-		r.Post("/translations", handler.CreateTranslations)
+		r.Post("/translations", h.CreateTranslations)
 	})
 }
 

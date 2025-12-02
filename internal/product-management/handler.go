@@ -1,7 +1,6 @@
 package product_management
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/danyel/ecommerce/internal/category"
@@ -23,42 +22,40 @@ type ProductManagementHandler interface {
 }
 
 type productManagementHandler struct {
-	productService ProductService
-	productMapper  product.ProductMapper
+	s ProductService
+	m product.ProductMapper
+	h commonHandler.ResponseHandler
 }
 
 func (h *productManagementHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
-	products := h.productService.GetProducts()
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(products); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	products := h.s.GetProducts()
+	h.h.WriteResponse(http.StatusOK, w, products)
 }
+
 func (h *productManagementHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	var productId uuid.UUID
 	var err error
 	productIdToParse := chi.URLParam(r, "productId")
 	if productId, err = uuid.Parse(productIdToParse); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		h.h.StatusBadRequest(w)
 		return
 	}
 
-	if err = h.productService.DeleteProduct(productId); err != nil {
-		w.WriteHeader(http.StatusNotFound)
+	if err = h.s.DeleteProduct(productId); err != nil {
+		h.h.StatusNotFound(w)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	h.h.StatusNoContent(w)
 }
 func (h *productManagementHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	productId := chi.URLParam(r, "productId")
-	parse, err := uuid.Parse(productId)
+	productId, err := commonHandler.GetId(r, "productId")
 	var updateProduct UpdateProduct
 	if err = commonHandler.ValidateRequest(r, &updateProduct); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		h.h.StatusBadRequest(w)
 		return
 	}
-	if err = h.productService.UpdateProduct(parse, updateProduct); err != nil {
-		w.WriteHeader(http.StatusNotFound)
+	if err = h.s.UpdateProduct(productId, updateProduct); err != nil {
+		h.h.StatusNotFound(w)
 		return
 	}
 }
@@ -68,45 +65,38 @@ func (h *productManagementHandler) CreateProduct(w http.ResponseWriter, r *http.
 	var err error
 
 	if err = commonHandler.ValidateRequest[CreateProduct](r, &createProduct); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		h.h.StatusBadRequest(w)
 	}
 
-	if productId, err = h.productService.CreateProduct(createProduct); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	if productId, err = h.s.CreateProduct(createProduct); err != nil {
+		h.h.StatusInternalServerError(w)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	if err = json.NewEncoder(w).Encode(productId); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	h.h.WriteResponse(http.StatusCreated, w, productId)
 }
 func (h *productManagementHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	var productId uuid.UUID
 	var err error
 	var productModel product.Product
-	productIdFromRequest := chi.URLParam(r, "productId")
-	if productId, err = uuid.Parse(productIdFromRequest); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	productId, err = commonHandler.GetId(r, "productId")
+	if err != nil {
+		h.h.StatusBadRequest(w)
 		return
 	}
 
-	if productModel, err = h.productService.GetProduct(productId); err != nil {
-		w.WriteHeader(http.StatusNotFound)
+	if productModel, err = h.s.GetProduct(productId); err != nil {
+		h.h.StatusNotFound(w)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	http.StatusText(200)
-	if err = json.NewEncoder(w).Encode(productModel); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	h.h.WriteResponse(http.StatusOK, w, productModel)
 }
 
 func NewHandler(DB *gorm.DB) ProductManagementHandler {
 	categoryService := category.NewCategoryService(DB)
 	cmsService := cms.NewCmsService(DB)
 	return &productManagementHandler{
-		productService: NewProductService(DB),
-		productMapper:  product.NewProductMapper(categoryService, cmsService),
+		s: NewProductService(DB),
+		m: product.NewProductMapper(categoryService, cmsService),
+		h: commonHandler.NewResponseHandler(),
 	}
 }

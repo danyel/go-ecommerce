@@ -14,8 +14,8 @@ type CategoryHandler interface {
 }
 
 type categoryHandler struct {
-	categoryService CategoryService
-	Handler         commonHandler.ResponseHandler
+	s CategoryService
+	h commonHandler.ResponseHandler
 }
 
 func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -23,14 +23,14 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 	var categoryId CategoryId
 	var err error
 	if err = commonHandler.ValidateRequest[CreateCategory](r, &createCategory); err != nil {
-		h.Handler.StatusBadRequest(w)
+		h.h.StatusBadRequest(w)
 		return
 	}
-	if categoryId, err = h.categoryService.CreateCategory(createCategory); err != nil {
-		h.Handler.StatusInternalServerError(w)
+	if categoryId, err = h.s.CreateCategory(createCategory); err != nil {
+		h.h.StatusInternalServerError(w)
 		return
 	}
-	h.Handler.WriteResponse(http.StatusCreated, w, categoryId)
+	h.h.WriteResponse(http.StatusCreated, w, categoryId)
 }
 
 func (h *categoryHandler) CreateTranslations(_ http.ResponseWriter, _ *http.Request) {}

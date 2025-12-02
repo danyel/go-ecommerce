@@ -9,7 +9,7 @@ import (
 
 type ShoppingBasketHandler interface {
 	CreateShoppingBasket(w http.ResponseWriter, r *http.Request)
-	AddItemToShoppingBasket(w http.ResponseWriter, r *http.Request)
+	UpdateShoppingBasketItem(w http.ResponseWriter, r *http.Request)
 	GetShoppingBasket(w http.ResponseWriter, r *http.Request)
 }
 
@@ -28,7 +28,7 @@ func (h *shoppingBasketHandler) CreateShoppingBasket(w http.ResponseWriter, _ *h
 	h.h.WriteResponse(http.StatusCreated, w, ShoppingId{ID: sh.ID})
 }
 
-func (h *shoppingBasketHandler) AddItemToShoppingBasket(w http.ResponseWriter, r *http.Request) {
+func (h *shoppingBasketHandler) UpdateShoppingBasketItem(w http.ResponseWriter, r *http.Request) {
 	var ai UpdateShoppingBasketItem
 	var err error
 	var shoppingBasket ShoppingBasket

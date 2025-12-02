@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
@@ -15,27 +14,27 @@ type CmsHandler interface {
 }
 
 type cmsHandler struct {
-	cmsService CmsService
-	Handler    commonHandler.ResponseHandler
+	s CmsService
+	h commonHandler.ResponseHandler
 }
 
 func (h *cmsHandler) GetTranslation(w http.ResponseWriter, r *http.Request) {
-	language := chi.URLParam(r, "language")
-	code := chi.URLParam(r, "code")
+	language := commonHandler.GetPathParam(r, "language")
+	code := commonHandler.GetPathParam(r, "code")
 	var translation Translation
 	var err error
 
-	if translation, err = h.cmsService.GetTranslation(code, language); err != nil {
-		h.Handler.StatusNotFound(w)
+	if translation, err = h.s.GetTranslation(code, language); err != nil {
+		h.h.StatusNotFound(w)
 		return
 	}
-	h.Handler.WriteResponse(http.StatusOK, w, translation)
+	h.h.WriteResponse(http.StatusOK, w, translation)
 }
 
 func (h *cmsHandler) GetTranslations(w http.ResponseWriter, r *http.Request) {
-	language := r.URL.Query().Get("language")
+	language := commonHandler.GetRequestParam(r, "language")
 
-	h.Handler.WriteResponse(http.StatusOK, w, h.cmsService.GetTranslations(language))
+	h.h.WriteResponse(http.StatusOK, w, h.s.GetTranslations(language))
 }
 
 func NewHandler(db *gorm.DB) CmsHandler {

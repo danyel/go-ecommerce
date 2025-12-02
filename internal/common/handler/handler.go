@@ -11,6 +11,7 @@ import (
 type ResponseHandler interface {
 	WriteResponse(status int, w http.ResponseWriter, v any)
 	StatusBadRequest(w http.ResponseWriter)
+	StatusNoContent(w http.ResponseWriter)
 	StatusNotFound(w http.ResponseWriter)
 	StatusInternalServerError(w http.ResponseWriter)
 	StatusOK(w http.ResponseWriter)
@@ -22,6 +23,14 @@ type responseHandler struct {
 func GetId(r *http.Request, key string) (uuid.UUID, error) {
 	productId := chi.URLParam(r, key)
 	return uuid.Parse(productId)
+}
+
+func GetPathParam(r *http.Request, key string) string {
+	return chi.URLParam(r, key)
+}
+
+func GetRequestParam(r *http.Request, key string) string {
+	return r.URL.Query().Get(key)
 }
 
 func ValidateRequest[T any](req *http.Request, model *T) error {
@@ -44,18 +53,27 @@ func (r *responseHandler) WriteResponse(status int, w http.ResponseWriter, v any
 }
 
 func (r *responseHandler) StatusOK(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 
+func (r *responseHandler) StatusNoContent(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (r *responseHandler) StatusBadRequest(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 }
 
 func (r *responseHandler) StatusNotFound(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 func (r *responseHandler) StatusInternalServerError(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
 }
 

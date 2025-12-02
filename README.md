@@ -162,7 +162,7 @@ make mock_tests
 | Functionality                     | Endpoint                                           |
 |-----------------------------------|----------------------------------------------------|
 | create shopping basket            | POST /api/shopping-basket/v1/shopping-baskets      |
-| add item to shopping basket       | POST /api/shopping-basket/v1/shopping-baskets/{id} |
+| update shopping basket item       | PUT /api/shopping-basket/v1/shopping-baskets/{id}  |
 | get shopping basket               | GET  /api/shopping-basket/v1/shopping-baskets/{id} |
 | product management get products   | GET /api/product-management/v1/products            |
 | product management create product | POST /api/product-management/v1/products           |

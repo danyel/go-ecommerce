@@ -1,7 +1,6 @@
 package management
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/danyel/ecommerce/internal/category"
@@ -17,18 +16,14 @@ type ManagementHandler interface {
 }
 
 type managementHandler struct {
-	categoryService   category.CategoryService
-	managementService ManagementService
-	handler           commonHandler.ResponseHandler
-	cmsService        cms.CmsService
+	c   category.CategoryService
+	m   ManagementService
+	h   commonHandler.ResponseHandler
+	cms cms.CmsService
 }
 
 func (h *managementHandler) GetCategories(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	h.handler.StatusOK(w)
-	if err := json.NewEncoder(w).Encode(h.categoryService.GetCategories()); err != nil {
-		h.handler.StatusInternalServerError(w)
-	}
+	h.h.WriteResponse(http.StatusOK, w, h.c.GetCategories())
 }
 
 func (h *managementHandler) CreateTranslations(w http.ResponseWriter, r *http.Request) {
@@ -36,27 +31,27 @@ func (h *managementHandler) CreateTranslations(w http.ResponseWriter, r *http.Re
 	var err error
 	var cmsId CmsId
 	if err = commonHandler.ValidateRequest[CreateCms](r, &createCms); err != nil {
-		h.handler.StatusBadRequest(w)
+		h.h.StatusBadRequest(w)
 		return
 	}
 
 	// we can not create a new translation for the same code and language!
-	if _, err = h.cmsService.GetTranslation(createCms.Code, createCms.Language); err == nil {
-		h.handler.StatusBadRequest(w)
+	if _, err = h.cms.GetTranslation(createCms.Code, createCms.Language); err == nil {
+		h.h.StatusBadRequest(w)
 	}
 
-	if cmsId, err = h.managementService.CreateTranslation(createCms); err != nil {
-		h.handler.StatusInternalServerError(w)
+	if cmsId, err = h.m.CreateTranslation(createCms); err != nil {
+		h.h.StatusInternalServerError(w)
 		return
 	}
-	h.handler.WriteResponse(http.StatusCreated, w, cmsId)
+	h.h.WriteResponse(http.StatusCreated, w, cmsId)
 }
 
 func NewHandler(DB *gorm.DB) ManagementHandler {
 	return &managementHandler{
-		categoryService:   category.NewCategoryService(DB),
-		handler:           commonHandler.NewResponseHandler(),
-		managementService: NewManagementService(DB),
-		cmsService:        cms.NewCmsService(DB),
+		c:   category.NewCategoryService(DB),
+		h:   commonHandler.NewResponseHandler(),
+		m:   NewManagementService(DB),
+		cms: cms.NewCmsService(DB),
 	}
 }

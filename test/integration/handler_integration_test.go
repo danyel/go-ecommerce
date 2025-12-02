@@ -52,7 +52,7 @@ func TestHandler(t *testing.T) {
 	}
 	productRepo.Insert(pm)
 
-	t.Run("Product Handler", func(t *testing.T) {
+	t.Run("Product h", func(t *testing.T) {
 		t.Run("CreateProduct", func(t *testing.T) {
 			b := &productmanagement.CreateProduct{
 				Brand:       "ASUS",
@@ -71,7 +71,7 @@ func TestHandler(t *testing.T) {
 		})
 	})
 
-	t.Run("CMS Handler", func(t *testing.T) {
+	t.Run("CMS h", func(t *testing.T) {
 		t.Run("TestCmsHandler", func(t *testing.T) {
 			t.Run("CmsHandler retrieve dutch", func(t *testing.T) {
 				var translations []cms.Translation
@@ -123,7 +123,7 @@ func TestHandler(t *testing.T) {
 		})
 	})
 
-	t.Run("Management Handler", func(t *testing.T) {
+	t.Run("Management h", func(t *testing.T) {
 		t.Run("ManagementHandler: Create a new translation but it already exist so return 400", func(t *testing.T) {
 			b := &management.CreateCms{
 				Code:     "90YV0L71_M0NA00_NAME",
@@ -148,7 +148,7 @@ func TestHandler(t *testing.T) {
 		})
 	})
 
-	t.Run("Product Management Handler", func(t *testing.T) {
+	t.Run("Product Management h", func(t *testing.T) {
 		t.Run("Product Management Get Product", func(t *testing.T) {
 			var ps productmanagement.Product
 			wi.ProductManagementGetProductById(pm.ID.String()).
@@ -180,7 +180,7 @@ func TestHandler(t *testing.T) {
 		})
 	})
 
-	t.Run("Shopping Basket Handler", func(t *testing.T) {
+	t.Run("Shopping Basket h", func(t *testing.T) {
 		var shoppingId shoppingbasket.ShoppingId
 
 		t.Run("Create Shopping Basket", func(t *testing.T) {
