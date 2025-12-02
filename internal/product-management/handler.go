@@ -24,12 +24,11 @@ type ProductManagementHandler interface {
 type productManagementHandler struct {
 	s ProductService
 	m product.ProductMapper
-	h commonHandler.ResponseHandler
 }
 
 func (h *productManagementHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
 	products := h.s.GetProducts()
-	h.h.WriteResponse(http.StatusOK, w, products)
+	commonHandler.WriteResponse(http.StatusOK, w, products)
 }
 
 func (h *productManagementHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
@@ -37,25 +36,25 @@ func (h *productManagementHandler) DeleteProduct(w http.ResponseWriter, r *http.
 	var err error
 	productIdToParse := chi.URLParam(r, "productId")
 	if productId, err = uuid.Parse(productIdToParse); err != nil {
-		h.h.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w)
 		return
 	}
 
 	if err = h.s.DeleteProduct(productId); err != nil {
-		h.h.StatusNotFound(w)
+		commonHandler.StatusNotFound(w)
 		return
 	}
-	h.h.StatusNoContent(w)
+	commonHandler.StatusNoContent(w)
 }
 func (h *productManagementHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	productId, err := commonHandler.GetId(r, "productId")
 	var updateProduct UpdateProduct
 	if err = commonHandler.ValidateRequest(r, &updateProduct); err != nil {
-		h.h.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w)
 		return
 	}
 	if err = h.s.UpdateProduct(productId, updateProduct); err != nil {
-		h.h.StatusNotFound(w)
+		commonHandler.StatusNotFound(w)
 		return
 	}
 }
@@ -65,14 +64,14 @@ func (h *productManagementHandler) CreateProduct(w http.ResponseWriter, r *http.
 	var err error
 
 	if err = commonHandler.ValidateRequest[CreateProduct](r, &createProduct); err != nil {
-		h.h.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w)
 	}
 
 	if productId, err = h.s.CreateProduct(createProduct); err != nil {
-		h.h.StatusInternalServerError(w)
+		commonHandler.StatusInternalServerError(w)
 		return
 	}
-	h.h.WriteResponse(http.StatusCreated, w, productId)
+	commonHandler.WriteResponse(http.StatusCreated, w, productId)
 }
 func (h *productManagementHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	var productId uuid.UUID
@@ -80,15 +79,15 @@ func (h *productManagementHandler) GetProduct(w http.ResponseWriter, r *http.Req
 	var productModel product.Product
 	productId, err = commonHandler.GetId(r, "productId")
 	if err != nil {
-		h.h.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w)
 		return
 	}
 
 	if productModel, err = h.s.GetProduct(productId); err != nil {
-		h.h.StatusNotFound(w)
+		commonHandler.StatusNotFound(w)
 		return
 	}
-	h.h.WriteResponse(http.StatusOK, w, productModel)
+	commonHandler.WriteResponse(http.StatusOK, w, productModel)
 }
 
 func NewHandler(DB *gorm.DB) ProductManagementHandler {
@@ -97,6 +96,5 @@ func NewHandler(DB *gorm.DB) ProductManagementHandler {
 	return &productManagementHandler{
 		s: NewProductService(DB),
 		m: product.NewProductMapper(categoryService, cmsService),
-		h: commonHandler.NewResponseHandler(),
 	}
 }

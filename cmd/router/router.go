@@ -49,7 +49,7 @@ func shoppingBasketV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 		h := shoppingbasket.NewHandler(a.DB)
 		r.Post("/", h.CreateShoppingBasket)
 		r.Route("/{shoppingBasketId}", func(r chi.Router) {
-			r.Put("/", h.UpdateShoppingBasketItem)
+			r.Post("/", h.UpdateShoppingBasketItem)
 			r.Get("/", h.GetShoppingBasket)
 		})
 	})

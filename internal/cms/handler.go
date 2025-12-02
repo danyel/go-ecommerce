@@ -15,7 +15,6 @@ type CmsHandler interface {
 
 type cmsHandler struct {
 	s CmsService
-	h commonHandler.ResponseHandler
 }
 
 func (h *cmsHandler) GetTranslation(w http.ResponseWriter, r *http.Request) {
@@ -25,21 +24,20 @@ func (h *cmsHandler) GetTranslation(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if translation, err = h.s.GetTranslation(code, language); err != nil {
-		h.h.StatusNotFound(w)
+		commonHandler.StatusNotFound(w)
 		return
 	}
-	h.h.WriteResponse(http.StatusOK, w, translation)
+	commonHandler.WriteResponse(http.StatusOK, w, translation)
 }
 
 func (h *cmsHandler) GetTranslations(w http.ResponseWriter, r *http.Request) {
 	language := commonHandler.GetRequestParam(r, "language")
 
-	h.h.WriteResponse(http.StatusOK, w, h.s.GetTranslations(language))
+	commonHandler.WriteResponse(http.StatusOK, w, h.s.GetTranslations(language))
 }
 
 func NewHandler(db *gorm.DB) CmsHandler {
 	return &cmsHandler{
 		NewCmsService(db),
-		commonHandler.NewResponseHandler(),
 	}
 }

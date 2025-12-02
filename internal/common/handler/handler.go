@@ -8,18 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type ResponseHandler interface {
-	WriteResponse(status int, w http.ResponseWriter, v any)
-	StatusBadRequest(w http.ResponseWriter)
-	StatusNoContent(w http.ResponseWriter)
-	StatusNotFound(w http.ResponseWriter)
-	StatusInternalServerError(w http.ResponseWriter)
-	StatusOK(w http.ResponseWriter)
-}
-
-type responseHandler struct {
-}
-
 func GetId(r *http.Request, key string) (uuid.UUID, error) {
 	productId := chi.URLParam(r, key)
 	return uuid.Parse(productId)
@@ -44,39 +32,35 @@ func ValidateRequest[T any](req *http.Request, model *T) error {
 	return nil
 }
 
-func (r *responseHandler) WriteResponse(status int, w http.ResponseWriter, v any) {
+func WriteResponse(status int, w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(v); err != nil {
-		r.StatusInternalServerError(w)
+		StatusInternalServerError(w)
 	}
 }
 
-func (r *responseHandler) StatusOK(w http.ResponseWriter) {
+func StatusOK(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 
-func (r *responseHandler) StatusNoContent(w http.ResponseWriter) {
+func StatusNoContent(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (r *responseHandler) StatusBadRequest(w http.ResponseWriter) {
+func StatusBadRequest(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 }
 
-func (r *responseHandler) StatusNotFound(w http.ResponseWriter) {
+func StatusNotFound(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
 }
 
-func (r *responseHandler) StatusInternalServerError(w http.ResponseWriter) {
+func StatusInternalServerError(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
-}
-
-func NewResponseHandler() ResponseHandler {
-	return &responseHandler{}
 }

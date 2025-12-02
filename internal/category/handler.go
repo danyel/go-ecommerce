@@ -15,7 +15,6 @@ type CategoryHandler interface {
 
 type categoryHandler struct {
 	s CategoryService
-	h commonHandler.ResponseHandler
 }
 
 func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
@@ -23,14 +22,14 @@ func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 	var categoryId CategoryId
 	var err error
 	if err = commonHandler.ValidateRequest[CreateCategory](r, &createCategory); err != nil {
-		h.h.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w)
 		return
 	}
 	if categoryId, err = h.s.CreateCategory(createCategory); err != nil {
-		h.h.StatusInternalServerError(w)
+		commonHandler.StatusInternalServerError(w)
 		return
 	}
-	h.h.WriteResponse(http.StatusCreated, w, categoryId)
+	commonHandler.WriteResponse(http.StatusCreated, w, categoryId)
 }
 
 func (h *categoryHandler) CreateTranslations(_ http.ResponseWriter, _ *http.Request) {}
@@ -38,7 +37,6 @@ func (h *categoryHandler) CreateTranslations(_ http.ResponseWriter, _ *http.Requ
 func NewHandler(DB *gorm.DB) CategoryHandler {
 	handler := &categoryHandler{
 		NewCategoryService(DB),
-		commonHandler.NewResponseHandler(),
 	}
 	return handler
 }
