@@ -12,7 +12,7 @@ import (
 
 type ShoppingBasketService interface {
 	CreateShoppingBasket() (ShoppingBasket, error)
-	AddItemToShoppingBasket(u uuid.UUID, i AddItem) (ShoppingBasket, error)
+	UpdateShoppingBasketItem(u uuid.UUID, i UpdateShoppingBasketItem) (ShoppingBasket, error)
 	GetShoppingBasket(u uuid.UUID) (ShoppingBasket, error)
 }
 
@@ -37,7 +37,7 @@ func (s *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
 	return r, nil
 }
 
-func (s *shoppingBasketService) AddItemToShoppingBasket(u uuid.UUID, i AddItem) (ShoppingBasket, error) {
+func (s *shoppingBasketService) UpdateShoppingBasketItem(u uuid.UUID, i UpdateShoppingBasketItem) (ShoppingBasket, error) {
 	id, err := s.r.FindById(u, "Items")
 	var prd product.Product
 	if err != nil {
@@ -47,17 +47,21 @@ func (s *shoppingBasketService) AddItemToShoppingBasket(u uuid.UUID, i AddItem) 
 		return ShoppingBasket{}, err
 	}
 
-	item := ShoppingBasketItemModel{ID: uuid.Nil, ShoppingBasketID: id.ID, ProductId: prd.ID, Price: prd.Price, Amount: 1}
+	item := ShoppingBasketItemModel{ID: uuid.Nil, ShoppingBasketID: id.ID, ProductId: prd.ID, Price: prd.Price, Quantity: i.Quantity}
 	for _, it := range id.Items {
 		if it.ProductId == item.ProductId {
 			item.ID = it.ID
-			item.Amount = it.Amount + 1
+			item.Quantity = i.Quantity
 		}
 	}
 	if item.ID == uuid.Nil {
 		err = s.si.Create(&item)
 	} else {
-		err = s.si.Update(&item)
+		if item.Quantity > 0 {
+			err = s.si.Update(&item)
+		} else {
+			err = s.si.Delete(item.ID)
+		}
 	}
 	return s.GetShoppingBasket(u)
 }
@@ -75,9 +79,9 @@ func (s *shoppingBasketService) GetShoppingBasket(u uuid.UUID) (ShoppingBasket, 
 		ps := make([]ShoppingBasketItem, len(id.Items))
 		for i, item := range id.Items {
 			pr, _ := s.pm.GetProduct(item.ProductId)
-			total += float64(pr.Price * item.Amount)
+			total += float64(pr.Price * item.Quantity)
 			ps[i] = ShoppingBasketItem{
-				item.ID, pr.Name, item.Price, pr.ID, pr.ImageUrl, item.Amount,
+				item.ID, pr.Name, item.Price, pr.ID, pr.ImageUrl, item.Quantity,
 			}
 		}
 		sm.Items = ps

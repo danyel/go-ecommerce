@@ -191,7 +191,7 @@ func TestHandler(t *testing.T) {
 		})
 
 		t.Run("Add Item To Shopping Basket", func(t *testing.T) {
-			a := shoppingbasket.AddItem{
+			a := shoppingbasket.UpdateShoppingBasketItem{
 				ProductId: pm.ID,
 			}
 			wi.ShoppingBasketAddItem(shoppingId.ID.String(), a).

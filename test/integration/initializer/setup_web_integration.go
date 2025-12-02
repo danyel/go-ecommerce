@@ -48,7 +48,7 @@ func (wi *WebIntegration) ShoppingBasketCreate() *WebIntegration {
 	return wi.Post(wi.forUrl("/api/shopping-basket/v1/shopping-baskets"), nil)
 }
 
-func (wi *WebIntegration) ShoppingBasketAddItem(id string, a shoppingbasket.AddItem) *WebIntegration {
+func (wi *WebIntegration) ShoppingBasketAddItem(id string, a shoppingbasket.UpdateShoppingBasketItem) *WebIntegration {
 	return wi.Post(wi.forUrl("/api/shopping-basket/v1/shopping-baskets/"+id), a)
 }
 

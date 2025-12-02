@@ -19,7 +19,7 @@ type ShoppingBasketItemModel struct {
 	ShoppingBasketID uuid.UUID `gorm:"type:uuid;not null;index"`
 	ProductId        uuid.UUID `gorm:"type:uuid;not null;index"`
 	Price            int
-	Amount           int
+	Quantity         int
 }
 
 func (c *ShoppingBasketModel) TableName() string {

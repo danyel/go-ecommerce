@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import type {Product} from "../../domain/product/model.tsx";
 import {ChevronDown} from "lucide-react";
 import {useGlobalState} from "../../state/global-state.tsx";
-import type {AddItem, ShoppingBasket, ShoppingBasketId} from "../../domain/shopping-basket/model.tsx";
+import type {UpdateShoppingBasketItem, ShoppingBasket, ShoppingBasketId} from "../../domain/shopping-basket/model.tsx";
 import Cookies from "js-cookie";
 
 const ProductsPage = () => {
@@ -28,7 +28,7 @@ const ProductsPage = () => {
         }, []);
 
     function addToCart(product: Product) {
-        const addItem: AddItem = {product_id: product.id};
+        const addItem: UpdateShoppingBasketItem = {product_id: product.id, quantity: 1};
         if (!globalStateType.shoppingBasket.id) {
             fetch('/api/shopping-basket/v1/shopping-baskets', {
                 method: "POST",

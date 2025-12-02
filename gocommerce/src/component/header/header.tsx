@@ -25,8 +25,8 @@ const HeaderComponent = (props: HeaderComponentProperties) => {
                             className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                             {/*todo the shopping cart total items*/}
                             {
-                                globalStateType.shoppingBasket.id && globalStateType.shoppingBasket.items.length > 0 ? globalStateType.shoppingBasket.items.reduce((accumulator, currentItem) => {
-                                    return accumulator + currentItem.amount;
+                                globalStateType.shoppingBasket.id && globalStateType.shoppingBasket.items?.length > 0 ? globalStateType.shoppingBasket.items?.reduce((accumulator, currentItem) => {
+                                    return accumulator + currentItem.quantity;
                                 }, 0) : 0
                             }
                         </span>

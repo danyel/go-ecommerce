@@ -11,13 +11,15 @@ export interface ShoppingBasketItem {
     name: string;
     price: number;
     image_url: string;
-    amount: number;
+    quantity: number;
     product_id: string;
 }
 
 export interface ShoppingBasketId {
     id: string;
 }
-export interface AddItem {
+
+export interface UpdateShoppingBasketItem {
     product_id: string;
+    quantity: number;
 }

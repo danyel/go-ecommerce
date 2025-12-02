@@ -4,8 +4,9 @@ import (
 	"github.com/google/uuid"
 )
 
-type AddItem struct {
+type UpdateShoppingBasketItem struct {
 	ProductId uuid.UUID `json:"product_id"`
+	Quantity  int       `json:"quantity"`
 }
 
 type ShoppingId struct {
@@ -18,7 +19,7 @@ type ShoppingBasketItem struct {
 	Price     int       `json:"price"`
 	ProductId uuid.UUID `json:"product_id"`
 	ImageUrl  string    `json:"image_url"`
-	Amount    int       `json:"amount"`
+	Quantity  int       `json:"quantity"`
 }
 
 type ShoppingBasket struct {

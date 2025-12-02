@@ -29,7 +29,7 @@ func (h *shoppingBasketHandler) CreateShoppingBasket(w http.ResponseWriter, _ *h
 }
 
 func (h *shoppingBasketHandler) AddItemToShoppingBasket(w http.ResponseWriter, r *http.Request) {
-	var ai AddItem
+	var ai UpdateShoppingBasketItem
 	var err error
 	var shoppingBasket ShoppingBasket
 	id, err := commonHandler.GetId(r, "shoppingBasketId")
@@ -38,11 +38,11 @@ func (h *shoppingBasketHandler) AddItemToShoppingBasket(w http.ResponseWriter, r
 		return
 	}
 
-	if err = commonHandler.ValidateRequest[AddItem](r, &ai); err != nil {
+	if err = commonHandler.ValidateRequest[UpdateShoppingBasketItem](r, &ai); err != nil {
 		h.h.StatusBadRequest(w)
 		return
 	}
-	if shoppingBasket, err = h.s.AddItemToShoppingBasket(id, ai); err != nil {
+	if shoppingBasket, err = h.s.UpdateShoppingBasketItem(id, ai); err != nil {
 		h.h.StatusInternalServerError(w)
 		return
 	}
