@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"os"
 
 	"github.com/danyel/ecommerce/cmd/config"
 	"github.com/danyel/ecommerce/cmd/database"
@@ -20,12 +21,17 @@ type BackendInitializer struct {
 }
 
 func (b *BackendInitializer) initializeDatabaseConfiguration() config.DatabaseConfiguration {
+	envFile := os.Getenv("ENV")
 	databaseConfiguration := config.NewDatabaseConfiguration()
-	databaseConfiguration.Host = "172.17.0.1"
 	databaseConfiguration.Username = "test"
 	databaseConfiguration.Password = "test"
 	databaseConfiguration.Database = "ecommerce"
 	databaseConfiguration.Schema = "ecommerce"
+	if envFile == "dev" {
+		databaseConfiguration.Host = "172.17.0.1"
+	} else {
+		databaseConfiguration.Host = "localhost"
+	}
 	return databaseConfiguration
 }
 

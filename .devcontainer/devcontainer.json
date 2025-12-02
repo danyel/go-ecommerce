@@ -4,7 +4,7 @@
   "service": "dev_environment",
 
   "workspaceFolder": "/workspace",
-
+  "postCreateCommand": "/workspace/.devcontainer/setup.sh",
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
@@ -15,7 +15,8 @@
   ],
   "containerEnv": {
     "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE": "/var/run/docker.sock",
-    "DOCKER_HOST": "unix:///var/run/docker.sock"
+    "DOCKER_HOST": "unix:///var/run/docker.sock",
+    "ENV": "dev"
   },
 
   "settings": {
@@ -27,5 +28,13 @@
     "ms-azuretools.vscode-docker"
   ],
 
-  "remoteUser": "root"
+  "remoteUser": "root",
+  "customizations": {
+    "jetbrains": {
+      "settings": {
+        "com.intellij:app:HttpConfigurable.use_proxy_pac": true,
+        "com.intellij:app:BaseRefactoringSettings.move_search_for_references_for_file": false
+      }
+    }
+  }
 }

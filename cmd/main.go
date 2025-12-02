@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/danyel/ecommerce/cmd/broker"
 	"github.com/danyel/ecommerce/cmd/config"
@@ -16,7 +17,13 @@ import (
 func main() {
 	var err error
 	var db *gorm.DB
-	err = godotenv.Load()
+	var locations []string
+	if os.Getenv("ENV") == "dev" {
+		locations = []string{".env.dev"}
+	} else {
+		locations = []string{".env"}
+	}
+	err = godotenv.Load(locations...)
 	sc := config.NewServerConfiguration()
 	dc := config.NewDatabaseConfiguration()
 	bc := config.NewBrokerConfiguration()
