@@ -4,6 +4,9 @@ RUN apt-get update && apt-get install -y \
     curl git bash docker.io \
     && rm -rf /var/lib/apt/lists/*
 
+RUN echo "export GOROOT=/usr/local/go" >> /root/.bashrc
+RUN echo "export PATH=/usr/local/go/bin:\$PATH" >> /root/.bashrc
+
 # Install NVM
 ENV NVM_DIR=/usr/local/nvm
 ENV NODE_VERSION=lts

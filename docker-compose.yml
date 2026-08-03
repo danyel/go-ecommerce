@@ -15,6 +15,7 @@ services:
       POSTGRES_USER: ecommerce
       POSTGRES_PASSWORD: ecommerce
       POSTGRES_DB: ecommerce
+      GOROOT: /usr/local/go
 
     depends_on:
       - ecommerce-database

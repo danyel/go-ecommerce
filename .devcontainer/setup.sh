@@ -9,10 +9,6 @@ if ! grep -q "export GOROOT=" /root/.bashrc; then
     echo "export PATH=/usr/local/go/bin:\$PATH" >> /root/.bashrc
 fi
 
-# Setting the go root to path
-export GOROOT="/usr/local/go"
-export PATH="$GOROOT/bin:$PATH"
-
 # Install Go dependencies
 go mod tidy
 

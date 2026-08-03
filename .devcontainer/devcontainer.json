@@ -2,7 +2,6 @@
   "name": "Go + Postgres Dev Container",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "dev_environment",
-
   "workspaceFolder": "/workspace",
   "postCreateCommand": "/workspace/.devcontainer/setup.sh",
   "mounts": [
@@ -27,19 +26,6 @@
     "GOPATH": "/root/go",
     "PATH": "/root/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin"
   },
-  "settings": {
-    "go.toolsManagement.autoUpdate": true,
-    "go.goroot": "/usr/local/go",
-    "go.alternateTools": {
-      "go": "/usr/local/go/bin/go"
-    }
-  },
-
-  "extensions": [
-    "golang.go",
-    "ms-azuretools.vscode-docker"
-  ],
-
   "remoteUser": "root",
   "customizations": {
     "jetbrains": {
@@ -48,6 +34,19 @@
         "com.intellij:app:HttpConfigurable.use_proxy_pac": true,
         "com.intellij:app:BaseRefactoringSettings.move_search_for_references_for_file": false
       }
+    },
+    "vscode": {
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.goroot": "/usr/local/go",
+        "go.alternateTools": {
+          "go": "/usr/local/go/bin/go"
+        }
+      },
+      "extensions": [
+        "golang.go",
+        "ms-azuretools.vscode-docker"
+      ]
     }
   }
 }
