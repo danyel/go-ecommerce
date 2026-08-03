@@ -31,7 +31,7 @@ func (s *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
 		return ShoppingBasket{}, err
 	}
 	r := ShoppingBasket{
-		ID: sb.ID,
+		ID: ShoppingBasketId{ID: sb.ID},
 	}
 
 	return r, nil
@@ -73,7 +73,7 @@ func (s *shoppingBasketService) GetShoppingBasket(u uuid.UUID) (ShoppingBasket, 
 		return ShoppingBasket{}, err
 	}
 	sm := ShoppingBasket{
-		ID: id.ID,
+		ID: ShoppingBasketId{id.ID},
 	}
 	if len(id.Items) > 0 {
 		ps := make([]ShoppingBasketItem, len(id.Items))

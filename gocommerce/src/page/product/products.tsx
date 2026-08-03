@@ -2,85 +2,45 @@ import {useEffect, useState} from "react";
 import type {Product} from "../../domain/product/model.tsx";
 import {ChevronDown} from "lucide-react";
 import {useGlobalState} from "../../state/global-state.tsx";
-import type {UpdateShoppingBasketItem, ShoppingBasket, ShoppingBasketId} from "../../domain/shopping-basket/model.tsx";
+import type {ShoppingBasket, ShoppingBasketId, UpdateShoppingBasketItem} from "../../domain/shopping-basket/model.tsx";
 import Cookies from "js-cookie";
+import {type ShoppingBasketService} from "../../domain/shopping-basket/service.tsx";
+import {ServiceFactoryFactory} from "../../domain/common/factory.tsx";
+import {Optional} from "../../domain/common/optional.tsx";
 
 const ProductsPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
+    const shoppingBasketService: ShoppingBasketService = ServiceFactoryFactory.SHOPPING_BASKET_SERVICE_FACTORY.newService();
     const globalStateType = useGlobalState();
     useEffect(() => {
-        fetch("/api/product/v1/products", {
-            method: "GET",
-            headers: {
-                'Accept-Language': 'en',
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-            }
-        })
-            .then(res => {
-                if (!res.ok) {
-                    throw Error('Error while fetching the products');
-                }
-
-                return res.json();
-            })
+        ServiceFactoryFactory.PRODUCT_SERVICE_FACTORY.newService().fetchAll()
             .then(data => setProducts(data));
-        }, []);
+    }, []);
 
     function addToCart(product: Product) {
-        const addItem: UpdateShoppingBasketItem = {product_id: product.id, quantity: 1};
+        const updateShoppingBasketItem: UpdateShoppingBasketItem = {product_id: product.id, quantity: 1};
+
+        const shoppingBasketOptional = Optional.of(globalStateType.shoppingBasket);
+
+        shoppingBasketOptional.ifPresent((value) => {
+            shoppingBasketService.update(value.id, updateShoppingBasketItem)
+                .then((data: ShoppingBasket) => {
+                    Cookies.set("shopping_basket_id", data.id.id);
+                    globalStateType.setShoppingBasket(data);
+                });
+        });
+
         if (!globalStateType.shoppingBasket.id) {
-            fetch('/api/shopping-basket/v1/shopping-baskets', {
-                method: "POST",
-                headers: {
-                    'Accept-Language': 'en',
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                }
-            })
-                .then(resp => {
-                    if (!resp.ok) {
-                        throw Error('Could not create shopping basket');
-                    }
-                    return resp.json();
-                })
+            shoppingBasketService.create()
                 .then((shoppingBasketId: ShoppingBasketId) => {
-                    fetch(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId.id}`, {
-                        method: "POST",
-                        body: JSON.stringify(addItem),
-                        headers: {
-                            'Accept-Language': 'en',
-                            'Content-Type': 'application/json',
-                            Accept: 'application/json',
-                        }
-                    })
-                        .then(resp => {
-                            if (!resp.ok) {
-                                throw Error('Could not add item to shopping basket');
-                            }
-                            return resp.json();
-                        })
+                    shoppingBasketService.update(shoppingBasketId, updateShoppingBasketItem)
                         .then((data: ShoppingBasket) => {
                             Cookies.set("shopping_basket_id", shoppingBasketId.id);
                             globalStateType.setShoppingBasket(data);
                         });
                 });
         } else {
-            fetch(`/api/shopping-basket/v1/shopping-baskets/${globalStateType.shoppingBasket.id}`, {
-                method: "POST",
-                body: JSON.stringify(addItem),
-                headers: {
-                    'Accept-Language': 'en',
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                }
-            })
-                .then(resp => {
-                    if (!resp.ok) {
-                        throw Error('Could not add item to shopping basket');
-                    }
-                    return resp.json();
-                })
+            shoppingBasketService.update(globalStateType.shoppingBasket.id, updateShoppingBasketItem)
                 .then((data: ShoppingBasket) => {
                     globalStateType.setShoppingBasket(data);
                 });

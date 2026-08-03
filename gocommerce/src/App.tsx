@@ -6,6 +6,7 @@ import ShoppingBasketComponent from "./component/shopping-basket/shopping-basket
 import Cookies from 'js-cookie';
 import {useGlobalState} from "./state/global-state.tsx";
 import type {ShoppingBasket} from "./domain/shopping-basket/model.tsx";
+import {ServiceFactoryFactory} from "./domain/common/factory.tsx";
 
 const App = () => {
     const [showShoppingCart, setShowShoppingCart] = useState(false);
@@ -13,21 +14,9 @@ const App = () => {
 
     useEffect(() => {
         const shoppingBasketIdCookie = Cookies.get("shopping_basket_id");
-        if (shoppingBasketIdCookie && (!globalStateType.shoppingBasket.id || globalStateType.shoppingBasket.id === "")) {
-            fetch(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketIdCookie}`, {
-                method: "GET",
-                headers: {
-                    'Accept-Language': 'en',
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                }
-            })
-                .then(resp => {
-                    if (!resp.ok) {
-                        throw Error('Could not fetch the shopping basket');
-                    }
-                    return resp.json();
-                })
+        if (shoppingBasketIdCookie && !globalStateType.shoppingBasket.id) {
+           ServiceFactoryFactory.SHOPPING_BASKET_SERVICE_FACTORY.newService()
+               .findById({id: shoppingBasketIdCookie})
                 .then((shoppingBasket: ShoppingBasket) => {
                     globalStateType.setShoppingBasket(shoppingBasket);
                 });

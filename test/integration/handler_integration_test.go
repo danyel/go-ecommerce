@@ -181,7 +181,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("Shopping Basket h", func(t *testing.T) {
-		var shoppingId shoppingbasket.ShoppingId
+		var shoppingId shoppingbasket.ShoppingBasketId
 
 		t.Run("Create Shopping Basket", func(t *testing.T) {
 			wi.ShoppingBasketCreate().
@@ -203,7 +203,7 @@ func TestHandler(t *testing.T) {
 			wi.GetShoppingBasket(shoppingId.ID.String()).
 				GetResponseBody(&s).
 				AssertStatusOk().
-				Equal(shoppingId.ID, s.ID).
+				Equal(shoppingId, s.ID).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", s.Items[0].Name).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", s.Items[0].ImageUrl).
 				Equal(669, s.Items[0].Price)

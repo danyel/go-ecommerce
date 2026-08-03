@@ -12,7 +12,7 @@ const GlobalStateContext: Context<GlobalStateType | undefined> = createContext<G
 export const GlobalStateProvider: React.FC<{ children: React.ReactNode }> = ({children}: {
     children: ReactNode
 }) => {
-    const defaultShoppingBasket : Partial<ShoppingBasket> = {
+    const defaultShoppingBasket: Partial<ShoppingBasket> = {
         items: []
     };
     // @ts-ignore

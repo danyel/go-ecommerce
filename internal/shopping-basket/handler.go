@@ -24,7 +24,7 @@ func (h *shoppingBasketHandler) CreateShoppingBasket(w http.ResponseWriter, _ *h
 		return
 	}
 
-	commonHandler.WriteResponse(http.StatusCreated, w, ShoppingId{ID: sh.ID})
+	commonHandler.WriteResponse(http.StatusCreated, w, sh.ID)
 }
 
 func (h *shoppingBasketHandler) UpdateShoppingBasketItem(w http.ResponseWriter, r *http.Request) {

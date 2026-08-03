@@ -6,6 +6,8 @@ import type {
     UpdateShoppingBasketItem
 } from "../../domain/shopping-basket/model.tsx";
 import {useGlobalState} from "../../state/global-state.tsx";
+import type {ShoppingBasketService} from "../../domain/shopping-basket/service.tsx";
+import {ServiceFactoryFactory} from "../../domain/common/factory.tsx";
 
 
 export interface ShoppingBasketComponentProperties {
@@ -16,13 +18,14 @@ export interface ShoppingBasketComponentProperties {
 const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
     const globalStateType = useGlobalState();
     const [shoppingBasket, setShoppingBasket] = useState<ShoppingBasket>(globalStateType.shoppingBasket);
+    const shoppingBasketService: ShoppingBasketService = ServiceFactoryFactory.SHOPPING_BASKET_SERVICE_FACTORY.newService();
 
     useEffect(() => {
         // the shopping basket id can only be filled in when we created a shopping basket
-        if (!globalStateType.shoppingBasket.id || globalStateType.shoppingBasket.id !== "") {
+        if (!globalStateType.shoppingBasket.id) {
             setShoppingBasket(globalStateType.shoppingBasket);
         }
-    }, [globalStateType.shoppingBasket.id]);
+    }, [globalStateType.shoppingBasket, globalStateType.shoppingBasket.id]);
 
     const addItem = (shoppingBasketItem: ShoppingBasketItem) => {
         updateShoppingBasketItem({
@@ -32,21 +35,8 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
     };
 
     function updateShoppingBasketItem(updateShoppingBasketItem: UpdateShoppingBasketItem) {
-        fetch(`/api/shopping-basket/v1/shopping-baskets/${globalStateType.shoppingBasket.id}`, {
-            method: "POST",
-            body: JSON.stringify(updateShoppingBasketItem),
-            headers: {
-                'Accept-Language': 'en',
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-            }
-        })
-            .then(resp => {
-                if (!resp.ok) {
-                    throw Error('Could not add item to shopping basket');
-                }
-                return resp.json();
-            })
+        console.log(globalStateType.shoppingBasket);
+        shoppingBasketService.update(globalStateType.shoppingBasket.id, updateShoppingBasketItem)
             .then((data: ShoppingBasket) => {
                 globalStateType.setShoppingBasket(data);
                 setShoppingBasket(data);

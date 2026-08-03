@@ -9,7 +9,7 @@ type UpdateShoppingBasketItem struct {
 	Quantity  int       `json:"quantity"`
 }
 
-type ShoppingId struct {
+type ShoppingBasketId struct {
 	ID uuid.UUID `json:"id"`
 }
 
@@ -23,7 +23,7 @@ type ShoppingBasketItem struct {
 }
 
 type ShoppingBasket struct {
-	ID                  uuid.UUID            `json:"id"`
+	ID                  ShoppingBasketId     `json:"id"`
 	Items               []ShoppingBasketItem `json:"items"`
 	TotalPriceInclusive float32              `json:"total_price_inclusive"`
 	Tax                 float32              `json:"tax"`
