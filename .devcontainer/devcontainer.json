@@ -16,11 +16,23 @@
   "containerEnv": {
     "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE": "/var/run/docker.sock",
     "DOCKER_HOST": "unix:///var/run/docker.sock",
-    "ENV": "dev"
+    "GOROOT": "/usr/local/go",
+    "GOPATH": "/root/go",
+    "PATH": "/root/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin"
   },
-
+  "remoteEnv": {
+    "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE": "/var/run/docker.sock",
+    "DOCKER_HOST": "unix:///var/run/docker.sock",
+    "GOROOT": "/usr/local/go",
+    "GOPATH": "/root/go",
+    "PATH": "/root/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin"
+  },
   "settings": {
-    "go.toolsManagement.autoUpdate": true
+    "go.toolsManagement.autoUpdate": true,
+    "go.goroot": "/usr/local/go",
+    "go.alternateTools": {
+      "go": "/usr/local/go/bin/go"
+    }
   },
 
   "extensions": [
@@ -32,6 +44,7 @@
   "customizations": {
     "jetbrains": {
       "settings": {
+        "com.intellij:app:ProjectViewSharedSettings.hideEmptyPackages": false,
         "com.intellij:app:HttpConfigurable.use_proxy_pac": true,
         "com.intellij:app:BaseRefactoringSettings.move_search_for_references_for_file": false
       }

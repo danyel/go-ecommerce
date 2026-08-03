@@ -33,10 +33,6 @@ func main() {
 		log.Fatal(err)
 	}
 	b.RegisterConsumer(category.CategoryCreated, category.HandleCategoryCreated)
-	b.RegisterConsumer(broker.QueueConfig{
-		Topic: category.ExchangeCategory,
-		Queue: "categories.category_created5",
-	}, category.HandleCategoryCreated2)
 	if err = b.Start(); err != nil {
 		log.Println(err.Error())
 	}

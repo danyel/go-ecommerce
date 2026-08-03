@@ -3,6 +3,16 @@ set -e
 
 echo "📦 Running DevContainer setup..."
 
+# Force kill any stubborn image-level GOROOT defaults for interactive bash sessions
+if ! grep -q "export GOROOT=" /root/.bashrc; then
+    echo "export GOROOT=/usr/local/go" >> /root/.bashrc
+    echo "export PATH=/usr/local/go/bin:\$PATH" >> /root/.bashrc
+fi
+
+# Setting the go root to path
+export GOROOT="/usr/local/go"
+export PATH="$GOROOT/bin:$PATH"
+
 # Install Go dependencies
 go mod tidy
 
@@ -17,7 +27,7 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 # Load NVM
 echo "📦 Installing Node.js via NVM..."
 export NVM_DIR="/usr/local/nvm"
-. $NVM_DIR/nvm.sh
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 nvm install --lts
 npm install -g tailwindcss

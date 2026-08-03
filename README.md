@@ -32,6 +32,13 @@ The project is set up for dev container.
 
 To install all the tools at once use following command or install individually.
 
+#### Setting environment
+
+```shell 
+git config --global --add safe.directory /workspace
+export GOROOT=/usr/local/go
+```
+
 ```shell
 make tools
 ```

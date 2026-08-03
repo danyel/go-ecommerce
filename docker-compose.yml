@@ -20,7 +20,7 @@ services:
       - ecommerce-database
 
   ecommerce-database:
-    image: postgres:18-alpine
+    image: postgres:18.4-alpine
     container_name: ecommerce-database
     volumes:
       - ecommerce-volume:/data/postgres

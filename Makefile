@@ -13,6 +13,9 @@ run:
 ui:
 	cd gocommerce && npm run dev
 
+uui:
+	cd gocommerce && npm install
+
 migrate:
 	goose up
 
