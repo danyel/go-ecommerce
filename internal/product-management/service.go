@@ -2,17 +2,17 @@ package product_management
 
 import (
 	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	"github.com/danyel/ecommerce/internal/common/types"
 	"github.com/danyel/ecommerce/internal/product"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ProductService interface {
 	GetProducts() []product.Product
-	GetProduct(uuid uuid.UUID) (product.Product, error)
-	DeleteProduct(uuid uuid.UUID) error
-	UpdateProduct(uuid uuid.UUID, updateProduct UpdateProduct) error
+	GetProduct(id types.Id) (product.Product, error)
+	DeleteProduct(id types.Id) error
+	UpdateProduct(id types.Id, updateProduct UpdateProduct) error
 	CreateProduct(createProduct CreateProduct) (ProductId, error)
 }
 
@@ -25,9 +25,9 @@ func (s *productService) GetProducts() []product.Product {
 	return s.productService.GetProducts()
 }
 
-func (s *productService) GetProduct(uuid uuid.UUID) (product.Product, error) {
+func (s *productService) GetProduct(uuid types.Id) (product.Product, error) {
 	var p product.Product
-	productModel, err := s.productService.GetProduct(uuid)
+	productModel, err := s.productService.GetProduct(uuid.ID)
 	if err != nil {
 		return p, err
 	}
@@ -43,11 +43,11 @@ func (s *productService) GetProduct(uuid uuid.UUID) (product.Product, error) {
 		ID:          productModel.ID,
 	}, nil
 }
-func (s *productService) DeleteProduct(uuid uuid.UUID) error {
-	return s.productRepository.Delete(uuid)
+func (s *productService) DeleteProduct(uuid types.Id) error {
+	return s.productRepository.Delete(uuid.ID)
 }
-func (s *productService) UpdateProduct(uuid uuid.UUID, updateProduct UpdateProduct) error {
-	p, err := s.productRepository.FindById(uuid)
+func (s *productService) UpdateProduct(uuid types.Id, updateProduct UpdateProduct) error {
+	p, err := s.productRepository.FindById(uuid.ID)
 	if err != nil {
 		return err
 	}

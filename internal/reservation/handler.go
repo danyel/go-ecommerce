@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	"github.com/danyel/ecommerce/internal/common/types"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +20,7 @@ type reservationHandler struct {
 
 func (h *reservationHandler) CreateReservation(w http.ResponseWriter, r *http.Request) {
 	var createReservation CreateReservation
-	var reservationId ReservationId
+	var reservationId types.Id
 	var err error
 	if err = commonHandler.ValidateRequest[CreateReservation](r, &createReservation); err != nil {
 		commonHandler.StatusBadRequest(w)
@@ -36,6 +37,9 @@ func (h *reservationHandler) GetReservations(w http.ResponseWriter, _ *http.Requ
 	commonHandler.WriteResponse(http.StatusOK, w, h.s.GetReservations())
 }
 
+// NewHandler adding to router (todo)
+//
+//goland:noinspection GoUnusedExportedFunction
 func NewHandler(DB *gorm.DB) ReservationHandler {
 	handler := &reservationHandler{
 		NewReservationService(DB),

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	"github.com/google/uuid"
+	"github.com/danyel/ecommerce/internal/common/types"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -23,14 +23,14 @@ func (h *productApiHandler) GetProducts(w http.ResponseWriter, _ *http.Request) 
 
 func (h *productApiHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	var product Product
-	var productId uuid.UUID
+	var productId types.Id
 	var err error
 	if productId, err = commonHandler.GetId(r, "productId"); err != nil {
 		commonHandler.StatusBadRequest(w)
 		return
 	}
 
-	if product, err = h.p.GetProduct(productId); err != nil {
+	if product, err = h.p.GetProduct(productId.ID); err != nil {
 		commonHandler.StatusNotFound(w)
 		return
 	}

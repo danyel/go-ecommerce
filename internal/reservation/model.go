@@ -1,17 +1,20 @@
 package reservation
 
-import "github.com/google/uuid"
+import (
+	"github.com/danyel/ecommerce/internal/common/types"
+	"github.com/google/uuid"
+)
 
 type CreateReservation struct {
-	ShoppingBasketId uuid.UUID `json:"shopping_basket_id"`
-	ProductId        uuid.UUID `json:"product_id"`
-	Quantity         int       `json:"quantity"`
+	ShoppingBasketId types.Id `json:"shopping_basket_id"`
+	ProductId        types.Id `json:"product_id"`
+	Quantity         int      `json:"quantity"`
 }
 
 type Reservation struct {
-	ShoppingBasketId uuid.UUID `json:"shopping_basket_id"`
-	ProductId        uuid.UUID `json:"product_id"`
-	Quantity         int       `json:"quantity"`
+	ShoppingBasketId types.Id `json:"shopping_basket_id"`
+	ProductId        types.Id `json:"product_id"`
+	Quantity         int      `json:"quantity"`
 }
 
 //goland:noinspection GoNameStartsWithPackageName

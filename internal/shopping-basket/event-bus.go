@@ -2,10 +2,9 @@ package shopping_basket
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/danyel/ecommerce/cmd/broker"
-	"github.com/google/uuid"
+	"github.com/danyel/ecommerce/internal/common/types"
 )
 
 const (
@@ -29,12 +28,12 @@ var ShoppingBasketUpdated = broker.QueueConfig{
 }
 
 type ShoppingBasketCreatedEvent struct {
-	Id ShoppingBasketId `json:"id"`
+	Id types.Id `json:"id"`
 }
 
 type ShoppingBasketUpdatedEvent struct {
-	Id        ShoppingBasketId `json:"id"`
-	ProductId uuid.UUID
+	Id        types.Id `json:"id"`
+	ProductId types.Id
 	Quantity  int
 }
 
@@ -43,16 +42,13 @@ func HandleShoppingBasketUpdated(body []byte) error {
 	if err := json.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	log.Println(event)
 	return nil
 }
 
 func HandleShoppingBasketCreated(body []byte) error {
 	var event ShoppingBasketCreatedEvent
-	log.Printf("Entering Shopping Basket Created")
 	if err := json.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	log.Println(event.Id)
 	return nil
 }

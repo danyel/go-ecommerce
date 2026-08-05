@@ -16,19 +16,11 @@ type ShoppingBasketHandler interface {
 
 type shoppingBasketHandler struct {
 	s ShoppingBasketService
-	p port.EventPublisher
 }
 
 func (h *shoppingBasketHandler) CreateShoppingBasket(w http.ResponseWriter, _ *http.Request) {
 	sh, err := h.s.CreateShoppingBasket()
 	if err != nil {
-		commonHandler.StatusInternalServerError(w)
-		return
-	}
-
-	if err = h.p.Publish(ShoppingBasketCreatedQueue, ShoppingBasketCreatedEvent{
-		Id: sh.ID,
-	}); err != nil {
 		commonHandler.StatusInternalServerError(w)
 		return
 	}
@@ -49,15 +41,7 @@ func (h *shoppingBasketHandler) UpdateShoppingBasketItem(w http.ResponseWriter, 
 		commonHandler.StatusBadRequest(w)
 		return
 	}
-	if shoppingBasket, err = h.s.UpdateShoppingBasketItem(id, ai); err != nil {
-		commonHandler.StatusInternalServerError(w)
-		return
-	}
-	if err = h.p.Publish(ShoppingBasketUpdatedQueue, ShoppingBasketUpdatedEvent{
-		Id:        shoppingBasket.ID,
-		Quantity:  ai.Quantity,
-		ProductId: ai.ProductId,
-	}); err != nil {
+	if shoppingBasket, err = h.s.UpdateShoppingBasketItem(id.ID, ai); err != nil {
 		commonHandler.StatusInternalServerError(w)
 		return
 	}
@@ -72,7 +56,7 @@ func (h *shoppingBasketHandler) GetShoppingBasket(w http.ResponseWriter, r *http
 		commonHandler.StatusBadRequest(w)
 		return
 	}
-	if shoppingBasket, err = h.s.GetShoppingBasket(id); err != nil {
+	if shoppingBasket, err = h.s.GetShoppingBasket(id.ID); err != nil {
 		commonHandler.StatusInternalServerError(w)
 		return
 	}
@@ -80,6 +64,6 @@ func (h *shoppingBasketHandler) GetShoppingBasket(w http.ResponseWriter, r *http
 }
 
 func NewHandler(db *gorm.DB, p port.EventPublisher) ShoppingBasketHandler {
-	s := NewService(db)
-	return &shoppingBasketHandler{s, p}
+	s := NewService(db, p)
+	return &shoppingBasketHandler{s}
 }

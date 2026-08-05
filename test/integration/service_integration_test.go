@@ -14,6 +14,7 @@ import (
 
 func TestServiceIntegration(t *testing.T) {
 	bi := initializer.NewBackendInitializer()
+	bi.TestContainers(t)
 	bi.Run()
 
 	t.Run("Category Testing", func(t *testing.T) {

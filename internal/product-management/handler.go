@@ -6,6 +6,7 @@ import (
 	"github.com/danyel/ecommerce/internal/category"
 	"github.com/danyel/ecommerce/internal/cms"
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	"github.com/danyel/ecommerce/internal/common/types"
 	"github.com/danyel/ecommerce/internal/product"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -40,7 +41,7 @@ func (h *productManagementHandler) DeleteProduct(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if err = h.s.DeleteProduct(productId); err != nil {
+	if err = h.s.DeleteProduct(types.NewID(productId)); err != nil {
 		commonHandler.StatusNotFound(w)
 		return
 	}
@@ -74,7 +75,7 @@ func (h *productManagementHandler) CreateProduct(w http.ResponseWriter, r *http.
 	commonHandler.WriteResponse(http.StatusCreated, w, productId)
 }
 func (h *productManagementHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
-	var productId uuid.UUID
+	var productId types.Id
 	var err error
 	var productModel product.Product
 	productId, err = commonHandler.GetId(r, "productId")

@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/danyel/ecommerce/cmd/broker"
 	"github.com/danyel/ecommerce/cmd/config"
 	"github.com/danyel/ecommerce/cmd/router"
 	"github.com/danyel/ecommerce/internal/management"
-	productmanagement "github.com/danyel/ecommerce/internal/product-management"
-	shoppingbasket "github.com/danyel/ecommerce/internal/shopping-basket"
+	productManagement "github.com/danyel/ecommerce/internal/product-management"
+	shoppingBasket "github.com/danyel/ecommerce/internal/shopping-basket"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -24,7 +26,7 @@ type WebIntegration struct {
 	r  *http.Response
 }
 
-func (wi *WebIntegration) ProductManagementPostProducts(b *productmanagement.CreateProduct) *WebIntegration {
+func (wi *WebIntegration) ProductManagementPostProducts(b *productManagement.CreateProduct) *WebIntegration {
 	return wi.Post(wi.forUrl("/api/product-management/v1/products"), b)
 }
 
@@ -48,7 +50,7 @@ func (wi *WebIntegration) ShoppingBasketCreate() *WebIntegration {
 	return wi.Post(wi.forUrl("/api/shopping-basket/v1/shopping-baskets"), nil)
 }
 
-func (wi *WebIntegration) ShoppingBasketAddItem(id string, a shoppingbasket.UpdateShoppingBasketItem) *WebIntegration {
+func (wi *WebIntegration) ShoppingBasketAddItem(id string, a shoppingBasket.UpdateShoppingBasketItem) *WebIntegration {
 	return wi.Post(wi.forUrl("/api/shopping-basket/v1/shopping-baskets/"+id), a)
 }
 
@@ -114,12 +116,24 @@ func (wi *WebIntegration) AssertBadRequest() *WebIntegration {
 func SetupWebIntegration(t *testing.T) *WebIntegration {
 	t.Helper()
 	bi := NewBackendInitializer()
+	bi.TestContainers(t)
 	bi.Run()
 	db := bi.Db()
 	sc := config.NewServerConfiguration()
+	newBroker := broker.NewBroker()
+	err := newBroker.CreateConnection(bi.BrokerConfiguration)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newBroker.RegisterConsumer(shoppingBasket.ShoppingBasketCreated, shoppingBasket.HandleShoppingBasketCreated)
+	newBroker.RegisterConsumer(shoppingBasket.ShoppingBasketUpdated, shoppingBasket.HandleShoppingBasketUpdated)
+	if err := newBroker.Start(); err != nil {
+		log.Println(err.Error())
+	}
 	ad := router.ApiDefinition{
-		SC: &sc,
-		DB: db,
+		SC:             &sc,
+		DB:             db,
+		EventPublisher: newBroker,
 	}
 
 	ts := httptest.NewServer(ad.ConfigRouter())

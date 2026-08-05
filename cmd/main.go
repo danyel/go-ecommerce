@@ -38,9 +38,9 @@ func main() {
 		log.Println(err.Error())
 	}
 	r := router.ApiDefinition{
-		SC:     &sc,
-		DB:     db,
-		Broker: b,
+		SC:             &sc,
+		DB:             db,
+		EventPublisher: b,
 	}
 	if err != nil {
 		log.Fatal(err)

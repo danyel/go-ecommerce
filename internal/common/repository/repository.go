@@ -7,6 +7,7 @@ import (
 
 type CrudRepository[T any] interface {
 	FindAll(searchCriteria SearchCriteria) []*T
+	FetchAll() []*T
 	FindById(id uuid.UUID, preloads ...string) (*T, error)
 	Create(p *T) error
 	Update(p *T) error
@@ -34,6 +35,13 @@ type SearchCriteria struct {
 
 type crudRepository[T any] struct {
 	db *gorm.DB
+}
+
+func (r *crudRepository[T]) FetchAll() []*T {
+	var results []*T
+	query := r.db.Model(new(T))
+	query.Find(&results)
+	return results
 }
 
 func (r *crudRepository[T]) FindAll(searchCriteria SearchCriteria) []*T {

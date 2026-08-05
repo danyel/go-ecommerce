@@ -6,6 +6,7 @@ import (
 	"github.com/danyel/ecommerce/internal/category"
 	"github.com/danyel/ecommerce/internal/cms"
 	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	"github.com/danyel/ecommerce/internal/common/types"
 	"github.com/danyel/ecommerce/internal/management"
 	"github.com/danyel/ecommerce/internal/product"
 	productmanagement "github.com/danyel/ecommerce/internal/product-management"
@@ -181,7 +182,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("Shopping Basket h", func(t *testing.T) {
-		var shoppingId shoppingbasket.ShoppingBasketId
+		var shoppingId types.Id
 
 		t.Run("Create Shopping Basket", func(t *testing.T) {
 			wi.ShoppingBasketCreate().
@@ -192,7 +193,7 @@ func TestHandler(t *testing.T) {
 
 		t.Run("Add Item To Shopping Basket", func(t *testing.T) {
 			a := shoppingbasket.UpdateShoppingBasketItem{
-				ProductId: pm.ID,
+				ProductId: types.NewID(pm.ID),
 			}
 			wi.ShoppingBasketAddItem(shoppingId.ID.String(), a).
 				AssertStatusOk()
@@ -206,7 +207,7 @@ func TestHandler(t *testing.T) {
 				Equal(shoppingId, s.ID).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", s.Items[0].Name).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", s.Items[0].ImageUrl).
-				Equal(669, s.Items[0].Price)
+				Equal(types.Float64(669.0), s.Items[0].BasePriceInclusive)
 		})
 	})
 }

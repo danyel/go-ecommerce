@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/danyel/ecommerce/cmd/broker"
 	"github.com/danyel/ecommerce/cmd/config"
 	"github.com/danyel/ecommerce/internal/category"
 	"github.com/danyel/ecommerce/internal/cms"
+	"github.com/danyel/ecommerce/internal/common/port"
 	"github.com/danyel/ecommerce/internal/management"
 	"github.com/danyel/ecommerce/internal/product"
 	"github.com/danyel/ecommerce/internal/product-management"
@@ -18,9 +18,9 @@ import (
 )
 
 type ApiDefinition struct {
-	SC     *config.ServerConfiguration
-	DB     *gorm.DB
-	Broker *broker.Broker
+	SC             *config.ServerConfiguration
+	DB             *gorm.DB
+	EventPublisher port.EventPublisher
 }
 
 func (a *ApiDefinition) ConfigRouter() *chi.Mux {
@@ -45,7 +45,7 @@ func (a *ApiDefinition) ConfigRouter() *chi.Mux {
 // Shopping Basket api V1 /api/shopping-basket/v1/shopping-baskets
 func shoppingBasketV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 	return r.Route("/shopping-basket/v1/shopping-baskets", func(r chi.Router) {
-		h := shoppingbasket.NewHandler(a.DB, a.Broker)
+		h := shoppingbasket.NewHandler(a.DB, a.EventPublisher)
 		r.Post("/", h.CreateShoppingBasket)
 		r.Route("/{shoppingBasketId}", func(r chi.Router) {
 			r.Post("/", h.UpdateShoppingBasketItem)

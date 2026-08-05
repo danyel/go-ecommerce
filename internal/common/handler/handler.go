@@ -4,13 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/danyel/ecommerce/internal/common/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
-func GetId(r *http.Request, key string) (uuid.UUID, error) {
+func GetId(r *http.Request, key string) (types.Id, error) {
 	productId := chi.URLParam(r, key)
-	return uuid.Parse(productId)
+	var err error
+	var newId uuid.UUID
+	if newId, err = uuid.Parse(productId); err != nil {
+		return types.Id{}, err
+	}
+	return types.Id{ID: newId}, nil
 }
 
 func GetPathParam(r *http.Request, key string) string {

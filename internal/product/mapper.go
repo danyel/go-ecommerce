@@ -3,6 +3,7 @@ package product
 import (
 	"github.com/danyel/ecommerce/internal/category"
 	"github.com/danyel/ecommerce/internal/cms"
+	"github.com/danyel/ecommerce/internal/common/types"
 )
 
 type ProductMapper interface {
@@ -35,7 +36,7 @@ func (p *productMapper) MapProduct(productModel *ProductModel) Product {
 		Brand:       productModel.Brand,
 		Description: description.Value,
 		Name:        name.Value,
-		ID:          productModel.ID,
+		ID:          types.NewID(productModel.ID),
 		Stock:       productModel.Stock,
 	}
 }

@@ -3,15 +3,15 @@ package reservation
 import "C"
 import (
 	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	"github.com/google/uuid"
+	"github.com/danyel/ecommerce/internal/common/types"
 	"gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ReservationService interface {
 	GetReservations() []Reservation
-	GetReservation(reservationID uuid.UUID) (Reservation, error)
-	CreateReservation(createReservation CreateReservation) (ReservationId, error)
+	GetReservation(reservationID types.Id) (Reservation, error)
+	CreateReservation(createReservation CreateReservation) (types.Id, error)
 }
 
 type reservationService struct {
@@ -23,29 +23,27 @@ func (s *reservationService) GetReservations() []Reservation {
 	return mapReservations(reservationModels)
 }
 
-func (s *reservationService) GetReservation(reservationID uuid.UUID) (Reservation, error) {
+func (s *reservationService) GetReservation(reservationID types.Id) (Reservation, error) {
 	var reservation Reservation
-	reservationModel, err := s.reservationRepository.FindById(reservationID)
+	reservationModel, err := s.reservationRepository.FindById(reservationID.ID)
 	if err != nil {
 		return reservation, err
 	}
 	return mapReservation(reservationModel), err
 }
 
-func (s *reservationService) CreateReservation(createReservation CreateReservation) (ReservationId, error) {
+func (s *reservationService) CreateReservation(createReservation CreateReservation) (types.Id, error) {
 	var err error
-	var reservationId ReservationId
 	reservation := &ReservationModel{
-		ShoppingBasketId: createReservation.ShoppingBasketId,
-		ProductId:        createReservation.ProductId,
+		ShoppingBasketId: createReservation.ShoppingBasketId.ID,
+		ProductId:        createReservation.ProductId.ID,
 		Quantity:         createReservation.Quantity,
 	}
 
 	if err := s.reservationRepository.Create(reservation); err != nil {
-		return reservationId, err
+		return types.NewID(reservation.ShoppingBasketId), err
 	}
-	reservationId.ID = reservation.ShoppingBasketId
-	return reservationId, err
+	return types.NewID(reservation.ShoppingBasketId), err
 }
 
 func mapReservations(models []*ReservationModel) []Reservation {
@@ -60,8 +58,8 @@ func mapReservations(models []*ReservationModel) []Reservation {
 
 func mapReservation(reservationModel *ReservationModel) Reservation {
 	return Reservation{
-		ShoppingBasketId: reservationModel.ShoppingBasketId,
-		ProductId:        reservationModel.ProductId,
+		ShoppingBasketId: types.NewID(reservationModel.ShoppingBasketId),
+		ProductId:        types.NewID(reservationModel.ProductId),
 		Quantity:         reservationModel.Quantity,
 	}
 }

@@ -18,7 +18,7 @@ type ShoppingBasketItemModel struct {
 	ID               uuid.UUID `gorm:"type:uuid;primaryKey"`
 	ShoppingBasketID uuid.UUID `gorm:"type:uuid;not null;index"`
 	ProductId        uuid.UUID `gorm:"type:uuid;not null;index"`
-	Price            int
+	Price            float64   `gorm:"type:numeric(10,2)"`
 	Quantity         int
 }
 
