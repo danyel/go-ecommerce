@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	"github.com/danyel/ecommerce/internal/common/port"
 	"gorm.io/gorm"
 )
 
@@ -15,6 +16,7 @@ type ShoppingBasketHandler interface {
 
 type shoppingBasketHandler struct {
 	s ShoppingBasketService
+	p port.EventPublisher
 }
 
 func (h *shoppingBasketHandler) CreateShoppingBasket(w http.ResponseWriter, _ *http.Request) {
@@ -24,6 +26,12 @@ func (h *shoppingBasketHandler) CreateShoppingBasket(w http.ResponseWriter, _ *h
 		return
 	}
 
+	if err = h.p.Publish(ShoppingBasketCreatedQueue, ShoppingBasketCreatedEvent{
+		Id: sh.ID,
+	}); err != nil {
+		commonHandler.StatusInternalServerError(w)
+		return
+	}
 	commonHandler.WriteResponse(http.StatusCreated, w, sh.ID)
 }
 
@@ -45,6 +53,14 @@ func (h *shoppingBasketHandler) UpdateShoppingBasketItem(w http.ResponseWriter, 
 		commonHandler.StatusInternalServerError(w)
 		return
 	}
+	if err = h.p.Publish(ShoppingBasketUpdatedQueue, ShoppingBasketUpdatedEvent{
+		Id:        shoppingBasket.ID,
+		Quantity:  ai.Quantity,
+		ProductId: ai.ProductId,
+	}); err != nil {
+		commonHandler.StatusInternalServerError(w)
+		return
+	}
 	commonHandler.WriteResponse(http.StatusOK, w, shoppingBasket)
 }
 
@@ -63,7 +79,7 @@ func (h *shoppingBasketHandler) GetShoppingBasket(w http.ResponseWriter, r *http
 	commonHandler.WriteResponse(http.StatusOK, w, shoppingBasket)
 }
 
-func NewHandler(db *gorm.DB) ShoppingBasketHandler {
+func NewHandler(db *gorm.DB, p port.EventPublisher) ShoppingBasketHandler {
 	s := NewService(db)
-	return &shoppingBasketHandler{s}
+	return &shoppingBasketHandler{s, p}
 }

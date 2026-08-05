@@ -26,7 +26,6 @@ type ApiDefinition struct {
 func (a *ApiDefinition) ConfigRouter() *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
@@ -46,7 +45,7 @@ func (a *ApiDefinition) ConfigRouter() *chi.Mux {
 // Shopping Basket api V1 /api/shopping-basket/v1/shopping-baskets
 func shoppingBasketV1Routing(r chi.Router, a *ApiDefinition) chi.Router {
 	return r.Route("/shopping-basket/v1/shopping-baskets", func(r chi.Router) {
-		h := shoppingbasket.NewHandler(a.DB)
+		h := shoppingbasket.NewHandler(a.DB, a.Broker)
 		r.Post("/", h.CreateShoppingBasket)
 		r.Route("/{shoppingBasketId}", func(r chi.Router) {
 			r.Post("/", h.UpdateShoppingBasketItem)

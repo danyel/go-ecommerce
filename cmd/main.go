@@ -8,7 +8,7 @@ import (
 	"github.com/danyel/ecommerce/cmd/config"
 	"github.com/danyel/ecommerce/cmd/database"
 	"github.com/danyel/ecommerce/cmd/router"
-	"github.com/danyel/ecommerce/internal/category"
+	shopping_basket "github.com/danyel/ecommerce/internal/shopping-basket"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
@@ -32,7 +32,8 @@ func main() {
 	if b.CreateConnection(&bc) != nil {
 		log.Fatal(err)
 	}
-	b.RegisterConsumer(category.CategoryCreated, category.HandleCategoryCreated)
+	b.RegisterConsumer(shopping_basket.ShoppingBasketCreated, shopping_basket.HandleShoppingBasketCreated)
+	b.RegisterConsumer(shopping_basket.ShoppingBasketUpdated, shopping_basket.HandleShoppingBasketUpdated)
 	if err = b.Start(); err != nil {
 		log.Println(err.Error())
 	}

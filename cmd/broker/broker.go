@@ -21,6 +21,7 @@ type Broker struct {
 	registry   []QueueRegistry
 	channel    *amqp.Channel
 	registered []QueueConfig
+	connection *amqp.Connection
 }
 
 func (b *Broker) CreateConnection(c *config.BrokerConfiguration) error {
@@ -34,6 +35,8 @@ func (b *Broker) CreateConnection(c *config.BrokerConfiguration) error {
 	if b.channel, err = connection.Channel(); err != nil {
 		panic(err)
 	}
+
+	b.connection = connection
 
 	return nil
 }
@@ -108,7 +111,7 @@ func (b *Broker) Publish(queue string, v interface{}) error {
 			if e != nil {
 				return e
 			}
-			return b.channel.PublishWithContext(context.Background(), r.C.Topic, r.C.Queue, false, false, amqp.Publishing{ContentType: "application/json", Body: body})
+			return b.channel.PublishWithContext(context.Background(), r.C.Topic, r.C.RoutingKey, false, false, amqp.Publishing{ContentType: "application/json", Body: body})
 		}
 	}
 	return fmt.Errorf("no handler registered for queue %s", queue)
@@ -118,7 +121,7 @@ func (b *Broker) consume(r QueueRegistry) {
 	var err error
 	var messages <-chan amqp.Delivery
 	if messages, err = b.channel.Consume(r.C.Queue, "", false, false, false, false, nil); err != nil {
-		log.Printf("Error on consuming messge: %s", err.Error())
+		log.Printf("Error on consuming message: %s", err.Error())
 	}
 	go func() {
 		for msg := range messages {
@@ -172,5 +175,8 @@ func (b *Broker) Start() error {
 }
 
 func NewBroker() *Broker {
-	return &Broker{}
+	return &Broker{
+		registry:   make([]QueueRegistry, 0),
+		registered: make([]QueueConfig, 0),
+	}
 }
