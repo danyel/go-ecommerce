@@ -207,7 +207,7 @@ func TestHandler(t *testing.T) {
 				Equal(shoppingId, s.ID).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", s.Items[0].Name).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", s.Items[0].ImageUrl).
-				Equal(types.Float64(669.0), s.Items[0].BasePriceInclusive)
+				Equal(types.Float64(669.0), s.Items[0].BasePrice.Inclusive)
 		})
 	})
 }

@@ -1,14 +1,14 @@
 package broker
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"log/slog"
+	Context "context"
+	JSON "encoding/json"
+	FMT "fmt"
+	Log "log"
+	SLog "log/slog"
 
-	"github.com/danyel/ecommerce/cmd/config"
-	amqp "github.com/rabbitmq/amqp091-go"
+	Config "github.com/danyel/ecommerce/cmd/config"
+	AMQP "github.com/rabbitmq/amqp091-go"
 )
 
 type QueueConfig struct {
@@ -19,15 +19,15 @@ type QueueConfig struct {
 
 type Broker struct {
 	registry   []QueueRegistry
-	channel    *amqp.Channel
+	channel    *AMQP.Channel
 	registered []QueueConfig
-	connection *amqp.Connection
+	connection *AMQP.Connection
 }
 
-func (b *Broker) CreateConnection(c *config.BrokerConfiguration) error {
-	brokerUrl := fmt.Sprintf("%s://%s:%s@%s:%s", c.Protocol, c.Username, c.Password, c.Addr, c.Port)
-	slog.Info("connecting to " + brokerUrl)
-	connection, err := amqp.Dial(brokerUrl)
+func (b *Broker) CreateConnection(c *Config.BrokerConfiguration) error {
+	brokerUrl := FMT.Sprintf("%s://%s:%s@%s:%s", c.Protocol, c.Username, c.Password, c.Addr, c.Port)
+	SLog.Info("connecting to " + brokerUrl)
+	connection, err := AMQP.Dial(brokerUrl)
 	if err != nil {
 		return err
 	}
@@ -105,23 +105,25 @@ func (b *Broker) alreadyRegistered(c QueueConfig) bool {
 }
 
 func (b *Broker) Publish(queue string, v interface{}) error {
+	Log.Printf("Publishing message to queue %s with value %v\n", queue, v)
 	for _, r := range b.registry {
+		Log.Printf("Registered: %v", b)
 		if r.C.Queue == queue && b.alreadyRegistered(r.C) {
-			body, e := json.Marshal(v)
+			body, e := JSON.Marshal(v)
 			if e != nil {
 				return e
 			}
-			return b.channel.PublishWithContext(context.Background(), r.C.Topic, r.C.RoutingKey, false, false, amqp.Publishing{ContentType: "application/json", Body: body})
+			return b.channel.PublishWithContext(Context.Background(), r.C.Topic, r.C.RoutingKey, false, false, AMQP.Publishing{ContentType: "application/json", Body: body})
 		}
 	}
-	return fmt.Errorf("no handler registered for queue %s", queue)
+	return FMT.Errorf("no handler registered for queue %s", queue)
 }
 
 func (b *Broker) consume(r QueueRegistry) {
 	var err error
-	var messages <-chan amqp.Delivery
+	var messages <-chan AMQP.Delivery
 	if messages, err = b.channel.Consume(r.C.Queue, "", false, false, false, false, nil); err != nil {
-		log.Printf("Error on consuming message: %s", err.Error())
+		Log.Printf("Error on consuming message: %s", err.Error())
 	}
 	go func() {
 		for msg := range messages {
@@ -132,7 +134,7 @@ func (b *Broker) consume(r QueueRegistry) {
 			_ = msg.Ack(false)
 		}
 	}()
-	log.Println("[Consumer] Listening:", r.C.Queue)
+	Log.Println("[Consumer] Listening:", r.C.Queue)
 }
 
 func (b *Broker) Start() error {
@@ -145,7 +147,7 @@ func (b *Broker) Start() error {
 		}
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := Context.WithCancel(Context.Background())
 	go func() {
 		for {
 			select {
@@ -157,7 +159,7 @@ func (b *Broker) Start() error {
 						err := b.register(registry)
 
 						if err != nil {
-							log.Printf("Error on registering registry: %s", err.Error())
+							Log.Printf("Error on registering registry: %s", err.Error())
 						} else {
 							b.registered = append(b.registered, registry.C)
 						}

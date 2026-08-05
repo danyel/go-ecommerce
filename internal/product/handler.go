@@ -1,40 +1,40 @@
 package product
 
 import (
-	"net/http"
+	Http "net/http"
 
-	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	"github.com/danyel/ecommerce/internal/common/types"
+	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	Types "github.com/danyel/ecommerce/internal/common/types"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ProductHandler interface {
-	GetProducts(w http.ResponseWriter, r *http.Request)
-	GetProduct(w http.ResponseWriter, r *http.Request)
+	GetProducts(w Http.ResponseWriter, r *Http.Request)
+	GetProduct(w Http.ResponseWriter, r *Http.Request)
 }
 
 type productApiHandler struct {
 	p ProductService
 }
 
-func (h *productApiHandler) GetProducts(w http.ResponseWriter, _ *http.Request) {
-	commonHandler.WriteResponse(http.StatusOK, w, h.p.GetProducts())
+func (h *productApiHandler) GetProducts(w Http.ResponseWriter, _ *Http.Request) {
+	CommonHandler.WriteResponse(Http.StatusOK, w, h.p.GetProducts())
 }
 
-func (h *productApiHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+func (h *productApiHandler) GetProduct(w Http.ResponseWriter, r *Http.Request) {
 	var product Product
-	var productId types.Id
+	var productId Types.Id
 	var err error
-	if productId, err = commonHandler.GetId(r, "productId"); err != nil {
-		commonHandler.StatusBadRequest(w)
+	if productId, err = CommonHandler.GetId(r, "productId"); err != nil {
+		CommonHandler.StatusBadRequest(w)
 		return
 	}
 
 	if product, err = h.p.GetProduct(productId.ID); err != nil {
-		commonHandler.StatusNotFound(w)
+		CommonHandler.StatusNotFound(w)
 		return
 	}
-	commonHandler.WriteResponse(http.StatusOK, w, product)
+	CommonHandler.WriteResponse(Http.StatusOK, w, product)
 }
 
 func NewApiHandler(p ProductService) ProductHandler {
