@@ -90,7 +90,7 @@ func (s *shoppingBasketService) GetShoppingBasket(u uuid.UUID) (ShoppingBasket, 
 	total := types.Float64(0)
 	if err != nil {
 		all := s.r.FetchAll()
-		log.Printf("Fetched: %w", all)
+		log.Printf("Fetched: %v", all)
 		return EmptyShoppingBasket(), err
 	}
 	sm := ShoppingBasket{
