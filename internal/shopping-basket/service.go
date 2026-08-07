@@ -58,7 +58,7 @@ func (s *shoppingBasketService) UpdateShoppingBasketItem(u Uuid.UUID, i UpdateSh
 		return EmptyShoppingBasket(), err
 	}
 
-	item := ShoppingBasketItemModel{ID: Uuid.Nil, ShoppingBasketID: id.ID, ProductId: prd.ID.ID, Price: prd.Price, Quantity: i.Quantity}
+	item := ShoppingBasketItemModel{ID: Uuid.Nil, ShoppingBasketID: id.ID, ProductId: prd.ID.ID, Price: float64(prd.Price.Inclusive), Quantity: i.Quantity}
 	for _, it := range id.Items {
 		if it.ProductId == item.ProductId {
 			item.ID = it.ID
@@ -88,9 +88,7 @@ func (s *shoppingBasketService) UpdateShoppingBasketItem(u Uuid.UUID, i UpdateSh
 
 func (s *shoppingBasketService) GetShoppingBasket(u Uuid.UUID) (ShoppingBasket, error) {
 	id, err := s.r.FindById(u, "Items")
-	totalPriceInclusive := Types.Float64(0)
-	totalPriceExclusive := Types.Float64(0)
-	totalTaxes := Types.Float64(0)
+	totalPrice := float64(0)
 	if err != nil {
 		all := s.r.FetchAll()
 		Log.Printf("Fetched: %v", all)
@@ -103,41 +101,21 @@ func (s *shoppingBasketService) GetShoppingBasket(u Uuid.UUID) (ShoppingBasket, 
 		ps := make([]ShoppingBasketItem, len(id.Items))
 		for i, item := range id.Items {
 			pr, _ := s.pm.GetProduct(Types.NewID(item.ProductId))
-			innerCalculation := pr.Price * float64(item.Quantity)
-			innerTotalPriceInclusive := Types.Float64(innerCalculation)
-			innerTotalPriceExclusive := Types.Float64(innerCalculation / 1.21)
-			innerTotalTaxes := Types.Float64(innerCalculation - (innerCalculation / 1.21))
-			totalPriceInclusive += innerTotalPriceInclusive
-			totalPriceExclusive += innerTotalPriceExclusive
-			totalTaxes += innerTotalTaxes
+			price := float64(pr.Price.Inclusive) * float64(item.Quantity)
+			totalPrice += price
 			ps[i] = ShoppingBasketItem{
-				ID:   Types.NewID(item.ID),
-				Name: pr.Name,
-				BasePrice: Types.Price{
-					Inclusive: Types.Float64(item.Price),
-					Exclusive: Types.Float64(item.Price / 1.21),
-					Tax:       Types.Float64(item.Price - (item.Price / 1.21)),
-					Currency:  "EUR",
-				},
-				TotalPrice: Types.Price{
-					Inclusive: innerTotalPriceInclusive,
-					Exclusive: innerTotalPriceExclusive,
-					Tax:       innerTotalTaxes,
-					Currency:  "EUR",
-				},
-				ProductId: pr.ID,
-				ImageUrl:  pr.ImageUrl,
-				Quantity:  item.Quantity,
+				ID:         Types.NewID(item.ID),
+				Name:       pr.Name,
+				BasePrice:  Types.NewPrice(item.Price, "EUR"),
+				TotalPrice: Types.NewPrice(price, "EUR"),
+				ProductId:  pr.ID,
+				ImageUrl:   pr.ImageUrl,
+				Quantity:   item.Quantity,
 			}
 		}
 		sm.Items = ps
 	}
-	sm.TotalPrice = Types.Price{
-		Inclusive: totalPriceInclusive,
-		Exclusive: totalPriceExclusive,
-		Tax:       totalTaxes,
-		Currency:  "EUR",
-	}
+	sm.TotalPrice = Types.NewPrice(totalPrice, "EUR")
 
 	return sm, nil
 }

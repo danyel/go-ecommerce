@@ -31,7 +31,7 @@ func (p *productMapper) MapProduct(productModel *ProductModel) Product {
 	name, _ := p.cmsService.GetTranslation(productModel.Name, "nl_BE")
 	return Product{
 		Code:        productModel.Code,
-		Price:       productModel.Price,
+		Price:       Types.NewPrice(productModel.Price, "EUR"),
 		Category:    categoryModel,
 		ImageUrl:    productModel.ImageUrl,
 		Brand:       productModel.Brand,
