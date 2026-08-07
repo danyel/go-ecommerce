@@ -13,6 +13,7 @@ ENV NODE_VERSION=lts
 RUN mkdir -p $NVM_DIR \
     && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 
+ENV GOROOT=/usr/local/go
 ENV NODE_PATH=$NVM_DIR/versions/node/$NODE_VERSION/lib/node_modules
 ENV PATH=$GOROOT/bin:$NVM_DIR/versions/node/$NODE_VERSION/bin:$PATH
 RUN rm -rf /usr/lib/go && ln -s /usr/local/go /usr/lib/go

@@ -21,7 +21,7 @@ const App = () => {
                     globalStateType.setShoppingBasket(shoppingBasket);
                 });
         }
-    }, [])
+    }, [globalStateType])
     return (
         <>
             <HeaderComponent showShoppingCart={showShoppingCart} setShoppingCartState={setShowShoppingCart}/>

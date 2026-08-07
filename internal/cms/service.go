@@ -7,6 +7,7 @@ import (
 	Database "gorm.io/gorm"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 type CmsService interface {
 	GetTranslations(language string) []Translation
 	GetTranslation(code string, language string) (Translation, error)
