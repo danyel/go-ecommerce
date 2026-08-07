@@ -1,10 +1,10 @@
 package cms
 
 import (
-	"fmt"
+	Fmt "fmt"
 
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	"gorm.io/gorm"
+	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Database "gorm.io/gorm"
 )
 
 type CmsService interface {
@@ -13,15 +13,15 @@ type CmsService interface {
 }
 
 type cmsService struct {
-	cmsRepository commonRepository.CrudRepository[CmsModel]
+	cmsRepository CommonRepository.CrudRepository[CmsModel]
 }
 
 func (s *cmsService) GetTranslations(language string) []Translation {
-	c := commonRepository.SearchCriteria{}
+	c := CommonRepository.SearchCriteria{}
 	if language != "" {
-		c.WhereClause = commonRepository.WhereClause{
+		c.WhereClause = CommonRepository.WhereClause{
 			Query:  "language = ?",
-			Params: []interface{}{language},
+			Params: []any{language},
 		}
 	}
 	cms := s.cmsRepository.FindAll(c)
@@ -38,13 +38,13 @@ func (s *cmsService) GetTranslations(language string) []Translation {
 }
 
 func (s *cmsService) GetTranslation(code string, language string) (Translation, error) {
-	cms := s.cmsRepository.FindAll(commonRepository.SearchCriteria{WhereClause: commonRepository.WhereClause{
+	cms := s.cmsRepository.FindAll(CommonRepository.SearchCriteria{WhereClause: CommonRepository.WhereClause{
 		Query:  "code = ? AND language = ?",
 		Params: []interface{}{code, language},
 	}})
 
 	if len(cms) == 0 {
-		return Translation{}, fmt.Errorf("cms not found")
+		return Translation{}, Fmt.Errorf("cms not found")
 	}
 	cm := cms[0]
 	return Translation{
@@ -54,7 +54,7 @@ func (s *cmsService) GetTranslation(code string, language string) (Translation, 
 	}, nil
 }
 
-func NewCmsService(DB *gorm.DB) CmsService {
-	cmsRepository := commonRepository.NewCrudRepository[CmsModel](DB)
+func NewCmsService(DB *Database.DB) CmsService {
+	cmsRepository := CommonRepository.NewCrudRepository[CmsModel](DB)
 	return &cmsService{cmsRepository}
 }

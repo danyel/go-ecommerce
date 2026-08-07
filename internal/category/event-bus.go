@@ -1,10 +1,10 @@
 package category
 
 import (
-	"encoding/json"
-	"log"
+	JSON "encoding/json"
+	Log "log"
 
-	"github.com/danyel/ecommerce/cmd/broker"
+	Broker "github.com/danyel/ecommerce/cmd/broker"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 	QueueCategoryCreated = "categories.category_created"
 )
 
-var CategoryCreated = broker.QueueConfig{
+var CategoryCreated = Broker.QueueConfig{
 	Topic: ExchangeCategory,
 	Queue: QueueCategoryCreated,
 }
@@ -23,17 +23,17 @@ type CategoryCreatedEvent struct {
 
 func HandleCategoryCreated2(body []byte) error {
 	var event CategoryCreatedEvent
-	if err := json.Unmarshal(body, &event); err != nil {
+	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	log.Println(event.Id)
+	Log.Println(event.Id)
 	return nil
 }
 func HandleCategoryCreated(body []byte) error {
 	var event CategoryCreatedEvent
-	if err := json.Unmarshal(body, &event); err != nil {
+	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	log.Println(event.Id)
+	Log.Println(event.Id)
 	return nil
 }

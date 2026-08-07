@@ -6,17 +6,17 @@ import (
 
 	Broker "github.com/danyel/ecommerce/cmd/broker"
 	Config "github.com/danyel/ecommerce/cmd/config"
-	Database "github.com/danyel/ecommerce/cmd/database"
+	DatabaseConnection "github.com/danyel/ecommerce/cmd/database"
 	Router "github.com/danyel/ecommerce/cmd/router"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shopping-basket"
 	GoDotEnv "github.com/joho/godotenv"
-	Gorm "gorm.io/gorm"
+	Database "gorm.io/gorm"
 )
 
 // project setup is done here.
 func main() {
 	var err error
-	var db *Gorm.DB
+	var db *Database.DB
 	var locations []string
 	if OS.Getenv("ENV") == "dev" {
 		locations = []string{".env.dev"}
@@ -27,7 +27,7 @@ func main() {
 	sc := Config.NewServerConfiguration()
 	dc := Config.NewDatabaseConfiguration()
 	bc := Config.NewBrokerConfiguration()
-	db, err = Database.Connect(&dc)
+	db, err = DatabaseConnection.Connect(&dc)
 	b := Broker.NewBroker()
 	if b.CreateConnection(&bc) != nil {
 		Log.Fatal(err)

@@ -1,24 +1,24 @@
 package types
 
 import (
-	"encoding/json"
+	JSON "encoding/json"
 
-	"github.com/google/uuid"
+	Uuid "github.com/google/uuid"
 )
 
 type Id struct {
-	ID uuid.UUID
+	ID Uuid.UUID
 }
 
-func NewID(val uuid.UUID) Id {
+func NewID(val Uuid.UUID) Id {
 	return Id{val}
 }
 
 //goland:noinspection GoMixedReceiverTypes
 func (i Id) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.ID)
+	return JSON.Marshal(i.ID)
 }
 
 func (i *Id) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &i.ID)
+	return JSON.Unmarshal(data, &i.ID)
 }

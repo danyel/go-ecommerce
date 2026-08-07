@@ -1,34 +1,34 @@
 package commonHandler
 
 import (
-	"encoding/json"
-	"net/http"
+	JSON "encoding/json"
+	Http "net/http"
 
-	"github.com/danyel/ecommerce/internal/common/types"
-	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
+	Types "github.com/danyel/ecommerce/internal/common/types"
+	Router "github.com/go-chi/chi/v5"
+	Uuid "github.com/google/uuid"
 )
 
-func GetId(r *http.Request, key string) (types.Id, error) {
-	productId := chi.URLParam(r, key)
+func GetId(r *Http.Request, key string) (Types.Id, error) {
+	productId := Router.URLParam(r, key)
 	var err error
-	var newId uuid.UUID
-	if newId, err = uuid.Parse(productId); err != nil {
-		return types.Id{}, err
+	var newId Uuid.UUID
+	if newId, err = Uuid.Parse(productId); err != nil {
+		return Types.Id{}, err
 	}
-	return types.Id{ID: newId}, nil
+	return Types.Id{ID: newId}, nil
 }
 
-func GetPathParam(r *http.Request, key string) string {
-	return chi.URLParam(r, key)
+func GetPathParam(r *Http.Request, key string) string {
+	return Router.URLParam(r, key)
 }
 
-func GetRequestParam(r *http.Request, key string) string {
+func GetRequestParam(r *Http.Request, key string) string {
 	return r.URL.Query().Get(key)
 }
 
-func ValidateRequest[T any](req *http.Request, model *T) error {
-	decoder := json.NewDecoder(req.Body)
+func ValidateRequest[T any](req *Http.Request, model *T) error {
+	decoder := JSON.NewDecoder(req.Body)
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(model); err != nil {
@@ -38,35 +38,36 @@ func ValidateRequest[T any](req *http.Request, model *T) error {
 	return nil
 }
 
-func WriteResponse(status int, w http.ResponseWriter, v any) {
+func WriteResponse(status int, w Http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(v); err != nil {
+	if err := JSON.NewEncoder(w).Encode(v); err != nil {
 		StatusInternalServerError(w)
 	}
 }
 
-func StatusOK(w http.ResponseWriter) {
+//goland:noinspection GoUnusedExportedFunction
+func StatusOK(w Http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(Http.StatusOK)
 }
 
-func StatusNoContent(w http.ResponseWriter) {
+func StatusNoContent(w Http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(Http.StatusNoContent)
 }
 
-func StatusBadRequest(w http.ResponseWriter) {
+func StatusBadRequest(w Http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(Http.StatusBadRequest)
 }
 
-func StatusNotFound(w http.ResponseWriter) {
+func StatusNotFound(w Http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusNotFound)
+	w.WriteHeader(Http.StatusNotFound)
 }
 
-func StatusInternalServerError(w http.ResponseWriter) {
+func StatusInternalServerError(w Http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusInternalServerError)
+	w.WriteHeader(Http.StatusInternalServerError)
 }

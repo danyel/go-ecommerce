@@ -1,9 +1,9 @@
 package category
 
-import "github.com/google/uuid"
+import Uuid "github.com/google/uuid"
 
 type CategoryAggregate struct {
-	AggregateIdentifier uuid.UUID
+	AggregateIdentifier Uuid.UUID
 	Name                string
-	Children            []uuid.UUID
+	Children            []Uuid.UUID
 }

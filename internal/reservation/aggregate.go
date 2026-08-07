@@ -1,9 +1,9 @@
 package reservation
 
-import "github.com/google/uuid"
+import Uuid "github.com/google/uuid"
 
 type ReservationAggregate struct {
-	ProductId        uuid.UUID
-	ShoppingBasketId uuid.UUID
+	ProductId        Uuid.UUID
+	ShoppingBasketId Uuid.UUID
 	Quantity         int16
 }

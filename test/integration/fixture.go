@@ -1,22 +1,22 @@
 package integration
 
 import (
-	"log"
+	Log "log"
 
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
 )
 
 type Fixture[T any] struct {
-	repository commonRepository.CrudRepository[T]
+	repository CommonRepository.CrudRepository[T]
 }
 
 func (f Fixture[T]) Insert(t *T) {
 	e := f.repository.Create(t)
 	if e != nil {
-		log.Fatal(e)
+		Log.Fatal(e)
 	}
 }
 
-func Database[T any](repository commonRepository.CrudRepository[T]) Fixture[T] {
+func Database[T any](repository CommonRepository.CrudRepository[T]) Fixture[T] {
 	return Fixture[T]{repository}
 }

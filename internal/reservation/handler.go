@@ -1,46 +1,46 @@
 package reservation
 
 import (
-	"net/http"
+	Http "net/http"
 
-	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	"github.com/danyel/ecommerce/internal/common/types"
-	"gorm.io/gorm"
+	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	Types "github.com/danyel/ecommerce/internal/common/types"
+	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ReservationHandler interface {
-	CreateReservation(w http.ResponseWriter, r *http.Request)
-	GetReservations(w http.ResponseWriter, r *http.Request)
+	CreateReservation(w Http.ResponseWriter, r *Http.Request)
+	GetReservations(w Http.ResponseWriter, r *Http.Request)
 }
 
 type reservationHandler struct {
 	s ReservationService
 }
 
-func (h *reservationHandler) CreateReservation(w http.ResponseWriter, r *http.Request) {
+func (h *reservationHandler) CreateReservation(w Http.ResponseWriter, r *Http.Request) {
 	var createReservation CreateReservation
-	var reservationId types.Id
+	var reservationId Types.Id
 	var err error
-	if err = commonHandler.ValidateRequest[CreateReservation](r, &createReservation); err != nil {
-		commonHandler.StatusBadRequest(w)
+	if err = CommonHandler.ValidateRequest[CreateReservation](r, &createReservation); err != nil {
+		CommonHandler.StatusBadRequest(w)
 		return
 	}
 	if reservationId, err = h.s.CreateReservation(createReservation); err != nil {
-		commonHandler.StatusInternalServerError(w)
+		CommonHandler.StatusInternalServerError(w)
 		return
 	}
-	commonHandler.WriteResponse(http.StatusCreated, w, reservationId)
+	CommonHandler.WriteResponse(Http.StatusCreated, w, reservationId)
 }
 
-func (h *reservationHandler) GetReservations(w http.ResponseWriter, _ *http.Request) {
-	commonHandler.WriteResponse(http.StatusOK, w, h.s.GetReservations())
+func (h *reservationHandler) GetReservations(w Http.ResponseWriter, _ *Http.Request) {
+	CommonHandler.WriteResponse(Http.StatusOK, w, h.s.GetReservations())
 }
 
 // NewHandler adding to router (todo)
 //
 //goland:noinspection GoUnusedExportedFunction
-func NewHandler(DB *gorm.DB) ReservationHandler {
+func NewHandler(DB *Database.DB) ReservationHandler {
 	handler := &reservationHandler{
 		NewReservationService(DB),
 	}

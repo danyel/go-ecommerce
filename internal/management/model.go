@@ -1,20 +1,20 @@
 package management
 
-import "github.com/google/uuid"
+import Uuid "github.com/google/uuid"
 
 type CreateCategory struct {
 	Name     string      `json:"name"`
-	Children []uuid.UUID `json:"children"`
+	Children []Uuid.UUID `json:"children"`
 }
 
 type RemoveChild struct {
-	ID      uuid.UUID `json:"id"`
-	ChildId uuid.UUID `json:"child_id"`
+	ID      Uuid.UUID `json:"id"`
+	ChildId Uuid.UUID `json:"child_id"`
 }
 
 type AddChild struct {
-	ID      uuid.UUID `json:"id"`
-	ChildId uuid.UUID `json:"child_id"`
+	ID      Uuid.UUID `json:"id"`
+	ChildId Uuid.UUID `json:"child_id"`
 }
 
 type CreateCms struct {
@@ -24,5 +24,5 @@ type CreateCms struct {
 }
 
 type CmsId struct {
-	ID uuid.UUID `json:"id"`
+	ID Uuid.UUID `json:"id"`
 }

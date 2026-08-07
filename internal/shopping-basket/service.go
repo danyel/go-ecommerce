@@ -11,7 +11,7 @@ import (
 	Product "github.com/danyel/ecommerce/internal/product"
 	ProductManagement "github.com/danyel/ecommerce/internal/product-management"
 	Uuid "github.com/google/uuid"
-	Gorm "gorm.io/gorm"
+	Database "gorm.io/gorm"
 )
 
 type ShoppingBasketService interface {
@@ -142,7 +142,7 @@ func (s *shoppingBasketService) GetShoppingBasket(u Uuid.UUID) (ShoppingBasket, 
 	return sm, nil
 }
 
-func NewService(db *Gorm.DB, publisher Port.EventPublisher) ShoppingBasketService {
+func NewService(db *Database.DB, publisher Port.EventPublisher) ShoppingBasketService {
 	r := CommonRepository.NewCrudRepository[ShoppingBasketModel](db)
 	p := Product.NewProductService(db)
 	s := ProductManagement.NewProductService(db)

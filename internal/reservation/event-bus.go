@@ -1,10 +1,10 @@
 package reservation
 
 import (
-	"encoding/json"
-	"log"
+	JSON "encoding/json"
+	Log "log"
 
-	"github.com/danyel/ecommerce/cmd/broker"
+	Broker "github.com/danyel/ecommerce/cmd/broker"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 	AddReservationQueue = "reservations.add_reservation"
 )
 
-var ReservationCreated = broker.QueueConfig{
+var ReservationCreated = Broker.QueueConfig{
 	Topic: ExchangeReservation,
 	Queue: AddReservationQueue,
 }
@@ -23,17 +23,17 @@ type ReservationCreatedEvent struct {
 
 func HandleReservationCreated2(body []byte) error {
 	var event ReservationCreatedEvent
-	if err := json.Unmarshal(body, &event); err != nil {
+	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	log.Println(event.Id)
+	Log.Println(event.Id)
 	return nil
 }
 func HandleReservationCreated(body []byte) error {
 	var event ReservationCreatedEvent
-	if err := json.Unmarshal(body, &event); err != nil {
+	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	log.Println(event.Id)
+	Log.Println(event.Id)
 	return nil
 }

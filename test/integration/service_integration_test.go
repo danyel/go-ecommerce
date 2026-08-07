@@ -1,118 +1,118 @@
 package integration
 
 import (
-	"testing"
+	Testing "testing"
 
-	"github.com/danyel/ecommerce/internal/category"
-	"github.com/danyel/ecommerce/internal/cms"
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	"github.com/danyel/ecommerce/internal/product"
-	"github.com/danyel/ecommerce/test/integration/initializer"
+	Category "github.com/danyel/ecommerce/internal/category"
+	CMS "github.com/danyel/ecommerce/internal/cms"
+	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Product "github.com/danyel/ecommerce/internal/product"
+	Initializers "github.com/danyel/ecommerce/test/integration/initializer"
 	_ "github.com/lib/pq" // ← REQUIRED for Goose + sql.Open("postgres")
-	"github.com/stretchr/testify/assert"
+	Assert "github.com/stretchr/testify/assert"
 )
 
-func TestServiceIntegration(t *testing.T) {
-	bi := initializer.NewBackendInitializer()
+func TestServiceIntegration(t *Testing.T) {
+	bi := Initializers.NewBackendInitializer()
 	bi.TestContainers(t)
 	bi.Run()
 
-	t.Run("Category Testing", func(t *testing.T) {
-		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](bi.Db())
+	t.Run("Category Testing", func(t *Testing.T) {
+		categoryRepository := CommonRepository.NewCrudRepository[Category.CategoryModel](bi.Db())
 
-		t.Run("Get Categories Before Creation", func(t *testing.T) {
-			findAll := categoryRepository.FindAll(commonRepository.SearchCriteria{})
-			assert.Equal(t, 0, len(findAll))
+		t.Run("Get Categories Before Creation", func(t *Testing.T) {
+			findAll := categoryRepository.FindAll(CommonRepository.SearchCriteria{})
+			Assert.Equal(t, 0, len(findAll))
 		})
 
-		t.Run("Create Category", func(t *testing.T) {
-			c := category.CategoryModel{Name: "test", Children: []*category.CategoryModel{}}
+		t.Run("Create Category", func(t *Testing.T) {
+			c := Category.CategoryModel{Name: "test", Children: []*Category.CategoryModel{}}
 			e := categoryRepository.Create(&c)
-			assert.Nil(t, e)
+			Assert.Nil(t, e)
 		})
 
-		t.Run("Get Categories After Creation", func(t *testing.T) {
-			findAll := categoryRepository.FindAll(commonRepository.SearchCriteria{})
-			assert.Equal(t, 1, len(findAll))
+		t.Run("Get Categories After Creation", func(t *Testing.T) {
+			findAll := categoryRepository.FindAll(CommonRepository.SearchCriteria{})
+			Assert.Equal(t, 1, len(findAll))
 		})
 	})
 
-	t.Run("Cms Testing", func(t *testing.T) {
-		cmsRepository := commonRepository.NewCrudRepository[cms.CmsModel](bi.Db())
-		f := Database[cms.CmsModel](cmsRepository)
-		cmsService := cms.NewCmsService(bi.Db())
+	t.Run("Cms Testing", func(t *Testing.T) {
+		cmsRepository := CommonRepository.NewCrudRepository[CMS.CmsModel](bi.Db())
+		f := Database[CMS.CmsModel](cmsRepository)
+		cmsService := CMS.NewCmsService(bi.Db())
 
-		t.Run("Create translation", func(t *testing.T) {
-			e := cmsRepository.Create(&cms.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"})
-			assert.Nil(t, e)
-			e = cmsRepository.Create(&cms.CmsModel{Code: "code", Language: "nl_fr", Value: "Value_fr"})
-			assert.Nil(t, e)
+		t.Run("Create translation", func(t *Testing.T) {
+			e := cmsRepository.Create(&CMS.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"})
+			Assert.Nil(t, e)
+			e = cmsRepository.Create(&CMS.CmsModel{Code: "code", Language: "nl_fr", Value: "Value_fr"})
+			Assert.Nil(t, e)
 		})
 
-		t.Run("Delete translation", func(t *testing.T) {
-			p := &cms.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"}
+		t.Run("Delete translation", func(t *Testing.T) {
+			p := &CMS.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"}
 			e := cmsRepository.Create(p)
-			assert.Nil(t, e)
+			Assert.Nil(t, e)
 			err := cmsRepository.Delete(p.ID)
-			assert.Nil(t, err)
+			Assert.Nil(t, err)
 		})
 
-		t.Run("Get translations", func(t *testing.T) {
-			f.Insert(&cms.CmsModel{Code: "another_code", Language: "nl_be", Value: "AnotherValue_nl"})
-			f.Insert(&cms.CmsModel{Code: "another_code", Language: "nl_fr", Value: "AnotherValue_fr"})
-			f.Insert(&cms.CmsModel{Code: "yet_another_code", Language: "nl_be", Value: "YetAnotherValue_nl"})
-			f.Insert(&cms.CmsModel{Code: "yet_another_code", Language: "nl_fr", Value: "YetAnotherValue_fr"})
+		t.Run("Get translations", func(t *Testing.T) {
+			f.Insert(&CMS.CmsModel{Code: "another_code", Language: "nl_be", Value: "AnotherValue_nl"})
+			f.Insert(&CMS.CmsModel{Code: "another_code", Language: "nl_fr", Value: "AnotherValue_fr"})
+			f.Insert(&CMS.CmsModel{Code: "yet_another_code", Language: "nl_be", Value: "YetAnotherValue_nl"})
+			f.Insert(&CMS.CmsModel{Code: "yet_another_code", Language: "nl_fr", Value: "YetAnotherValue_fr"})
 
-			t.Run("Given 3 codes in 2 languages When retrieving for dutch Then 3 codes have been returned", func(t *testing.T) {
+			t.Run("Given 3 codes in 2 languages When retrieving for dutch Then 3 codes have been returned", func(t *Testing.T) {
 				translations := cmsService.GetTranslations("nl_be")
-				assert.Equal(t, 3, len(translations))
-				assert.Equal(t, "code", translations[0].Code)
-				assert.Equal(t, "Value_nl", translations[0].Value)
-				assert.Equal(t, "another_code", translations[1].Code)
-				assert.Equal(t, "AnotherValue_nl", translations[1].Value)
-				assert.Equal(t, "yet_another_code", translations[2].Code)
-				assert.Equal(t, "YetAnotherValue_nl", translations[2].Value)
+				Assert.Equal(t, 3, len(translations))
+				Assert.Equal(t, "code", translations[0].Code)
+				Assert.Equal(t, "Value_nl", translations[0].Value)
+				Assert.Equal(t, "another_code", translations[1].Code)
+				Assert.Equal(t, "AnotherValue_nl", translations[1].Value)
+				Assert.Equal(t, "yet_another_code", translations[2].Code)
+				Assert.Equal(t, "YetAnotherValue_nl", translations[2].Value)
 			})
 
-			t.Run("Given 3 codes in 2 languages When retrieving for french Then 3 codes have been returned", func(t *testing.T) {
+			t.Run("Given 3 codes in 2 languages When retrieving for french Then 3 codes have been returned", func(t *Testing.T) {
 				translations := cmsService.GetTranslations("nl_fr")
-				assert.Equal(t, 3, len(translations))
-				assert.Equal(t, "code", translations[0].Code)
-				assert.Equal(t, "Value_fr", translations[0].Value)
-				assert.Equal(t, "another_code", translations[1].Code)
-				assert.Equal(t, "AnotherValue_fr", translations[1].Value)
-				assert.Equal(t, "yet_another_code", translations[2].Code)
-				assert.Equal(t, "YetAnotherValue_fr", translations[2].Value)
+				Assert.Equal(t, 3, len(translations))
+				Assert.Equal(t, "code", translations[0].Code)
+				Assert.Equal(t, "Value_fr", translations[0].Value)
+				Assert.Equal(t, "another_code", translations[1].Code)
+				Assert.Equal(t, "AnotherValue_fr", translations[1].Value)
+				Assert.Equal(t, "yet_another_code", translations[2].Code)
+				Assert.Equal(t, "YetAnotherValue_fr", translations[2].Value)
 			})
 
-			t.Run("Given 3 codes in 2 languages When retrieving with no language Then 3 codes have been returned", func(t *testing.T) {
+			t.Run("Given 3 codes in 2 languages When retrieving with no language Then 3 codes have been returned", func(t *Testing.T) {
 				translations := cmsService.GetTranslations("")
-				assert.Equal(t, 6, len(translations))
-				assert.Equal(t, "code", translations[0].Code)
-				assert.Equal(t, "Value_nl", translations[0].Value)
-				assert.Equal(t, "code", translations[1].Code)
-				assert.Equal(t, "Value_fr", translations[1].Value)
-				assert.Equal(t, "another_code", translations[2].Code)
-				assert.Equal(t, "AnotherValue_nl", translations[2].Value)
-				assert.Equal(t, "another_code", translations[3].Code)
-				assert.Equal(t, "AnotherValue_fr", translations[3].Value)
-				assert.Equal(t, "yet_another_code", translations[4].Code)
-				assert.Equal(t, "YetAnotherValue_nl", translations[4].Value)
-				assert.Equal(t, "yet_another_code", translations[5].Code)
-				assert.Equal(t, "YetAnotherValue_fr", translations[5].Value)
+				Assert.Equal(t, 6, len(translations))
+				Assert.Equal(t, "code", translations[0].Code)
+				Assert.Equal(t, "Value_nl", translations[0].Value)
+				Assert.Equal(t, "code", translations[1].Code)
+				Assert.Equal(t, "Value_fr", translations[1].Value)
+				Assert.Equal(t, "another_code", translations[2].Code)
+				Assert.Equal(t, "AnotherValue_nl", translations[2].Value)
+				Assert.Equal(t, "another_code", translations[3].Code)
+				Assert.Equal(t, "AnotherValue_fr", translations[3].Value)
+				Assert.Equal(t, "yet_another_code", translations[4].Code)
+				Assert.Equal(t, "YetAnotherValue_nl", translations[4].Value)
+				Assert.Equal(t, "yet_another_code", translations[5].Code)
+				Assert.Equal(t, "YetAnotherValue_fr", translations[5].Value)
 			})
 		})
 	})
 
-	t.Run("Product Testing", func(t *testing.T) {
-		productRepository := commonRepository.NewCrudRepository[product.ProductModel](bi.Db())
-		categoryRepository := commonRepository.NewCrudRepository[category.CategoryModel](bi.Db())
+	t.Run("Product Testing", func(t *Testing.T) {
+		productRepository := CommonRepository.NewCrudRepository[Product.ProductModel](bi.Db())
+		categoryRepository := CommonRepository.NewCrudRepository[Category.CategoryModel](bi.Db())
 
-		t.Run("Create Product ", func(t *testing.T) {
-			c := category.CategoryModel{Name: "test", Children: []*category.CategoryModel{}}
+		t.Run("Create Product ", func(t *Testing.T) {
+			c := Category.CategoryModel{Name: "test", Children: []*Category.CategoryModel{}}
 			e := categoryRepository.Create(&c)
-			assert.Nil(t, e)
-			p := product.ProductModel{
+			Assert.Nil(t, e)
+			p := Product.ProductModel{
 				Brand:       "Brand",
 				Name:        "Name",
 				Description: "Description",
@@ -124,7 +124,7 @@ func TestServiceIntegration(t *testing.T) {
 			}
 
 			err := productRepository.Create(&p)
-			assert.Nil(t, err)
+			Assert.Nil(t, err)
 		})
 	})
 }

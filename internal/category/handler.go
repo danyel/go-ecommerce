@@ -1,40 +1,40 @@
 package category
 
 import (
-	"net/http"
+	Http "net/http"
 
-	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	"gorm.io/gorm"
+	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type CategoryHandler interface {
-	CreateCategory(w http.ResponseWriter, r *http.Request)
-	CreateTranslations(_ http.ResponseWriter, _ *http.Request)
+	CreateCategory(w Http.ResponseWriter, r *Http.Request)
+	CreateTranslations(_ Http.ResponseWriter, _ *Http.Request)
 }
 
 type categoryHandler struct {
 	s CategoryService
 }
 
-func (h *categoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
+func (h *categoryHandler) CreateCategory(w Http.ResponseWriter, r *Http.Request) {
 	var createCategory CreateCategory
 	var categoryId CategoryId
 	var err error
-	if err = commonHandler.ValidateRequest[CreateCategory](r, &createCategory); err != nil {
-		commonHandler.StatusBadRequest(w)
+	if err = CommonHandler.ValidateRequest[CreateCategory](r, &createCategory); err != nil {
+		CommonHandler.StatusBadRequest(w)
 		return
 	}
 	if categoryId, err = h.s.CreateCategory(createCategory); err != nil {
-		commonHandler.StatusInternalServerError(w)
+		CommonHandler.StatusInternalServerError(w)
 		return
 	}
-	commonHandler.WriteResponse(http.StatusCreated, w, categoryId)
+	CommonHandler.WriteResponse(Http.StatusCreated, w, categoryId)
 }
 
-func (h *categoryHandler) CreateTranslations(_ http.ResponseWriter, _ *http.Request) {}
+func (h *categoryHandler) CreateTranslations(_ Http.ResponseWriter, _ *Http.Request) {}
 
-func NewHandler(DB *gorm.DB) CategoryHandler {
+func NewHandler(DB *Database.DB) CategoryHandler {
 	handler := &categoryHandler{
 		NewCategoryService(DB),
 	}

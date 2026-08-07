@@ -1,28 +1,28 @@
 package category
 
 import (
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Uuid "github.com/google/uuid"
+	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type CategoryService interface {
 	GetCategories() []Category
-	GetCategory(categoryID uuid.UUID) (Category, error)
+	GetCategory(categoryID Uuid.UUID) (Category, error)
 	CreateCategory(createCategory CreateCategory) (CategoryId, error)
 }
 
 type categoryService struct {
-	categoryRepository commonRepository.CrudRepository[CategoryModel]
+	categoryRepository CommonRepository.CrudRepository[CategoryModel]
 }
 
 func (s *categoryService) GetCategories() []Category {
-	categoryModels := s.categoryRepository.FindAll(commonRepository.SearchCriteria{Preloads: []string{"Children"}})
+	categoryModels := s.categoryRepository.FindAll(CommonRepository.SearchCriteria{Preloads: []string{"Children"}})
 	return mapCategories(categoryModels)
 }
 
-func (s *categoryService) GetCategory(categoryID uuid.UUID) (Category, error) {
+func (s *categoryService) GetCategory(categoryID Uuid.UUID) (Category, error) {
 	var category Category
 	categoryModel, err := s.categoryRepository.FindById(categoryID)
 	if err != nil {
@@ -43,10 +43,10 @@ func (s *categoryService) CreateCategory(createCategory CreateCategory) (Categor
 	}
 	var children []*CategoryModel
 	if len(createCategory.Children) > 0 {
-		children = s.categoryRepository.FindAll(commonRepository.SearchCriteria{
-			WhereClause: commonRepository.WhereClause{
+		children = s.categoryRepository.FindAll(CommonRepository.SearchCriteria{
+			WhereClause: CommonRepository.WhereClause{
 				Query:  "id IN ?",
-				Params: []interface{}{createCategory.Children},
+				Params: []any{createCategory.Children},
 			},
 		})
 	}
@@ -84,8 +84,8 @@ func mapCategory(categoryModel CategoryModel) Category {
 	}
 }
 
-func NewCategoryService(DB *gorm.DB) CategoryService {
+func NewCategoryService(DB *Database.DB) CategoryService {
 	return &categoryService{
-		categoryRepository: commonRepository.NewCrudRepository[CategoryModel](DB),
+		categoryRepository: CommonRepository.NewCrudRepository[CategoryModel](DB),
 	}
 }

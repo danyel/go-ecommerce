@@ -1,20 +1,21 @@
 package product
 
 import (
-	"github.com/danyel/ecommerce/internal/category"
-	"github.com/danyel/ecommerce/internal/cms"
-	"github.com/danyel/ecommerce/internal/common/types"
+	Category "github.com/danyel/ecommerce/internal/category"
+	CMS "github.com/danyel/ecommerce/internal/cms"
+	Types "github.com/danyel/ecommerce/internal/common/types"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 type ProductMapper interface {
 	MapProducts(models []*ProductModel) []Product
 	MapProduct(productModel *ProductModel) Product
 }
 
 type productMapper struct {
-	categoryService category.CategoryService
-	mapCategory     func(model category.Category) category.Category
-	cmsService      cms.CmsService
+	categoryService Category.CategoryService
+	mapCategory     func(model Category.Category) Category.Category
+	cmsService      CMS.CmsService
 }
 
 func (p *productMapper) MapProducts(models []*ProductModel) []Product {
@@ -36,10 +37,10 @@ func (p *productMapper) MapProduct(productModel *ProductModel) Product {
 		Brand:       productModel.Brand,
 		Description: description.Value,
 		Name:        name.Value,
-		ID:          types.NewID(productModel.ID),
+		ID:          Types.NewID(productModel.ID),
 		Stock:       productModel.Stock,
 	}
 }
-func NewProductMapper(p category.CategoryService, c cms.CmsService) ProductMapper {
+func NewProductMapper(p Category.CategoryService, c CMS.CmsService) ProductMapper {
 	return &productMapper{categoryService: p, cmsService: c}
 }

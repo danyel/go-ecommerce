@@ -1,30 +1,30 @@
 package product
 
 import (
-	"github.com/danyel/ecommerce/internal/category"
-	"github.com/danyel/ecommerce/internal/cms"
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+	Category "github.com/danyel/ecommerce/internal/category"
+	CMS "github.com/danyel/ecommerce/internal/cms"
+	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Uuid "github.com/google/uuid"
+	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ProductService interface {
 	GetProducts() []Product
-	GetProduct(uuid uuid.UUID) (Product, error)
+	GetProduct(uuid Uuid.UUID) (Product, error)
 }
 
 type productService struct {
-	productRepository commonRepository.CrudRepository[ProductModel]
+	productRepository CommonRepository.CrudRepository[ProductModel]
 	productMapper     ProductMapper
 }
 
 func (s *productService) GetProducts() []Product {
 	orderBy := "created_at asc"
-	products := s.productRepository.FindAll(commonRepository.SearchCriteria{OrderBy: &orderBy})
+	products := s.productRepository.FindAll(CommonRepository.SearchCriteria{OrderBy: &orderBy})
 	return s.productMapper.MapProducts(products)
 }
-func (s *productService) GetProduct(uuid uuid.UUID) (Product, error) {
+func (s *productService) GetProduct(uuid Uuid.UUID) (Product, error) {
 	var product Product
 	productModel, err := s.productRepository.FindById(uuid)
 	if err != nil {
@@ -34,7 +34,7 @@ func (s *productService) GetProduct(uuid uuid.UUID) (Product, error) {
 	return s.productMapper.MapProduct(productModel), nil
 }
 
-func NewProductService(DB *gorm.DB) ProductService {
-	s := &productService{commonRepository.NewCrudRepository[ProductModel](DB), NewProductMapper(category.NewCategoryService(DB), cms.NewCmsService(DB))}
+func NewProductService(DB *Database.DB) ProductService {
+	s := &productService{CommonRepository.NewCrudRepository[ProductModel](DB), NewProductMapper(Category.NewCategoryService(DB), CMS.NewCmsService(DB))}
 	return s
 }

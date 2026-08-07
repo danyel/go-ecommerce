@@ -1,37 +1,37 @@
 package product_management
 
 import (
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	"github.com/danyel/ecommerce/internal/common/types"
-	"github.com/danyel/ecommerce/internal/product"
-	"gorm.io/gorm"
+	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Types "github.com/danyel/ecommerce/internal/common/types"
+	Product "github.com/danyel/ecommerce/internal/product"
+	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ProductService interface {
-	GetProducts() []product.Product
-	GetProduct(id types.Id) (product.Product, error)
-	DeleteProduct(id types.Id) error
-	UpdateProduct(id types.Id, updateProduct UpdateProduct) error
-	CreateProduct(createProduct CreateProduct) (ProductId, error)
+	GetProducts() []Product.Product
+	GetProduct(id Types.Id) (Product.Product, error)
+	DeleteProduct(id Types.Id) error
+	UpdateProduct(id Types.Id, updateProduct Product.UpdateProduct) error
+	CreateProduct(createProduct Product.CreateProduct) (Types.Id, error)
 }
 
 type productService struct {
-	productRepository commonRepository.CrudRepository[product.ProductModel]
-	productService    product.ProductService
+	productRepository CommonRepository.CrudRepository[Product.ProductModel]
+	productService    Product.ProductService
 }
 
-func (s *productService) GetProducts() []product.Product {
+func (s *productService) GetProducts() []Product.Product {
 	return s.productService.GetProducts()
 }
 
-func (s *productService) GetProduct(uuid types.Id) (product.Product, error) {
-	var p product.Product
+func (s *productService) GetProduct(uuid Types.Id) (Product.Product, error) {
+	var p Product.Product
 	productModel, err := s.productService.GetProduct(uuid.ID)
 	if err != nil {
 		return p, err
 	}
-	return product.Product{
+	return Product.Product{
 		Code:        productModel.Code,
 		Price:       productModel.Price,
 		Stock:       productModel.Stock,
@@ -43,10 +43,10 @@ func (s *productService) GetProduct(uuid types.Id) (product.Product, error) {
 		ID:          productModel.ID,
 	}, nil
 }
-func (s *productService) DeleteProduct(uuid types.Id) error {
+func (s *productService) DeleteProduct(uuid Types.Id) error {
 	return s.productRepository.Delete(uuid.ID)
 }
-func (s *productService) UpdateProduct(uuid types.Id, updateProduct UpdateProduct) error {
+func (s *productService) UpdateProduct(uuid Types.Id, updateProduct Product.UpdateProduct) error {
 	p, err := s.productRepository.FindById(uuid.ID)
 	if err != nil {
 		return err
@@ -55,17 +55,17 @@ func (s *productService) UpdateProduct(uuid types.Id, updateProduct UpdateProduc
 	p.Brand = updateProduct.Brand
 	p.Description = updateProduct.Description
 	p.Stock = updateProduct.Stock
-	p.CategoryId = updateProduct.CategoryId
+	p.CategoryId = updateProduct.CategoryId.ID
 	p.ImageUrl = updateProduct.ImageUrl
 	p.Price = updateProduct.Price
 	return s.productRepository.Update(p)
 }
-func (s *productService) CreateProduct(createProduct CreateProduct) (ProductId, error) {
-	var productId ProductId
-	p := product.ProductModel{
+func (s *productService) CreateProduct(createProduct Product.CreateProduct) (Types.Id, error) {
+	var productId Types.Id
+	p := Product.ProductModel{
 		Code:        createProduct.Code,
 		Price:       createProduct.Price,
-		CategoryId:  createProduct.CategoryId,
+		CategoryId:  createProduct.CategoryId.ID,
 		ImageUrl:    createProduct.ImageUrl,
 		Brand:       createProduct.Brand,
 		Description: createProduct.Description,
@@ -75,11 +75,11 @@ func (s *productService) CreateProduct(createProduct CreateProduct) (ProductId, 
 	if err != nil {
 		return productId, err
 	}
-	return ProductId{ID: p.ID}, nil
+	return Types.NewID(p.ID), nil
 }
-func NewProductService(DB *gorm.DB) ProductService {
+func NewProductService(DB *Database.DB) ProductService {
 	return &productService{
-		commonRepository.NewCrudRepository[product.ProductModel](DB),
-		product.NewProductService(DB),
+		CommonRepository.NewCrudRepository[Product.ProductModel](DB),
+		Product.NewProductService(DB),
 	}
 }

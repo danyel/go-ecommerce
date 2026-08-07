@@ -1,28 +1,28 @@
 package commonRepository
 
 import (
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+	Uuid "github.com/google/uuid"
+	Database "gorm.io/gorm"
 )
 
 type CrudRepository[T any] interface {
 	FindAll(searchCriteria SearchCriteria) []*T
 	FetchAll() []*T
-	FindById(id uuid.UUID, preloads ...string) (*T, error)
+	FindById(id Uuid.UUID, preloads ...string) (*T, error)
 	Create(p *T) error
 	Update(p *T) error
-	Delete(id uuid.UUID) error
+	Delete(id Uuid.UUID) error
 	Paginate(criteria SearchCriteria) ([]T, int64)
-	AssocAppend(parent *T, assoc string, values interface{}) error
-	AssocReplace(parent *T, assoc string, values interface{}) error
-	AssocDelete(parent *T, assoc string, values interface{}) error
+	AssocAppend(parent *T, assoc string, values any) error
+	AssocReplace(parent *T, assoc string, values any) error
+	AssocDelete(parent *T, assoc string, values any) error
 	AssocClear(parent *T, assoc string) error
 	AssocCount(parent *T, assoc string) (int64, error)
 }
 
 type WhereClause struct {
 	Query  string
-	Params []interface{}
+	Params []any
 }
 
 type SearchCriteria struct {
@@ -34,7 +34,7 @@ type SearchCriteria struct {
 }
 
 type crudRepository[T any] struct {
-	db *gorm.DB
+	db *Database.DB
 }
 
 func (r *crudRepository[T]) FetchAll() []*T {
@@ -75,9 +75,9 @@ func (r *crudRepository[T]) FindAll(searchCriteria SearchCriteria) []*T {
 	query.Find(&results)
 	return results
 }
-func (r *crudRepository[T]) FindById(id uuid.UUID, preloads ...string) (*T, error) {
+func (r *crudRepository[T]) FindById(id Uuid.UUID, preloads ...string) (*T, error) {
 	var model T
-	var result *gorm.DB
+	var result *Database.DB
 	query := r.db.Model(&model)
 
 	for _, preload := range preloads {
@@ -98,13 +98,13 @@ func (r *crudRepository[T]) Update(p *T) error {
 	return r.db.Save(p).Error
 }
 
-func (r *crudRepository[T]) Delete(id uuid.UUID) error {
-	var result *gorm.DB
+func (r *crudRepository[T]) Delete(id Uuid.UUID) error {
+	var result *Database.DB
 	if result = r.db.Delete(new(T), id); result.Error != nil {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
+		return Database.ErrRecordNotFound
 	}
 	return nil
 }
@@ -143,15 +143,15 @@ func (r *crudRepository[T]) Paginate(criteria SearchCriteria) ([]T, int64) {
 	return results, total
 }
 
-func (r *crudRepository[T]) AssocAppend(parent *T, assoc string, values interface{}) error {
-	return r.db.Session(&gorm.Session{FullSaveAssociations: false}).Model(parent).Association(assoc).Append(values)
+func (r *crudRepository[T]) AssocAppend(parent *T, assoc string, values any) error {
+	return r.db.Session(&Database.Session{FullSaveAssociations: false}).Model(parent).Association(assoc).Append(values)
 }
 
-func (r *crudRepository[T]) AssocReplace(parent *T, assoc string, values interface{}) error {
+func (r *crudRepository[T]) AssocReplace(parent *T, assoc string, values any) error {
 	return r.db.Model(parent).Association(assoc).Replace(values)
 }
 
-func (r *crudRepository[T]) AssocDelete(parent *T, assoc string, values interface{}) error {
+func (r *crudRepository[T]) AssocDelete(parent *T, assoc string, values any) error {
 	return r.db.Model(parent).Association(assoc).Delete(values)
 }
 
@@ -163,6 +163,6 @@ func (r *crudRepository[T]) AssocCount(parent *T, assoc string) (int64, error) {
 	return r.db.Model(parent).Association(assoc).Count(), nil
 }
 
-func NewCrudRepository[T any](db *gorm.DB) CrudRepository[T] {
+func NewCrudRepository[T any](db *Database.DB) CrudRepository[T] {
 	return &crudRepository[T]{db: db}
 }

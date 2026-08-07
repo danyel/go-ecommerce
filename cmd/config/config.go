@@ -1,6 +1,6 @@
 package config
 
-import "os"
+import OS "os"
 
 type ServerConfiguration struct {
 	Addr string
@@ -25,27 +25,27 @@ type BrokerConfiguration struct {
 
 func NewDatabaseConfiguration() DatabaseConfiguration {
 	return DatabaseConfiguration{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     os.Getenv("DB_PORT"),
-		Username: os.Getenv("DB_USERNAME"),
-		Password: os.Getenv("DB_PASSWORD"),
-		Database: os.Getenv("DB_DATABASE"),
-		Schema:   os.Getenv("DB_SCHEMA"),
+		Host:     OS.Getenv("DB_HOST"),
+		Port:     OS.Getenv("DB_PORT"),
+		Username: OS.Getenv("DB_USERNAME"),
+		Password: OS.Getenv("DB_PASSWORD"),
+		Database: OS.Getenv("DB_DATABASE"),
+		Schema:   OS.Getenv("DB_SCHEMA"),
 	}
 }
 
 func NewServerConfiguration() ServerConfiguration {
 	return ServerConfiguration{
-		Addr: os.Getenv("APP_PORT"),
+		Addr: OS.Getenv("APP_PORT"),
 	}
 }
 
 func NewBrokerConfiguration() BrokerConfiguration {
 	return BrokerConfiguration{
-		Protocol: os.Getenv("BROKER_PROTOCOL"),
-		Addr:     os.Getenv("BROKER_ADDRESS"),
-		Port:     os.Getenv("BROKER_PORT"),
-		Username: os.Getenv("BROKER_USERNAME"),
-		Password: os.Getenv("BROKER_PASSWORD"),
+		Protocol: OS.Getenv("BROKER_PROTOCOL"),
+		Addr:     OS.Getenv("BROKER_ADDRESS"),
+		Port:     OS.Getenv("BROKER_PORT"),
+		Username: OS.Getenv("BROKER_USERNAME"),
+		Password: OS.Getenv("BROKER_PASSWORD"),
 	}
 }

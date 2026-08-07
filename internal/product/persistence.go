@@ -1,34 +1,34 @@
 package product
 
 import (
-	"time"
+	Time "time"
 
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+	Uuid "github.com/google/uuid"
+	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ProductModel struct {
-	ID          uuid.UUID `gorm:"type:uuid;primaryKey"`
+	ID          Uuid.UUID `gorm:"type:uuid;primaryKey"`
 	Brand       string
 	Name        string
 	Description string
 	Code        string
 	Price       float64 `gorm:"type:numeric(10,2)"`
-	CategoryId  uuid.UUID
+	CategoryId  Uuid.UUID
 	ImageUrl    string
 	Stock       int
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	CreatedAt   Time.Time
+	UpdatedAt   Time.Time
 }
 
 func (p *ProductModel) TableName() string {
 	return "products"
 }
 
-func (p *ProductModel) BeforeCreate(_ *gorm.DB) (err error) {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
+func (p *ProductModel) BeforeCreate(_ *Database.DB) (err error) {
+	if p.ID == Uuid.Nil {
+		p.ID = Uuid.New()
 	}
 
 	return

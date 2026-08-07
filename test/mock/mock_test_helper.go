@@ -1,23 +1,25 @@
 package mock
 
 import (
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"testing"
+	IO "io"
+	Http "net/http"
+	HttpTest "net/http/httptest"
+	Testing "testing"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/stretchr/testify/mock"
+	Router "github.com/go-chi/chi/v5"
+	Mock "github.com/stretchr/testify/mock"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 type MockHelper struct {
-	mock.Mock
+	Mock.Mock
 }
 
+//goland:noinspection GoNameStartsWithPackageName
 type MockFluent struct {
-	w *httptest.ResponseRecorder
-	r *http.Request
-	m *chi.Mux
+	w *HttpTest.ResponseRecorder
+	r *Http.Request
+	m *Router.Mux
 }
 
 func (h *MockHelper) New() MockFluent {
@@ -25,18 +27,18 @@ func (h *MockHelper) New() MockFluent {
 }
 
 func (m MockFluent) NewRecoder() MockFluent {
-	m.w = httptest.NewRecorder()
+	m.w = HttpTest.NewRecorder()
 	return m
 }
 
-func (m MockFluent) NewRouter(method string, pattern string, handlerFn http.HandlerFunc) MockFluent {
-	m.m = chi.NewRouter()
+func (m MockFluent) NewRouter(method string, pattern string, handlerFn Http.HandlerFunc) MockFluent {
+	m.m = Router.NewRouter()
 	m.m.Method(method, pattern, handlerFn)
 	return m
 }
 
-func (m MockFluent) NewRequest(method string, target string, body io.Reader) MockFluent {
-	m.r = httptest.NewRequest(method, target, body)
+func (m MockFluent) NewRequest(method string, target string, body IO.Reader) MockFluent {
+	m.r = HttpTest.NewRequest(method, target, body)
 	return m
 }
 
@@ -49,7 +51,7 @@ func (m MockFluent) Status() int {
 	return m.w.Result().StatusCode
 }
 
-func Run(t *testing.T) *MockHelper {
+func Run(t *Testing.T) *MockHelper {
 	t.Helper()
 	return &MockHelper{}
 }

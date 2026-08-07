@@ -1,29 +1,29 @@
 package cms
 
 import (
-	"time"
+	Time "time"
 
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+	Uuid "github.com/google/uuid"
+	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type CmsModel struct {
-	ID        uuid.UUID `gorm:"primary_key;type:uuid;"`
+	ID        Uuid.UUID `gorm:"primary_key;type:uuid;"`
 	Code      string    `gorm:"type:text;"`
 	Value     string    `gorm:"type:text;"`
 	Language  string    `gorm:"type:varchar(5);"`
-	CreatedAt time.Time `gorm:"type:timestamp;"`
-	UpdatedAt time.Time `gorm:"type:timestamp;"`
+	CreatedAt Time.Time `gorm:"type:timestamp;"`
+	UpdatedAt Time.Time `gorm:"type:timestamp;"`
 }
 
 func (p *CmsModel) TableName() string {
 	return "cms"
 }
 
-func (p *CmsModel) BeforeCreate(_ *gorm.DB) (err error) {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
+func (p *CmsModel) BeforeCreate(_ *Database.DB) (err error) {
+	if p.ID == Uuid.Nil {
+		p.ID = Uuid.New()
 	}
 
 	return

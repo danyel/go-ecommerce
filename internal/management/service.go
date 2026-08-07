@@ -1,21 +1,22 @@
 package management
 
 import (
-	"github.com/danyel/ecommerce/internal/cms"
-	commonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	"gorm.io/gorm"
+	CMS "github.com/danyel/ecommerce/internal/cms"
+	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Database "gorm.io/gorm"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 type ManagementService interface {
 	CreateTranslation(createCms CreateCms) (cmsId CmsId, err error)
 }
 
 type managementService struct {
-	cmsRepository commonRepository.CrudRepository[cms.CmsModel]
+	cmsRepository CommonRepository.CrudRepository[CMS.CmsModel]
 }
 
 func (s *managementService) CreateTranslation(createCms CreateCms) (cmsId CmsId, err error) {
-	cmsModel := &cms.CmsModel{
+	cmsModel := &CMS.CmsModel{
 		Code:     createCms.Code,
 		Value:    createCms.Value,
 		Language: createCms.Language,
@@ -26,6 +27,6 @@ func (s *managementService) CreateTranslation(createCms CreateCms) (cmsId CmsId,
 	return CmsId{cmsModel.ID}, nil
 }
 
-func NewManagementService(DB *gorm.DB) ManagementService {
-	return &managementService{commonRepository.NewCrudRepository[cms.CmsModel](DB)}
+func NewManagementService(DB *Database.DB) ManagementService {
+	return &managementService{CommonRepository.NewCrudRepository[CMS.CmsModel](DB)}
 }

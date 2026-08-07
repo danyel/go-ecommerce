@@ -1,6 +1,6 @@
 package category
 
-import "github.com/google/uuid"
+import Uuid "github.com/google/uuid"
 
 type CreateCategory struct {
 	Name     string   `json:"name"`
@@ -8,12 +8,12 @@ type CreateCategory struct {
 }
 
 type Category struct {
-	ID       uuid.UUID  `json:"code"`
+	ID       Uuid.UUID  `json:"code"`
 	Name     string     `json:"name"`
 	Children []Category `json:"children,omitempty"`
 }
 
 //goland:noinspection GoNameStartsWithPackageName
 type CategoryId struct {
-	ID uuid.UUID `json:"id"`
+	ID Uuid.UUID `json:"id"`
 }
