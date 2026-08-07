@@ -95,7 +95,7 @@ func (s *shoppingBasketService) GetShoppingBasket(u Uuid.UUID) (ShoppingBasket, 
 		return EmptyShoppingBasket(), err
 	}
 	sm := ShoppingBasket{
-		ID: NewShoppingBasketId(id.ID),
+		ID: Types.NewID(id.ID),
 	}
 	if len(id.Items) > 0 {
 		ps := make([]ShoppingBasketItem, len(id.Items))

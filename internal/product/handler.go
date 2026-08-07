@@ -17,8 +17,8 @@ type productApiHandler struct {
 	p ProductService
 }
 
-func (h *productApiHandler) GetProducts(w Http.ResponseWriter, _ *Http.Request) {
-	CommonHandler.WriteResponse(Http.StatusOK, w, h.p.GetProducts())
+func (h *productApiHandler) GetProducts(w Http.ResponseWriter, r *Http.Request) {
+	CommonHandler.WriteResponse(Http.StatusOK, w, r, h.p.GetProducts())
 }
 
 func (h *productApiHandler) GetProduct(w Http.ResponseWriter, r *Http.Request) {
@@ -26,15 +26,15 @@ func (h *productApiHandler) GetProduct(w Http.ResponseWriter, r *Http.Request) {
 	var productId Types.Id
 	var err error
 	if productId, err = CommonHandler.GetId(r, "productId"); err != nil {
-		CommonHandler.StatusBadRequest(w)
+		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
 
 	if product, err = h.p.GetProduct(productId.ID); err != nil {
-		CommonHandler.StatusNotFound(w)
+		CommonHandler.StatusNotFound(w, r)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusOK, w, product)
+	CommonHandler.WriteResponse(Http.StatusOK, w, r, product)
 }
 
 func NewApiHandler(p ProductService) ProductHandler {

@@ -2,20 +2,11 @@ package shopping_basket
 
 import (
 	Types "github.com/danyel/ecommerce/internal/common/types"
-	Uuid "github.com/google/uuid"
 )
 
 type UpdateShoppingBasketItem struct {
 	ProductId Types.Id `json:"product_id"`
 	Quantity  int      `json:"quantity"`
-}
-
-type ShoppingBasketId struct {
-	ID Types.Id `json:"id"`
-}
-
-func NewShoppingBasketId(id Uuid.UUID) Types.Id {
-	return Types.Id{ID: id}
 }
 
 func EmptyShoppingBasket() ShoppingBasket {
@@ -32,8 +23,18 @@ type ShoppingBasketItem struct {
 	Quantity   int         `json:"quantity"`
 }
 
+type Promo struct {
+	Code       string        `json:"code"`
+	Percentage Types.Float64 `json:"percentage"`
+}
+
+type Discount struct {
+}
+
 type ShoppingBasket struct {
 	ID         Types.Id             `json:"id"`
 	Items      []ShoppingBasketItem `json:"items"`
 	TotalPrice Types.Price          `json:"total_price"`
+	Discounts  []Discount           `json:"discounts"`
+	Promos     []Promo              `json:"promos"`
 }

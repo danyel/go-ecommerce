@@ -27,9 +27,9 @@ type productManagementHandler struct {
 	m Product.ProductMapper
 }
 
-func (h *productManagementHandler) GetProducts(w Http.ResponseWriter, _ *Http.Request) {
+func (h *productManagementHandler) GetProducts(w Http.ResponseWriter, r *Http.Request) {
 	products := h.s.GetProducts()
-	commonHandler.WriteResponse(Http.StatusOK, w, products)
+	commonHandler.WriteResponse(Http.StatusOK, w, r, products)
 }
 
 func (h *productManagementHandler) DeleteProduct(w Http.ResponseWriter, r *Http.Request) {
@@ -37,25 +37,25 @@ func (h *productManagementHandler) DeleteProduct(w Http.ResponseWriter, r *Http.
 	var err error
 	productIdToParse := Router.URLParam(r, "productId")
 	if productId, err = Uuid.Parse(productIdToParse); err != nil {
-		commonHandler.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w, r)
 		return
 	}
 
 	if err = h.s.DeleteProduct(Types.NewID(productId)); err != nil {
-		commonHandler.StatusNotFound(w)
+		commonHandler.StatusNotFound(w, r)
 		return
 	}
-	commonHandler.StatusNoContent(w)
+	commonHandler.StatusNoContent(w, r)
 }
 func (h *productManagementHandler) UpdateProduct(w Http.ResponseWriter, r *Http.Request) {
 	productId, err := commonHandler.GetId(r, "productId")
 	var updateProduct Product.UpdateProduct
 	if err = commonHandler.ValidateRequest(r, &updateProduct); err != nil {
-		commonHandler.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w, r)
 		return
 	}
 	if err = h.s.UpdateProduct(productId, updateProduct); err != nil {
-		commonHandler.StatusNotFound(w)
+		commonHandler.StatusNotFound(w, r)
 		return
 	}
 }
@@ -65,14 +65,14 @@ func (h *productManagementHandler) CreateProduct(w Http.ResponseWriter, r *Http.
 	var err error
 
 	if err = commonHandler.ValidateRequest[Product.CreateProduct](r, &createProduct); err != nil {
-		commonHandler.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w, r)
 	}
 
 	if productId, err = h.s.CreateProduct(createProduct); err != nil {
-		commonHandler.StatusInternalServerError(w)
+		commonHandler.StatusInternalServerError(w, r)
 		return
 	}
-	commonHandler.WriteResponse(Http.StatusCreated, w, productId)
+	commonHandler.WriteResponse(Http.StatusCreated, w, r, productId)
 }
 func (h *productManagementHandler) GetProduct(w Http.ResponseWriter, r *Http.Request) {
 	var productId Types.Id
@@ -80,15 +80,15 @@ func (h *productManagementHandler) GetProduct(w Http.ResponseWriter, r *Http.Req
 	var productModel Product.Product
 	productId, err = commonHandler.GetId(r, "productId")
 	if err != nil {
-		commonHandler.StatusBadRequest(w)
+		commonHandler.StatusBadRequest(w, r)
 		return
 	}
 
 	if productModel, err = h.s.GetProduct(productId); err != nil {
-		commonHandler.StatusNotFound(w)
+		commonHandler.StatusNotFound(w, r)
 		return
 	}
-	commonHandler.WriteResponse(Http.StatusOK, w, productModel)
+	commonHandler.WriteResponse(Http.StatusOK, w, r, productModel)
 }
 
 func NewHandler(DB *Database.DB) ProductManagementHandler {

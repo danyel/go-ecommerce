@@ -23,18 +23,18 @@ func (h *reservationHandler) CreateReservation(w Http.ResponseWriter, r *Http.Re
 	var reservationId Types.Id
 	var err error
 	if err = CommonHandler.ValidateRequest[CreateReservation](r, &createReservation); err != nil {
-		CommonHandler.StatusBadRequest(w)
+		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
 	if reservationId, err = h.s.CreateReservation(createReservation); err != nil {
-		CommonHandler.StatusInternalServerError(w)
+		CommonHandler.StatusInternalServerError(w, r)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusCreated, w, reservationId)
+	CommonHandler.WriteResponse(Http.StatusCreated, w, r, reservationId)
 }
 
-func (h *reservationHandler) GetReservations(w Http.ResponseWriter, _ *Http.Request) {
-	CommonHandler.WriteResponse(Http.StatusOK, w, h.s.GetReservations())
+func (h *reservationHandler) GetReservations(w Http.ResponseWriter, r *Http.Request) {
+	CommonHandler.WriteResponse(Http.StatusOK, w, r, h.s.GetReservations())
 }
 
 // NewHandler adding to router (todo)

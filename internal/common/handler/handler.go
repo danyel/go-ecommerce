@@ -19,6 +19,10 @@ func GetId(r *Http.Request, key string) (Types.Id, error) {
 	return Types.Id{ID: newId}, nil
 }
 
+func GetHeader(r *Http.Request, key string) string {
+	return r.Header.Get(key)
+}
+
 func GetPathParam(r *Http.Request, key string) string {
 	return Router.URLParam(r, key)
 }
@@ -38,36 +42,46 @@ func ValidateRequest[T any](req *Http.Request, model *T) error {
 	return nil
 }
 
-func WriteResponse(status int, w Http.ResponseWriter, v any) {
-	w.Header().Set("Content-Type", "application/json")
+func WriteResponse(status int, w Http.ResponseWriter, r *Http.Request, v any) {
+	setHeaders(w, r)
 	w.WriteHeader(status)
-	if err := JSON.NewEncoder(w).Encode(v); err != nil {
-		StatusInternalServerError(w)
+	encoder := JSON.NewEncoder(w)
+	if err := encoder.Encode(v); err != nil {
+		StatusInternalServerError(w, r)
 	}
 }
 
 //goland:noinspection GoUnusedExportedFunction
-func StatusOK(w Http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
+func StatusOK(w Http.ResponseWriter, r *Http.Request) {
+	setHeaders(w, r)
 	w.WriteHeader(Http.StatusOK)
 }
 
-func StatusNoContent(w Http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
+func StatusNoContent(w Http.ResponseWriter, r *Http.Request) {
+	setHeaders(w, r)
 	w.WriteHeader(Http.StatusNoContent)
 }
 
-func StatusBadRequest(w Http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
+func StatusBadRequest(w Http.ResponseWriter, r *Http.Request) {
+	setHeaders(w, r)
 	w.WriteHeader(Http.StatusBadRequest)
 }
 
-func StatusNotFound(w Http.ResponseWriter) {
+func setHeaders(w Http.ResponseWriter, r *Http.Request) {
+	header := GetHeader(r, "X-Correlation-Id")
+	if header == "" {
+		header = Uuid.NewString()
+	}
+	w.Header().Set("X-Correlation-ID", header)
 	w.Header().Set("Content-Type", "application/json")
+}
+
+func StatusNotFound(w Http.ResponseWriter, r *Http.Request) {
+	setHeaders(w, r)
 	w.WriteHeader(Http.StatusNotFound)
 }
 
-func StatusInternalServerError(w Http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
+func StatusInternalServerError(w Http.ResponseWriter, r *Http.Request) {
+	setHeaders(w, r)
 	w.WriteHeader(Http.StatusInternalServerError)
 }

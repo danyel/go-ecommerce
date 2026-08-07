@@ -21,8 +21,8 @@ type managementHandler struct {
 	cms CMS.CmsService
 }
 
-func (h *managementHandler) GetCategories(w Http.ResponseWriter, _ *Http.Request) {
-	CommonHandler.WriteResponse(Http.StatusOK, w, h.c.GetCategories())
+func (h *managementHandler) GetCategories(w Http.ResponseWriter, r *Http.Request) {
+	CommonHandler.WriteResponse(Http.StatusOK, w, r, h.c.GetCategories())
 }
 
 func (h *managementHandler) CreateTranslations(w Http.ResponseWriter, r *Http.Request) {
@@ -30,20 +30,20 @@ func (h *managementHandler) CreateTranslations(w Http.ResponseWriter, r *Http.Re
 	var err error
 	var cmsId CmsId
 	if err = CommonHandler.ValidateRequest[CreateCms](r, &createCms); err != nil {
-		CommonHandler.StatusBadRequest(w)
+		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
 
 	// we can not create a new translation for the same code and language!
 	if _, err = h.cms.GetTranslation(createCms.Code, createCms.Language); err == nil {
-		CommonHandler.StatusBadRequest(w)
+		CommonHandler.StatusBadRequest(w, r)
 	}
 
 	if cmsId, err = h.m.CreateTranslation(createCms); err != nil {
-		CommonHandler.StatusInternalServerError(w)
+		CommonHandler.StatusInternalServerError(w, r)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusCreated, w, cmsId)
+	CommonHandler.WriteResponse(Http.StatusCreated, w, r, cmsId)
 }
 
 func NewHandler(DB *Database.DB) ManagementHandler {

@@ -24,16 +24,16 @@ func (h *cmsHandler) GetTranslation(w Http.ResponseWriter, r *Http.Request) {
 	var err error
 
 	if translation, err = h.s.GetTranslation(code, language); err != nil {
-		CommonHandler.StatusNotFound(w)
+		CommonHandler.StatusNotFound(w, r)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusOK, w, translation)
+	CommonHandler.WriteResponse(Http.StatusOK, w, r, translation)
 }
 
 func (h *cmsHandler) GetTranslations(w Http.ResponseWriter, r *Http.Request) {
 	language := CommonHandler.GetRequestParam(r, "language")
 
-	CommonHandler.WriteResponse(Http.StatusOK, w, h.s.GetTranslations(language))
+	CommonHandler.WriteResponse(Http.StatusOK, w, r, h.s.GetTranslations(language))
 }
 
 func NewHandler(db *Database.DB) CmsHandler {

@@ -158,7 +158,7 @@ func TestHandler(t *Testing.T) {
 				Equal("De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.", ps.Description).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", ps.ImageUrl).
 				Equal("GPU", ps.Category.Name).
-				Equal(float64(669), ps.Price).
+				Equal(Types.Float64(669), ps.Price.Inclusive).
 				Equal("90YV0L71-M0NA00", ps.Code).
 				Equal("ASUS", ps.Brand).
 				Equal(pm.ID, ps.ID.ID)
@@ -172,7 +172,7 @@ func TestHandler(t *Testing.T) {
 				Equal("De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.", ps[0].Description).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", ps[0].ImageUrl).
 				Equal("GPU", ps[0].Category.Name).
-				Equal(float64(669), ps[0].Price).
+				Equal(Types.Float64(669), ps[0].Price.Inclusive).
 				Equal("90YV0L71-M0NA00", ps[0].Code).
 				Equal("ASUS", ps[0].Brand).
 				Equal(pm.ID, ps[0].ID.ID).

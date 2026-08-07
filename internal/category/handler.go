@@ -22,14 +22,14 @@ func (h *categoryHandler) CreateCategory(w Http.ResponseWriter, r *Http.Request)
 	var categoryId CategoryId
 	var err error
 	if err = CommonHandler.ValidateRequest[CreateCategory](r, &createCategory); err != nil {
-		CommonHandler.StatusBadRequest(w)
+		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
 	if categoryId, err = h.s.CreateCategory(createCategory); err != nil {
-		CommonHandler.StatusInternalServerError(w)
+		CommonHandler.StatusInternalServerError(w, r)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusCreated, w, categoryId)
+	CommonHandler.WriteResponse(Http.StatusCreated, w, r, categoryId)
 }
 
 func (h *categoryHandler) CreateTranslations(_ Http.ResponseWriter, _ *Http.Request) {}
