@@ -125,9 +125,7 @@ func SetupWebIntegration(t *Testing.T) *WebIntegration {
 	if err != nil {
 		t.Fatal(err)
 	}
-	handler := ShoppingBasket.NewShoppingBasketEventHandler(ShoppingBasket.NewService(db, newBroker))
-	newBroker.RegisterConsumer(ShoppingBasket.ShoppingBasketCreated, handler.HandleShoppingBasketCreated)
-	newBroker.RegisterConsumer(ShoppingBasket.ShoppingBasketUpdated, handler.HandleShoppingBasketUpdated)
+	ShoppingBasket.RegisterShoppingBasketEvents(ShoppingBasket.NewService(db, newBroker), newBroker)
 	if err := newBroker.Start(); err != nil {
 		Log.Println(err.Error())
 	}

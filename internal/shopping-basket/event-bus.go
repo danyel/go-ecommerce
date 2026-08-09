@@ -25,8 +25,8 @@ var ShoppingBasketUpdated = Broker.QueueConfig{
 }
 
 type ShoppingBasketEventHandler interface {
-	HandleShoppingBasketUpdated(body []byte) error
-	HandleShoppingBasketCreated(body []byte) error
+	handleShoppingBasketUpdated(body []byte) error
+	handleShoppingBasketCreated(body []byte) error
 }
 
 type shoppingBasketEvent struct {
@@ -43,7 +43,7 @@ type ShoppingBasketUpdatedEvent struct {
 	Quantity  int
 }
 
-func (s *shoppingBasketEvent) HandleShoppingBasketUpdated(body []byte) error {
+func (s *shoppingBasketEvent) handleShoppingBasketUpdated(body []byte) error {
 	var event ShoppingBasketUpdatedEvent
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		Log.Printf("Error unmarshalling ShoppingBasketUpdated event: %v\n", err)
@@ -53,7 +53,7 @@ func (s *shoppingBasketEvent) HandleShoppingBasketUpdated(body []byte) error {
 	return nil
 }
 
-func (s *shoppingBasketEvent) HandleShoppingBasketCreated(body []byte) error {
+func (s *shoppingBasketEvent) handleShoppingBasketCreated(body []byte) error {
 	var event ShoppingBasketCreatedEvent
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
@@ -62,7 +62,8 @@ func (s *shoppingBasketEvent) HandleShoppingBasketCreated(body []byte) error {
 	return nil
 }
 
-func NewShoppingBasketEventHandler(s ShoppingBasketService) ShoppingBasketEventHandler {
+func RegisterShoppingBasketEvents(s ShoppingBasketService, b *Broker.Broker) {
 	h := &shoppingBasketEvent{s}
-	return h
+	b.RegisterConsumer(ShoppingBasketCreated, h.handleShoppingBasketCreated)
+	b.RegisterConsumer(ShoppingBasketUpdated, h.handleShoppingBasketUpdated)
 }

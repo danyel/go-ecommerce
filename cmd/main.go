@@ -32,9 +32,7 @@ func main() {
 	if b.CreateConnection(&bc) != nil {
 		Log.Fatal(err)
 	}
-	shoppingBasketEventHandler := ShoppingBasket.NewShoppingBasketEventHandler(ShoppingBasket.NewService(db, b))
-	b.RegisterConsumer(ShoppingBasket.ShoppingBasketCreated, shoppingBasketEventHandler.HandleShoppingBasketCreated)
-	b.RegisterConsumer(ShoppingBasket.ShoppingBasketUpdated, shoppingBasketEventHandler.HandleShoppingBasketUpdated)
+	ShoppingBasket.RegisterShoppingBasketEvents(ShoppingBasket.NewService(db, b), b)
 	if err = b.Start(); err != nil {
 		Log.Println(err.Error())
 	}
