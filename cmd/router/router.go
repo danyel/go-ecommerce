@@ -28,6 +28,7 @@ func (a *ApiDefinition) ConfigRouter() *Router.Mux {
 	r.Use(Middleware.RequestID)
 	r.Use(Middleware.Logger)
 	r.Use(Middleware.Recoverer)
+	//r.Use(ApplicationMiddleware.JwtAuthMiddleware(a.SC.JwtSecret))
 
 	r.Route("/api", func(r Router.Router) {
 		productV1Routing(r, a)

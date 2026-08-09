@@ -3,7 +3,8 @@ package config
 import OS "os"
 
 type ServerConfiguration struct {
-	Addr string
+	Addr      string
+	JwtSecret string
 }
 
 type DatabaseConfiguration struct {
