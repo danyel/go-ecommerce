@@ -1,6 +1,11 @@
 package config
 
-import OS "os"
+import (
+	Log "log"
+	OS "os"
+
+	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
+)
 
 type ServerConfiguration struct {
 	Addr      string
@@ -36,8 +41,19 @@ func NewDatabaseConfiguration() DatabaseConfiguration {
 }
 
 func NewServerConfiguration() ServerConfiguration {
+	secret := OS.Getenv("JWT_SECRET")
+	if secret == "" {
+		// Use your provider if no secret is injected from infrastructure configuration
+		provider := ApplicationMiddleware.NewSecretKeyProvider()
+		generated, err := provider.GenerateKey()
+		if err != nil {
+			Log.Fatalf("Failed to generate fallback secret: %v", err)
+		}
+		secret = generated
+	}
 	return ServerConfiguration{
-		Addr: OS.Getenv("APP_PORT"),
+		Addr:      OS.Getenv("APP_PORT"),
+		JwtSecret: secret,
 	}
 }
 

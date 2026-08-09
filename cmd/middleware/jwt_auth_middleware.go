@@ -5,6 +5,7 @@ import (
 	Errors "errors"
 	Fmt "fmt"
 	Http "net/http"
+	Array "slices"
 	Strings "strings"
 
 	JWT "github.com/golang-jwt/jwt/v5"
@@ -12,7 +13,10 @@ import (
 
 type contextKey string
 
-const UserContextKey contextKey = "user_claims"
+const (
+	UserContextKey contextKey = "user_claims"
+	Authorization  string     = "Authorization"
+)
 
 type UserClaims struct {
 	UserID string   `json:"user_id"`
@@ -28,14 +32,13 @@ type CustomClaims struct {
 func JwtAuthMiddleware(secretKey string) func(handler Http.Handler) Http.Handler {
 	return func(next Http.Handler) Http.Handler {
 		return Http.HandlerFunc(func(w Http.ResponseWriter, r *Http.Request) {
-			authHeader := r.Header.Get("Authorization")
+			authHeader := r.Header.Get(Authorization)
 			if authHeader == "" || !Strings.HasPrefix(authHeader, "Bearer ") {
 				Http.Error(w, "Unauthorized: Missing or malformed token", Http.StatusUnauthorized)
 				return
 			}
 			tokenString := Strings.TrimPrefix(authHeader, "Bearer ")
-
-			claims, err := validateJWT(tokenString, secretKey)
+			claims, err := DecryptClaims(tokenString, secretKey)
 
 			if err != nil {
 				Http.Error(w, "Unauthorized: Invalid token", Http.StatusUnauthorized)
@@ -46,6 +49,18 @@ func JwtAuthMiddleware(secretKey string) func(handler Http.Handler) Http.Handler
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func validateOpaqueToken(tokenString string, expectedToken string) (*UserClaims, error) {
+	if expectedToken == "" || tokenString != expectedToken {
+		return nil, Errors.New("opaque token mismatch or unconfigured")
+	}
+
+	// Return a mocked mock system user layout for the context since it's a machine/service token
+	return &UserClaims{
+		UserID: "system_service_account",
+		Roles:  []string{"admin"},
+	}, nil
 }
 
 func validateJWT(tokenString string, secretKey string) (*UserClaims, error) {
@@ -72,4 +87,17 @@ func validateJWT(tokenString string, secretKey string) (*UserClaims, error) {
 		UserID: claims.UserID,
 		Roles:  claims.Roles,
 	}, nil
+}
+
+func RequireRole(requiredRole string) func(Http.Handler) Http.Handler {
+	return func(next Http.Handler) Http.Handler {
+		return Http.HandlerFunc(func(w Http.ResponseWriter, r *Http.Request) {
+			claims, ok := r.Context().Value(UserContextKey).(*UserClaims)
+			if !ok || !Array.Contains(claims.Roles, requiredRole) {
+				Http.Error(w, "Forbidden: Insufficient permissions", Http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }

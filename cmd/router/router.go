@@ -5,6 +5,7 @@ import (
 	Http "net/http"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
+	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
 	Port "github.com/danyel/ecommerce/internal/common/port"
@@ -28,7 +29,7 @@ func (a *ApiDefinition) ConfigRouter() *Router.Mux {
 	r.Use(Middleware.RequestID)
 	r.Use(Middleware.Logger)
 	r.Use(Middleware.Recoverer)
-	//r.Use(ApplicationMiddleware.JwtAuthMiddleware(a.SC.JwtSecret))
+	r.Use(ApplicationMiddleware.JwtAuthMiddleware(a.SC.JwtSecret))
 
 	r.Route("/api", func(r Router.Router) {
 		productV1Routing(r, a)
@@ -49,6 +50,7 @@ func shoppingBasketV1Routing(r Router.Router, a *ApiDefinition) Router.Router {
 		h := ShoppingBasket.NewHandler(a.DB, a.EventPublisher)
 		r.Post("/", h.CreateShoppingBasket)
 		r.Route("/{shoppingBasketId}", func(r Router.Router) {
+			r.Use(ApplicationMiddleware.RequireRole("ADMIN"))
 			r.Post("/", h.UpdateShoppingBasketItem)
 			r.Get("/", h.GetShoppingBasket)
 		})

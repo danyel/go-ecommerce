@@ -1,9 +1,10 @@
 package initializer
 
 import (
-	Bytes "bytes"
+	"bytes"
 	JSON "encoding/json"
 	Fmt "fmt"
+	"io"
 	Log "log"
 	Http "net/http"
 	HttpTest "net/http/httptest"
@@ -11,19 +12,35 @@ import (
 
 	Broker "github.com/danyel/ecommerce/cmd/broker"
 	Configuration "github.com/danyel/ecommerce/cmd/config"
+	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shopping-basket"
+	"github.com/stretchr/testify/assert"
 	Assert "github.com/stretchr/testify/assert"
 	Database "gorm.io/gorm"
 )
 
 type WebIntegration struct {
-	db *Database.DB
-	s  *HttpTest.Server
-	t  *Testing.T
-	r  *Http.Response
+	db        *Database.DB
+	s         *HttpTest.Server
+	t         *Testing.T
+	r         *Http.Response
+	authToken string
+}
+
+func (wi *WebIntegration) WithAuth(userID string, roles []string, hexSecret string) *WebIntegration {
+	claims := &ApplicationMiddleware.UserClaims{
+		UserID: userID,
+		Roles:  roles,
+	}
+
+	token, err := ApplicationMiddleware.EncryptClaims(claims, hexSecret)
+	Assert.Nil(wi.t, err)
+
+	wi.authToken = token
+	return wi
 }
 
 func (wi *WebIntegration) ProductManagementPostProducts(b *Product.CreateProduct) *WebIntegration {
@@ -71,18 +88,19 @@ func (wi *WebIntegration) Db() *Database.DB {
 }
 
 func (wi *WebIntegration) Get(url string) *WebIntegration {
-	var err error
-	wi.r, err = Http.Get(url)
-	Assert.Nil(wi.t, err)
-	return wi
+	return wi.doRequest("GET", url, nil)
+}
+
+func (wi *WebIntegration) Delete(url string) *WebIntegration {
+	return wi.doRequest("DELETE", url, nil)
 }
 
 func (wi *WebIntegration) Post(url string, body any) *WebIntegration {
-	b, _ := JSON.Marshal(body)
-	var err error
-	wi.r, err = Http.Post(url, "application/json", Bytes.NewBuffer(b))
-	Assert.Nil(wi.t, err)
-	return wi
+	return wi.doRequest("POST", url, body)
+}
+
+func (wi *WebIntegration) Put(url string, body any) *WebIntegration {
+	return wi.doRequest("PUT", url, body)
 }
 
 func (wi *WebIntegration) GetResponseBody(b any) *WebIntegration {
@@ -113,15 +131,59 @@ func (wi *WebIntegration) AssertBadRequest() *WebIntegration {
 	return wi.Equal(Http.StatusBadRequest, wi.r.StatusCode)
 }
 
+func (wi *WebIntegration) doRequest(method string, url string, body any) *WebIntegration {
+	var bodyBuffer io.Reader
+	if body != nil {
+		b, err := JSON.Marshal(body)
+		assert.Nil(wi.t, err)
+		bodyBuffer = bytes.NewBuffer(b)
+	}
+	req, err := Http.NewRequest(method, url, bodyBuffer)
+	Assert.Nil(wi.t, err)
+	if err != nil || req == nil {
+		Assert.Fail(wi.t, "Could not create the request")
+		return wi
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	if wi.authToken != "" {
+		req.Header.Set(ApplicationMiddleware.Authorization, Fmt.Sprintf("Bearer %s", wi.authToken))
+	}
+
+	client := &Http.Client{}
+
+	wi.r, err = client.Do(req)
+
+	Assert.Nil(wi.t, err)
+
+	return wi
+}
+
+func createTestUser() *ApplicationMiddleware.UserClaims {
+	return &ApplicationMiddleware.UserClaims{
+		UserID: "UserId",
+		Roles:  []string{"ADMIN", "USER"},
+	}
+}
+
 func SetupWebIntegration(t *Testing.T) *WebIntegration {
+	var token string
+	secretKeyProvider := ApplicationMiddleware.NewSecretKeyProvider()
+	secretKey, err := secretKeyProvider.GenerateKey()
+
+	if err != nil {
+		Log.Println(err.Error())
+	}
+
 	t.Helper()
 	bi := NewBackendInitializer()
 	bi.TestContainers(t)
 	bi.Run()
 	db := bi.Db()
 	sc := Configuration.NewServerConfiguration()
+	sc.JwtSecret = secretKey
 	newBroker := Broker.NewBroker()
-	err := newBroker.CreateConnection(bi.BrokerConfiguration)
+	err = newBroker.CreateConnection(bi.BrokerConfiguration)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,10 +202,16 @@ func SetupWebIntegration(t *Testing.T) *WebIntegration {
 	t.Cleanup(func() {
 		ts.Close()
 	})
+	token, err = ApplicationMiddleware.EncryptClaims(createTestUser(), secretKey)
+
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	return &WebIntegration{
-		db: db,
-		s:  ts,
-		t:  t,
+		db:        db,
+		s:         ts,
+		t:         t,
+		authToken: token,
 	}
 }
