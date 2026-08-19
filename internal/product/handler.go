@@ -13,31 +13,31 @@ type ProductHandler interface {
 	GetProduct(w Http.ResponseWriter, r *Http.Request)
 }
 
-type productApiHandler struct {
+type productAPIHandler struct {
 	p ProductService
 }
 
-func (h *productApiHandler) GetProducts(w Http.ResponseWriter, r *Http.Request) {
+func (h *productAPIHandler) GetProducts(w Http.ResponseWriter, r *Http.Request) {
 	CommonHandler.WriteResponse(Http.StatusOK, w, r, h.p.GetProducts())
 }
 
-func (h *productApiHandler) GetProduct(w Http.ResponseWriter, r *Http.Request) {
+func (h *productAPIHandler) GetProduct(w Http.ResponseWriter, r *Http.Request) {
 	var product Product
-	var productId Types.Id
+	var productID Types.ID
 	var err error
-	if productId, err = CommonHandler.GetId(r, "productId"); err != nil {
+	if productID, err = CommonHandler.GetID(r, "productID"); err != nil {
 		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
 
-	if product, err = h.p.GetProduct(productId.ID); err != nil {
+	if product, err = h.p.GetProduct(productID.ID); err != nil {
 		CommonHandler.StatusNotFound(w, r)
 		return
 	}
 	CommonHandler.WriteResponse(Http.StatusOK, w, r, product)
 }
 
-func NewApiHandler(p ProductService) ProductHandler {
-	h := &productApiHandler{p}
+func NewAPIHandler(p ProductService) ProductHandler {
+	h := &productAPIHandler{p}
 	return h
 }

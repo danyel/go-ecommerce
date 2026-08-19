@@ -20,7 +20,7 @@ var ReservationCreated = Broker.QueueConfig{
 
 //goland:noinspection GoNameStartsWithPackageName
 type ReservationCreatedEvent struct {
-	Id string `json:"id"`
+	ID string `json:"id"`
 }
 
 //goland:noinspection GoUnusedExportedFunction
@@ -29,7 +29,7 @@ func HandleReservationCreated2(body []byte) error {
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	Log.Println(event.Id)
+	Log.Println(event.ID)
 	return nil
 }
 
@@ -39,6 +39,6 @@ func HandleReservationCreated(body []byte) error {
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	Log.Println(event.Id)
+	Log.Println(event.ID)
 	return nil
 }

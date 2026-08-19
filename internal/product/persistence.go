@@ -15,8 +15,8 @@ type ProductModel struct {
 	Description string
 	Code        string
 	Price       float64 `gorm:"type:numeric(10,2)"`
-	CategoryId  Uuid.UUID
-	ImageUrl    string
+	CategoryID  Uuid.UUID
+	ImageURL    string
 	Stock       int
 	CreatedAt   Time.Time
 	UpdatedAt   Time.Time

@@ -1,10 +1,27 @@
 package config
 
 import (
+	Fmt "fmt"
 	Log "log"
 	OS "os"
 
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
+)
+
+const (
+	dbHost          = "DB_HOST"
+	dbPort          = "DB_PORT"
+	dbUsername      = "DB_USERNAME"
+	dbPassword      = "DB_PASSWORD"
+	dbDatabase      = "DB_DATABASE"
+	dbSchema        = "DB_SCHEMA"
+	jwtSecret       = "JWT_SECRET"
+	brokerProtocol  = "BROKER_PROTOCOL"
+	brokerAddress   = "BROKER_ADDRESS"
+	brokerPort      = "BROKER_PORT"
+	brokerUsername  = "BROKER_USERNAME"
+	brokerPassword  = "BROKER_PASSWORD"
+	applicationPort = "APP_PORT"
 )
 
 type ServerConfiguration struct {
@@ -29,19 +46,23 @@ type BrokerConfiguration struct {
 	Port     string
 }
 
+func (database *DatabaseConfiguration) ToDNS() string {
+	return Fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s", database.Host, database.Port, database.Username, database.Password, database.Database, database.Schema)
+}
+
 func NewDatabaseConfiguration() DatabaseConfiguration {
 	return DatabaseConfiguration{
-		Host:     OS.Getenv("DB_HOST"),
-		Port:     OS.Getenv("DB_PORT"),
-		Username: OS.Getenv("DB_USERNAME"),
-		Password: OS.Getenv("DB_PASSWORD"),
-		Database: OS.Getenv("DB_DATABASE"),
-		Schema:   OS.Getenv("DB_SCHEMA"),
+		Host:     OS.Getenv(dbHost),
+		Port:     OS.Getenv(dbPort),
+		Username: OS.Getenv(dbUsername),
+		Password: OS.Getenv(dbPassword),
+		Database: OS.Getenv(dbDatabase),
+		Schema:   OS.Getenv(dbSchema),
 	}
 }
 
 func NewServerConfiguration() ServerConfiguration {
-	secret := OS.Getenv("JWT_SECRET")
+	secret := OS.Getenv(jwtSecret)
 	if secret == "" {
 		// Use your provider if no secret is injected from infrastructure configuration
 		provider := ApplicationMiddleware.NewSecretKeyProvider()
@@ -52,17 +73,17 @@ func NewServerConfiguration() ServerConfiguration {
 		secret = generated
 	}
 	return ServerConfiguration{
-		Addr:      OS.Getenv("APP_PORT"),
+		Addr:      OS.Getenv(applicationPort),
 		JwtSecret: secret,
 	}
 }
 
 func NewBrokerConfiguration() BrokerConfiguration {
 	return BrokerConfiguration{
-		Protocol: OS.Getenv("BROKER_PROTOCOL"),
-		Addr:     OS.Getenv("BROKER_ADDRESS"),
-		Port:     OS.Getenv("BROKER_PORT"),
-		Username: OS.Getenv("BROKER_USERNAME"),
-		Password: OS.Getenv("BROKER_PASSWORD"),
+		Protocol: OS.Getenv(brokerProtocol),
+		Addr:     OS.Getenv(brokerAddress),
+		Port:     OS.Getenv(brokerPort),
+		Username: OS.Getenv(brokerUsername),
+		Password: OS.Getenv(brokerPassword),
 	}
 }

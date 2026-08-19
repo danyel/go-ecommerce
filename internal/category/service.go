@@ -10,7 +10,7 @@ import (
 type CategoryService interface {
 	GetCategories() []Category
 	GetCategory(categoryID Uuid.UUID) (Category, error)
-	CreateCategory(createCategory CreateCategory) (CategoryId, error)
+	CreateCategory(createCategory CreateCategory) (CategoryID, error)
 }
 
 type categoryService struct {
@@ -31,15 +31,15 @@ func (s *categoryService) GetCategory(categoryID Uuid.UUID) (Category, error) {
 	return mapCategory(*categoryModel), err
 }
 
-func (s *categoryService) CreateCategory(createCategory CreateCategory) (CategoryId, error) {
+func (s *categoryService) CreateCategory(createCategory CreateCategory) (CategoryID, error) {
 	var err error
-	var categoryId CategoryId
+	var categoryID CategoryID
 	category := &CategoryModel{
 		Name: createCategory.Name,
 	}
 
 	if err := s.categoryRepository.Create(category); err != nil {
-		return categoryId, err
+		return categoryID, err
 	}
 	var children []*CategoryModel
 	if len(createCategory.Children) > 0 {
@@ -53,11 +53,11 @@ func (s *categoryService) CreateCategory(createCategory CreateCategory) (Categor
 
 	if len(children) > 0 {
 		if err = s.categoryRepository.AssocAppend(category, "Children", children); err != nil {
-			return categoryId, err
+			return categoryID, err
 		}
 	}
-	categoryId.ID = category.ID
-	return categoryId, err
+	categoryID.ID = category.ID
+	return categoryID, err
 }
 
 func mapCategories(models []*CategoryModel) []Category {

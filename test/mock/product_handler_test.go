@@ -27,7 +27,7 @@ func (m *MockProductService) GetProduct(uuid Uuid.UUID) (Product.Product, error)
 
 func TestProductHandler(t *Testing.T) {
 	mockProductService := new(MockProductService)
-	h := Product.NewApiHandler(mockProductService)
+	h := Product.NewAPIHandler(mockProductService)
 	mh := Run(t)
 
 	t.Run("GetProducts", func(t *Testing.T) {
@@ -56,7 +56,7 @@ func TestProductHandler(t *Testing.T) {
 		Assert.Equal(t, Http.StatusOK, mh.New().
 			NewRecoder().
 			NewRequest(Http.MethodGet, "/api/product/v1/products/"+i.String(), nil).
-			NewRouter(Http.MethodGet, "/api/product/v1/products/{productId}", h.GetProduct).
+			NewRouter(Http.MethodGet, "/api/product/v1/products/{productID}", h.GetProduct).
 			ServeHTTP().
 			Status())
 		mockProductService.AssertCalled(t, "GetProduct", i)

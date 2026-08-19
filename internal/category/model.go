@@ -14,6 +14,6 @@ type Category struct {
 }
 
 //goland:noinspection GoNameStartsWithPackageName
-type CategoryId struct {
+type CategoryID struct {
 	ID Uuid.UUID `json:"id"`
 }

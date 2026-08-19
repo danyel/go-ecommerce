@@ -16,8 +16,7 @@ import (
 	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
-	ShoppingBasket "github.com/danyel/ecommerce/internal/shopping-basket"
-	"github.com/stretchr/testify/assert"
+	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	Assert "github.com/stretchr/testify/assert"
 	Database "gorm.io/gorm"
 )
@@ -44,7 +43,7 @@ func (wi *WebIntegration) WithAuth(userID string, roles []string, hexSecret stri
 }
 
 func (wi *WebIntegration) ProductManagementPostProducts(b *Product.CreateProduct) *WebIntegration {
-	return wi.Post(wi.forUrl("/api/product-management/v1/products"), b)
+	return wi.Post(wi.forURL("/api/product-management/v1/products"), b)
 }
 
 func (wi *WebIntegration) GetTranslations(l string) *WebIntegration {
@@ -52,38 +51,38 @@ func (wi *WebIntegration) GetTranslations(l string) *WebIntegration {
 	if l != "" {
 		u += Fmt.Sprintf("?language=%s", l)
 	}
-	return wi.Get(wi.forUrl(u))
+	return wi.Get(wi.forURL(u))
 }
 
 func (wi *WebIntegration) ManagementPostTranslations(b *Management.CreateCms) *WebIntegration {
-	return wi.Post(wi.forUrl("/api/management/v1/translations"), b)
+	return wi.Post(wi.forURL("/api/management/v1/translations"), b)
 }
 
 func (wi *WebIntegration) ProductManagementGetProducts() *WebIntegration {
-	return wi.Get(wi.forUrl("/api/product-management/v1/products"))
+	return wi.Get(wi.forURL("/api/product-management/v1/products"))
 }
 
 func (wi *WebIntegration) ShoppingBasketCreate() *WebIntegration {
-	return wi.Post(wi.forUrl("/api/shopping-basket/v1/shopping-baskets"), nil)
+	return wi.Post(wi.forURL("/api/shopping-basket/v1/shopping-baskets"), nil)
 }
 
 func (wi *WebIntegration) ShoppingBasketAddItem(id string, a ShoppingBasket.UpdateShoppingBasketItem) *WebIntegration {
-	return wi.Post(wi.forUrl("/api/shopping-basket/v1/shopping-baskets/"+id), a)
+	return wi.Post(wi.forURL("/api/shopping-basket/v1/shopping-baskets/"+id), a)
 }
 
 func (wi *WebIntegration) GetShoppingBasket(id string) *WebIntegration {
-	return wi.Get(wi.forUrl("/api/shopping-basket/v1/shopping-baskets/" + id))
+	return wi.Get(wi.forURL("/api/shopping-basket/v1/shopping-baskets/" + id))
 }
 
-func (wi *WebIntegration) ProductManagementGetProductById(i string) *WebIntegration {
-	return wi.Get(wi.forUrl("/api/product-management/v1/products/" + i))
+func (wi *WebIntegration) ProductManagementGetProductByID(i string) *WebIntegration {
+	return wi.Get(wi.forURL("/api/product-management/v1/products/" + i))
 }
 
-func (wi *WebIntegration) forUrl(url string) string {
+func (wi *WebIntegration) forURL(url string) string {
 	return wi.s.URL + url
 }
 
-func (wi *WebIntegration) Db() *Database.DB {
+func (wi *WebIntegration) DB() *Database.DB {
 	return wi.db
 }
 
@@ -135,7 +134,7 @@ func (wi *WebIntegration) doRequest(method string, url string, body any) *WebInt
 	var bodyBuffer io.Reader
 	if body != nil {
 		b, err := JSON.Marshal(body)
-		assert.Nil(wi.t, err)
+		Assert.Nil(wi.t, err)
 		bodyBuffer = bytes.NewBuffer(b)
 	}
 	req, err := Http.NewRequest(method, url, bodyBuffer)
@@ -170,7 +169,6 @@ func SetupWebIntegration(t *Testing.T) *WebIntegration {
 	var token string
 	secretKeyProvider := ApplicationMiddleware.NewSecretKeyProvider()
 	secretKey, err := secretKeyProvider.GenerateKey()
-
 	if err != nil {
 		Log.Println(err.Error())
 	}
@@ -191,7 +189,7 @@ func SetupWebIntegration(t *Testing.T) *WebIntegration {
 	if err := newBroker.Start(); err != nil {
 		Log.Println(err.Error())
 	}
-	ad := ApplicationRouter.ApiDefinition{
+	ad := ApplicationRouter.APIDefinition{
 		SC:             &sc,
 		DB:             db,
 		EventPublisher: newBroker,
@@ -203,7 +201,6 @@ func SetupWebIntegration(t *Testing.T) *WebIntegration {
 		ts.Close()
 	})
 	token, err = ApplicationMiddleware.EncryptClaims(createTestUser(), secretKey)
-
 	if err != nil {
 		t.Fatal(err)
 	}

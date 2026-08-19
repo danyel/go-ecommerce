@@ -1,4 +1,4 @@
-package commonHandler
+package commonandler
 
 import (
 	JSON "encoding/json"
@@ -9,14 +9,14 @@ import (
 	Uuid "github.com/google/uuid"
 )
 
-func GetId(r *Http.Request, key string) (Types.Id, error) {
-	productId := Router.URLParam(r, key)
+func GetID(r *Http.Request, key string) (Types.ID, error) {
+	productID := Router.URLParam(r, key)
 	var err error
-	var newId Uuid.UUID
-	if newId, err = Uuid.Parse(productId); err != nil {
-		return Types.Id{}, err
+	var newID Uuid.UUID
+	if newID, err = Uuid.Parse(productID); err != nil {
+		return Types.ID{}, err
 	}
-	return Types.Id{ID: newId}, nil
+	return Types.ID{ID: newID}, nil
 }
 
 func GetHeader(r *Http.Request, key string) string {

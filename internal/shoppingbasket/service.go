@@ -1,4 +1,4 @@
-package shopping_basket
+package shoppingbasket
 
 import (
 	Log "log"
@@ -9,7 +9,7 @@ import (
 	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
 	Types "github.com/danyel/ecommerce/internal/common/types"
 	Product "github.com/danyel/ecommerce/internal/product"
-	ProductManagement "github.com/danyel/ecommerce/internal/product-management"
+	ProductManagement "github.com/danyel/ecommerce/internal/productmanagement"
 	Uuid "github.com/google/uuid"
 	Database "gorm.io/gorm"
 )
@@ -40,7 +40,7 @@ func (s *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
 	}
 
 	if err = s.publisher.Publish(ShoppingBasketCreated.Queue, ShoppingBasketCreatedEvent{
-		Id: r.ID,
+		ID: r.ID,
 	}); err != nil {
 		return r, err
 	}
@@ -54,13 +54,13 @@ func (s *shoppingBasketService) UpdateShoppingBasketItem(u Uuid.UUID, i UpdateSh
 	if err != nil {
 		return EmptyShoppingBasket(), err
 	}
-	if prd, err = s.p.GetProduct(i.ProductId.ID); err != nil {
+	if prd, err = s.p.GetProduct(i.ProductID.ID); err != nil {
 		return EmptyShoppingBasket(), err
 	}
 
-	item := ShoppingBasketItemModel{ID: Uuid.Nil, ShoppingBasketID: id.ID, ProductId: prd.ID.ID, Price: float64(prd.Price.Inclusive), Quantity: i.Quantity}
+	item := ShoppingBasketItemModel{ID: Uuid.Nil, ShoppingBasketID: id.ID, ProductID: prd.ID.ID, Price: float64(prd.Price.Inclusive), Quantity: i.Quantity}
 	for _, it := range id.Items {
-		if it.ProductId == item.ProductId {
+		if it.ProductID == item.ProductID {
 			item.ID = it.ID
 			item.Quantity = i.Quantity
 		}
@@ -74,12 +74,14 @@ func (s *shoppingBasketService) UpdateShoppingBasketItem(u Uuid.UUID, i UpdateSh
 			err = s.si.Delete(item.ID)
 		}
 	}
-
+	if err != nil {
+		return EmptyShoppingBasket(), err
+	}
 	Log.Printf("ShoppingBasketItem To Publish: %v", item)
 	if err = s.publisher.Publish(ShoppingBasketUpdated.Queue, ShoppingBasketUpdatedEvent{
-		Id:        Types.NewID(u),
+		ID:        Types.NewID(u),
 		Quantity:  i.Quantity,
-		ProductId: i.ProductId,
+		ProductID: i.ProductID,
 	}); err != nil {
 		return EmptyShoppingBasket(), err
 	}
@@ -89,6 +91,8 @@ func (s *shoppingBasketService) UpdateShoppingBasketItem(u Uuid.UUID, i UpdateSh
 func (s *shoppingBasketService) GetShoppingBasket(u Uuid.UUID) (ShoppingBasket, error) {
 	id, err := s.r.FindById(u, "Items")
 	totalPrice := float64(0)
+	fetchAll := s.r.FetchAll()
+	Log.Printf("ShoppingBasket To Publish: %v", fetchAll)
 	if err != nil {
 		all := s.r.FetchAll()
 		Log.Printf("Fetched: %v", all)
@@ -100,7 +104,7 @@ func (s *shoppingBasketService) GetShoppingBasket(u Uuid.UUID) (ShoppingBasket, 
 	if len(id.Items) > 0 {
 		ps := make([]ShoppingBasketItem, len(id.Items))
 		for i, item := range id.Items {
-			pr, _ := s.pm.GetProduct(Types.NewID(item.ProductId))
+			pr, _ := s.pm.GetProduct(Types.NewID(item.ProductID))
 			price := float64(pr.Price.Inclusive) * float64(item.Quantity)
 			totalPrice += price
 			ps[i] = ShoppingBasketItem{
@@ -108,8 +112,8 @@ func (s *shoppingBasketService) GetShoppingBasket(u Uuid.UUID) (ShoppingBasket, 
 				Name:       pr.Name,
 				BasePrice:  Types.NewPrice(item.Price, "EUR"),
 				TotalPrice: Types.NewPrice(price, "EUR"),
-				ProductId:  pr.ID,
-				ImageUrl:   pr.ImageUrl,
+				ProductID:  pr.ID,
+				ImageURL:   pr.ImageURL,
 				Quantity:   item.Quantity,
 			}
 		}

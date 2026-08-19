@@ -39,7 +39,7 @@ func TestServiceIntegration(t *Testing.T) {
 
 	t.Run("Cms Testing", func(t *Testing.T) {
 		cmsRepository := CommonRepository.NewCrudRepository[CMS.CmsModel](bi.Db())
-		f := Database[CMS.CmsModel](cmsRepository)
+		f := Database(cmsRepository)
 		cmsService := CMS.NewCmsService(bi.Db())
 
 		t.Run("Create translation", func(t *Testing.T) {
@@ -118,8 +118,8 @@ func TestServiceIntegration(t *Testing.T) {
 				Description: "Description",
 				Code:        "Code",
 				Price:       1000,
-				CategoryId:  c.ID,
-				ImageUrl:    "ImageUrl",
+				CategoryID:  c.ID,
+				ImageURL:    "ImageUrl",
 				Stock:       1,
 			}
 

@@ -14,7 +14,6 @@ type ProductMapper interface {
 
 type productMapper struct {
 	categoryService Category.CategoryService
-	mapCategory     func(model Category.Category) Category.Category
 	cmsService      CMS.CmsService
 }
 
@@ -25,15 +24,16 @@ func (p *productMapper) MapProducts(models []*ProductModel) []Product {
 	}
 	return result
 }
+
 func (p *productMapper) MapProduct(productModel *ProductModel) Product {
-	categoryModel, _ := p.categoryService.GetCategory(productModel.CategoryId)
+	categoryModel, _ := p.categoryService.GetCategory(productModel.CategoryID)
 	description, _ := p.cmsService.GetTranslation(productModel.Description, "nl_BE")
 	name, _ := p.cmsService.GetTranslation(productModel.Name, "nl_BE")
 	return Product{
 		Code:        productModel.Code,
 		Price:       Types.NewPrice(productModel.Price, "EUR"),
 		Category:    categoryModel,
-		ImageUrl:    productModel.ImageUrl,
+		ImageURL:    productModel.ImageURL,
 		Brand:       productModel.Brand,
 		Description: description.Value,
 		Name:        name.Value,
@@ -41,6 +41,7 @@ func (p *productMapper) MapProduct(productModel *ProductModel) Product {
 		Stock:       productModel.Stock,
 	}
 }
+
 func NewProductMapper(p Category.CategoryService, c CMS.CmsService) ProductMapper {
 	return &productMapper{categoryService: p, cmsService: c}
 }

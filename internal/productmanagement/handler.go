@@ -1,11 +1,11 @@
-package product_management
+package productmanagement
 
 import (
 	Http "net/http"
 
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
-	commonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
 	Types "github.com/danyel/ecommerce/internal/common/types"
 	Product "github.com/danyel/ecommerce/internal/product"
 	Router "github.com/go-chi/chi/v5"
@@ -29,66 +29,72 @@ type productManagementHandler struct {
 
 func (h *productManagementHandler) GetProducts(w Http.ResponseWriter, r *Http.Request) {
 	products := h.s.GetProducts()
-	commonHandler.WriteResponse(Http.StatusOK, w, r, products)
+	CommonHandler.WriteResponse(Http.StatusOK, w, r, products)
 }
 
 func (h *productManagementHandler) DeleteProduct(w Http.ResponseWriter, r *Http.Request) {
-	var productId Uuid.UUID
+	var productID Uuid.UUID
 	var err error
-	productIdToParse := Router.URLParam(r, "productId")
-	if productId, err = Uuid.Parse(productIdToParse); err != nil {
-		commonHandler.StatusBadRequest(w, r)
+	productIDToParse := Router.URLParam(r, "productID")
+	if productID, err = Uuid.Parse(productIDToParse); err != nil {
+		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
 
-	if err = h.s.DeleteProduct(Types.NewID(productId)); err != nil {
-		commonHandler.StatusNotFound(w, r)
+	if err = h.s.DeleteProduct(Types.NewID(productID)); err != nil {
+		CommonHandler.StatusNotFound(w, r)
 		return
 	}
-	commonHandler.StatusNoContent(w, r)
+	CommonHandler.StatusNoContent(w, r)
 }
+
 func (h *productManagementHandler) UpdateProduct(w Http.ResponseWriter, r *Http.Request) {
-	productId, err := commonHandler.GetId(r, "productId")
+	productID, err := CommonHandler.GetID(r, "productID")
+	if err != nil {
+		CommonHandler.StatusNotFound(w, r)
+	}
 	var updateProduct Product.UpdateProduct
-	if err = commonHandler.ValidateRequest(r, &updateProduct); err != nil {
-		commonHandler.StatusBadRequest(w, r)
+	if err = CommonHandler.ValidateRequest(r, &updateProduct); err != nil {
+		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
-	if err = h.s.UpdateProduct(productId, updateProduct); err != nil {
-		commonHandler.StatusNotFound(w, r)
+	if err = h.s.UpdateProduct(productID, updateProduct); err != nil {
+		CommonHandler.StatusNotFound(w, r)
 		return
 	}
 }
+
 func (h *productManagementHandler) CreateProduct(w Http.ResponseWriter, r *Http.Request) {
 	var createProduct Product.CreateProduct
-	var productId Types.Id
+	var productID Types.ID
 	var err error
 
-	if err = commonHandler.ValidateRequest[Product.CreateProduct](r, &createProduct); err != nil {
-		commonHandler.StatusBadRequest(w, r)
+	if err = CommonHandler.ValidateRequest[Product.CreateProduct](r, &createProduct); err != nil {
+		CommonHandler.StatusBadRequest(w, r)
 	}
 
-	if productId, err = h.s.CreateProduct(createProduct); err != nil {
-		commonHandler.StatusInternalServerError(w, r)
+	if productID, err = h.s.CreateProduct(createProduct); err != nil {
+		CommonHandler.StatusInternalServerError(w, r)
 		return
 	}
-	commonHandler.WriteResponse(Http.StatusCreated, w, r, productId)
+	CommonHandler.WriteResponse(Http.StatusCreated, w, r, productID)
 }
+
 func (h *productManagementHandler) GetProduct(w Http.ResponseWriter, r *Http.Request) {
-	var productId Types.Id
+	var productID Types.ID
 	var err error
 	var productModel Product.Product
-	productId, err = commonHandler.GetId(r, "productId")
+	productID, err = CommonHandler.GetID(r, "productID")
 	if err != nil {
-		commonHandler.StatusBadRequest(w, r)
+		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
 
-	if productModel, err = h.s.GetProduct(productId); err != nil {
-		commonHandler.StatusNotFound(w, r)
+	if productModel, err = h.s.GetProduct(productID); err != nil {
+		CommonHandler.StatusNotFound(w, r)
 		return
 	}
-	commonHandler.WriteResponse(Http.StatusOK, w, r, productModel)
+	CommonHandler.WriteResponse(Http.StatusOK, w, r, productModel)
 }
 
 func NewHandler(DB *Database.DB) ProductManagementHandler {

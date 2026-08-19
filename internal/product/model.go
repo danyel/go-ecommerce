@@ -6,14 +6,14 @@ import (
 )
 
 type Product struct {
-	ID          Types.Id          `json:"id"`
+	ID          Types.ID          `json:"id"`
 	Brand       string            `json:"brand"`
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
 	Code        string            `json:"code"`
 	Price       Types.Price       `json:"price"`
 	Category    Category.Category `json:"category"`
-	ImageUrl    string            `json:"image_url"`
+	ImageURL    string            `json:"image_url"`
 	Stock       int               `json:"stock"`
 }
 
@@ -22,8 +22,8 @@ type UpdateProduct struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Price       float64  `json:"price"`
-	CategoryId  Types.Id `json:"category_id"`
-	ImageUrl    string   `json:"image_url"`
+	CategoryID  Types.ID `json:"category_id"`
+	ImageURL    string   `json:"image_url"`
 	Stock       int      `json:"stock"`
 }
 
@@ -33,9 +33,8 @@ type CreateProduct struct {
 	Description string   `json:"description"`
 	Code        string   `json:"code"`
 	Price       float64  `json:"price"`
-	CategoryId  Types.Id `json:"category_id"`
-	ImageUrl    string   `json:"image_url"`
+	CategoryID  Types.ID `json:"category_id"`
+	ImageURL    string   `json:"image_url"`
 }
 
-type Translations struct {
-}
+type Translations struct{}

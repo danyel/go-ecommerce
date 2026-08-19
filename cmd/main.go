@@ -8,7 +8,7 @@ import (
 	Config "github.com/danyel/ecommerce/cmd/config"
 	DatabaseConnection "github.com/danyel/ecommerce/cmd/database"
 	Router "github.com/danyel/ecommerce/cmd/router"
-	ShoppingBasket "github.com/danyel/ecommerce/internal/shopping-basket"
+	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	GoDotEnv "github.com/joho/godotenv"
 	Database "gorm.io/gorm"
 )
@@ -24,6 +24,9 @@ func main() {
 		locations = []string{".env"}
 	}
 	err = GoDotEnv.Load(locations...)
+	if err != nil {
+		Log.Fatal(err)
+	}
 	sc := Config.NewServerConfiguration()
 	dc := Config.NewDatabaseConfiguration()
 	bc := Config.NewBrokerConfiguration()
@@ -36,7 +39,7 @@ func main() {
 	if err = b.Start(); err != nil {
 		Log.Println(err.Error())
 	}
-	r := Router.ApiDefinition{
+	r := Router.APIDefinition{
 		SC:             &sc,
 		DB:             db,
 		EventPublisher: b,

@@ -41,7 +41,7 @@ func (s *cmsService) GetTranslations(language string) []Translation {
 func (s *cmsService) GetTranslation(code string, language string) (Translation, error) {
 	cms := s.cmsRepository.FindAll(CommonRepository.SearchCriteria{WhereClause: CommonRepository.WhereClause{
 		Query:  "code = ? AND language = ?",
-		Params: []interface{}{code, language},
+		Params: []any{code, language},
 	}})
 
 	if len(cms) == 0 {

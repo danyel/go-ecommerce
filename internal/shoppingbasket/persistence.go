@@ -1,4 +1,4 @@
-package shopping_basket
+package shoppingbasket
 
 import (
 	Time "time"
@@ -17,7 +17,7 @@ type ShoppingBasketModel struct {
 type ShoppingBasketItemModel struct {
 	ID               Uuid.UUID `gorm:"type:uuid;primaryKey"`
 	ShoppingBasketID Uuid.UUID `gorm:"type:uuid;not null;index"`
-	ProductId        Uuid.UUID `gorm:"type:uuid;not null;index"`
+	ProductID        Uuid.UUID `gorm:"type:uuid;not null;index"`
 	Price            float64   `gorm:"type:numeric(10,2)"`
 	Quantity         int
 }

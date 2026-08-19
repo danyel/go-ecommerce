@@ -1,4 +1,4 @@
-package shopping_basket
+package shoppingbasket
 
 import (
 	Http "net/http"
@@ -32,7 +32,7 @@ func (h *shoppingBasketHandler) UpdateShoppingBasketItem(w Http.ResponseWriter, 
 	var updateShoppingBasketItem UpdateShoppingBasketItem
 	var err error
 	var shoppingBasket ShoppingBasket
-	shoppingBasketId, err := CommonHandler.GetId(r, "shoppingBasketId")
+	shoppingBasketID, err := CommonHandler.GetID(r, "shoppingBasketID")
 	if err != nil {
 		CommonHandler.StatusBadRequest(w, r)
 		return
@@ -42,7 +42,7 @@ func (h *shoppingBasketHandler) UpdateShoppingBasketItem(w Http.ResponseWriter, 
 		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
-	if shoppingBasket, err = h.s.UpdateShoppingBasketItem(shoppingBasketId.ID, updateShoppingBasketItem); err != nil {
+	if shoppingBasket, err = h.s.UpdateShoppingBasketItem(shoppingBasketID.ID, updateShoppingBasketItem); err != nil {
 		CommonHandler.StatusInternalServerError(w, r)
 		return
 	}
@@ -52,12 +52,12 @@ func (h *shoppingBasketHandler) UpdateShoppingBasketItem(w Http.ResponseWriter, 
 func (h *shoppingBasketHandler) GetShoppingBasket(w Http.ResponseWriter, r *Http.Request) {
 	var err error
 	var shoppingBasket ShoppingBasket
-	id, err := CommonHandler.GetId(r, "shoppingBasketId")
+	ID, err := CommonHandler.GetID(r, "shoppingBasketID")
 	if err != nil {
 		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
-	if shoppingBasket, err = h.s.GetShoppingBasket(id.ID); err != nil {
+	if shoppingBasket, err = h.s.GetShoppingBasket(ID.ID); err != nil {
 		CommonHandler.StatusInternalServerError(w, r)
 		return
 	}

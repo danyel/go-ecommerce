@@ -1,4 +1,4 @@
-package shopping_basket
+package shoppingbasket
 
 import (
 	JSON "encoding/json"
@@ -34,12 +34,12 @@ type shoppingBasketEvent struct {
 }
 
 type ShoppingBasketCreatedEvent struct {
-	Id Types.Id `json:"id"`
+	ID Types.ID `json:"id"`
 }
 
 type ShoppingBasketUpdatedEvent struct {
-	Id        Types.Id `json:"id"`
-	ProductId Types.Id
+	ID        Types.ID `json:"id"`
+	ProductID Types.ID
 	Quantity  int
 }
 

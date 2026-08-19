@@ -20,17 +20,17 @@ type reservationHandler struct {
 
 func (h *reservationHandler) CreateReservation(w Http.ResponseWriter, r *Http.Request) {
 	var createReservation CreateReservation
-	var reservationId Types.Id
+	var reservationID Types.ID
 	var err error
 	if err = CommonHandler.ValidateRequest[CreateReservation](r, &createReservation); err != nil {
 		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
-	if reservationId, err = h.s.CreateReservation(createReservation); err != nil {
+	if reservationID, err = h.s.CreateReservation(createReservation); err != nil {
 		CommonHandler.StatusInternalServerError(w, r)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusCreated, w, r, reservationId)
+	CommonHandler.WriteResponse(Http.StatusCreated, w, r, reservationID)
 }
 
 func (h *reservationHandler) GetReservations(w Http.ResponseWriter, r *Http.Request) {

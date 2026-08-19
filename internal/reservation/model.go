@@ -5,13 +5,13 @@ import (
 )
 
 type CreateReservation struct {
-	ShoppingBasketId Types.Id `json:"shopping_basket_id"`
-	ProductId        Types.Id `json:"product_id"`
+	ShoppingBasketID Types.ID `json:"shopping_basket_id"`
+	ProductID        Types.ID `json:"product_id"`
 	Quantity         int      `json:"quantity"`
 }
 
 type Reservation struct {
-	ShoppingBasketId Types.Id `json:"shopping_basket_id"`
-	ProductId        Types.Id `json:"product_id"`
+	ShoppingBasketID Types.ID `json:"shopping_basket_id"`
+	ProductID        Types.ID `json:"product_id"`
 	Quantity         int      `json:"quantity"`
 }

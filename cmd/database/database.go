@@ -10,14 +10,14 @@ import (
 )
 
 func Connect(database *Configuration.DatabaseConfiguration) (*Database.DB, error) {
-	dsn := Fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable search_path=%s", database.Host, database.Port, database.Username, database.Password, database.Database, database.Schema)
-	db, err := Database.Open(Postgres.Open(dsn), &Database.Config{})
-	Log.Printf("Database connection established with DSN: %s", dsn)
+	dns := database.ToDNS()
+	db, err := Database.Open(Postgres.Open(dns), &Database.Config{})
+	Log.Printf("Database connection established with DSN: %s", dns)
 	if err != nil {
-		Log.Fatal(Fmt.Sprintf("Failed to connect to the database: [%s]", dsn), err)
+		Log.Fatal(Fmt.Sprintf("Failed to connect to the database: [%s]", dns), err)
 		return nil, err
 	}
 
-	Log.Printf("Successfully connected to the database[%s]\n", dsn)
+	Log.Printf("Successfully connected to the database[%s]\n", dns)
 	return db, nil
 }

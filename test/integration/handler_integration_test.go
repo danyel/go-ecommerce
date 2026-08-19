@@ -9,15 +9,15 @@ import (
 	Types "github.com/danyel/ecommerce/internal/common/types"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
-	Shoppingbasket "github.com/danyel/ecommerce/internal/shopping-basket"
+	Shoppingbasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	Initializers "github.com/danyel/ecommerce/test/integration/initializer"
 )
 
 func TestHandler(t *Testing.T) {
 	wi := Initializers.SetupWebIntegration(t)
-	categoryRepo := Database(CommonRepository.NewCrudRepository[Category.CategoryModel](wi.Db()))
-	cmsRepo := Database(CommonRepository.NewCrudRepository[CMS.CmsModel](wi.Db()))
-	productRepo := Database(CommonRepository.NewCrudRepository[Product.ProductModel](wi.Db()))
+	categoryRepo := Database(CommonRepository.NewCrudRepository[Category.CategoryModel](wi.DB()))
+	cmsRepo := Database(CommonRepository.NewCrudRepository[CMS.CmsModel](wi.DB()))
+	productRepo := Database(CommonRepository.NewCrudRepository[Product.ProductModel](wi.DB()))
 
 	cm := &Category.CategoryModel{Name: "GPU", Children: []*Category.CategoryModel{}}
 	categoryRepo.Insert(cm)
@@ -47,8 +47,8 @@ func TestHandler(t *Testing.T) {
 		Description: "90YV0L71_M0NA00_DESCRIPTION",
 		Code:        "90YV0L71-M0NA00",
 		Price:       669,
-		CategoryId:  cm.ID,
-		ImageUrl:    "https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg",
+		CategoryID:  cm.ID,
+		ImageURL:    "https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg",
 	}
 	productRepo.Insert(pm)
 
@@ -60,14 +60,14 @@ func TestHandler(t *Testing.T) {
 				Description: "90YV0L71_M0NA00_DESCRIPTION",
 				Code:        "90YV0L71-M0NA00",
 				Price:       669,
-				CategoryId:  Types.NewID(cm.ID),
-				ImageUrl:    "https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg",
+				CategoryID:  Types.NewID(cm.ID),
+				ImageURL:    "https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg",
 			}
-			var productId Types.Id
+			var productID Types.ID
 			wi.ProductManagementPostProducts(b).
-				GetResponseBody(&productId).
+				GetResponseBody(&productID).
 				AssertStatusCreated().
-				IsNotNil(productId.ID)
+				IsNotNil(productID.ID)
 		})
 	})
 
@@ -151,12 +151,12 @@ func TestHandler(t *Testing.T) {
 	t.Run("Product Management h", func(t *Testing.T) {
 		t.Run("Product Management Get Product", func(t *Testing.T) {
 			var ps Product.Product
-			wi.ProductManagementGetProductById(pm.ID.String()).
+			wi.ProductManagementGetProductByID(pm.ID.String()).
 				GetResponseBody(&ps).
 				AssertStatusOk().
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", ps.Name).
 				Equal("De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.", ps.Description).
-				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", ps.ImageUrl).
+				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", ps.ImageURL).
 				Equal("GPU", ps.Category.Name).
 				Equal(Types.Float64(669), ps.Price.Inclusive).
 				Equal("90YV0L71-M0NA00", ps.Code).
@@ -170,7 +170,7 @@ func TestHandler(t *Testing.T) {
 				GetResponseBody(&ps).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", ps[0].Name).
 				Equal("De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.", ps[0].Description).
-				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", ps[0].ImageUrl).
+				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", ps[0].ImageURL).
 				Equal("GPU", ps[0].Category.Name).
 				Equal(Types.Float64(669), ps[0].Price.Inclusive).
 				Equal("90YV0L71-M0NA00", ps[0].Code).
@@ -181,31 +181,31 @@ func TestHandler(t *Testing.T) {
 	})
 
 	t.Run("Shopping Basket h", func(t *Testing.T) {
-		var shoppingId Types.Id
+		var shoppingID Types.ID
 
 		t.Run("Create Shopping Basket", func(t *Testing.T) {
 			wi.ShoppingBasketCreate().
-				GetResponseBody(&shoppingId).
+				GetResponseBody(&shoppingID).
 				AssertStatusCreated().
-				IsNotNil(shoppingId)
+				IsNotNil(shoppingID)
 		})
 
 		t.Run("Add Item To Shopping Basket", func(t *Testing.T) {
 			a := Shoppingbasket.UpdateShoppingBasketItem{
-				ProductId: Types.NewID(pm.ID),
+				ProductID: Types.NewID(pm.ID),
 			}
-			wi.ShoppingBasketAddItem(shoppingId.ID.String(), a).
+			wi.ShoppingBasketAddItem(shoppingID.ID.String(), a).
 				AssertStatusOk()
 		})
 
 		t.Run("Get Shopping Basket", func(t *Testing.T) {
 			var s Shoppingbasket.ShoppingBasket
-			wi.GetShoppingBasket(shoppingId.ID.String()).
+			wi.GetShoppingBasket(shoppingID.ID.String()).
 				GetResponseBody(&s).
 				AssertStatusOk().
-				Equal(shoppingId, s.ID).
+				Equal(shoppingID, s.ID).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", s.Items[0].Name).
-				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", s.Items[0].ImageUrl).
+				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", s.Items[0].ImageURL).
 				Equal(Types.Float64(669.0), s.Items[0].BasePrice.Inclusive)
 		})
 	})

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	SECRET_SIZE = 32
+	secretSize = 32
 )
 
 type SecretKeyProvider interface {
@@ -25,8 +25,9 @@ type secretKeyProvider struct{}
 func NewSecretKeyProvider() SecretKeyProvider {
 	return &secretKeyProvider{}
 }
+
 func (s *secretKeyProvider) GenerateKey() (string, error) {
-	bytes := make([]byte, SECRET_SIZE)
+	bytes := make([]byte, secretSize)
 	if _, err := Rand.Read(bytes); err != nil {
 		return "", err
 	}
@@ -44,7 +45,6 @@ func EncryptClaims(claims *UserClaims, secretKey string) (string, error) {
 	}
 
 	rawKey, err := HEX.DecodeString(secretKey)
-
 	if err != nil {
 		return "", Fmt.Errorf("failed to decode hex secret key: %w", err)
 	}

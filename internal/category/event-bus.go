@@ -1,3 +1,5 @@
+// Package category: events
+// author: Daniel Noulet
 package category
 
 import (
@@ -20,7 +22,7 @@ var CategoryCreated = Broker.QueueConfig{
 
 //goland:noinspection GoNameStartsWithPackageName
 type CategoryCreatedEvent struct {
-	Id string `json:"id"`
+	ID string `json:"id"`
 }
 
 //goland:noinspection GoUnusedExportedFunction
@@ -29,7 +31,7 @@ func HandleCategoryCreated2(body []byte) error {
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	Log.Println(event.Id)
+	Log.Println(event.ID)
 	return nil
 }
 
@@ -39,6 +41,6 @@ func HandleCategoryCreated(body []byte) error {
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	Log.Println(event.Id)
+	Log.Println(event.ID)
 	return nil
 }

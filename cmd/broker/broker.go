@@ -25,9 +25,9 @@ type Broker struct {
 }
 
 func (b *Broker) CreateConnection(c *Config.BrokerConfiguration) error {
-	brokerUrl := FMT.Sprintf("%s://%s:%s@%s:%s", c.Protocol, c.Username, c.Password, c.Addr, c.Port)
-	SLog.Info("connecting to " + brokerUrl)
-	connection, err := AMQP.Dial(brokerUrl)
+	brokerURL := FMT.Sprintf("%s://%s:%s@%s:%s", c.Protocol, c.Username, c.Password, c.Addr, c.Port)
+	SLog.Info("connecting to " + brokerURL)
+	connection, err := AMQP.Dial(brokerURL)
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,6 @@ func (b *Broker) Start() error {
 					cancel()
 				}
 			}
-
 		}
 	}()
 

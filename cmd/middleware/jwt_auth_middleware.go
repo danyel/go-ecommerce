@@ -2,8 +2,6 @@ package middleware
 
 import (
 	Context "context"
-	Errors "errors"
-	Fmt "fmt"
 	Http "net/http"
 	Array "slices"
 	Strings "strings"
@@ -39,7 +37,6 @@ func JwtAuthMiddleware(secretKey string) func(handler Http.Handler) Http.Handler
 			}
 			tokenString := Strings.TrimPrefix(authHeader, "Bearer ")
 			claims, err := DecryptClaims(tokenString, secretKey)
-
 			if err != nil {
 				Http.Error(w, "Unauthorized: Invalid token", Http.StatusUnauthorized)
 				return
@@ -49,44 +46,6 @@ func JwtAuthMiddleware(secretKey string) func(handler Http.Handler) Http.Handler
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
-}
-
-func validateOpaqueToken(tokenString string, expectedToken string) (*UserClaims, error) {
-	if expectedToken == "" || tokenString != expectedToken {
-		return nil, Errors.New("opaque token mismatch or unconfigured")
-	}
-
-	// Return a mocked mock system user layout for the context since it's a machine/service token
-	return &UserClaims{
-		UserID: "system_service_account",
-		Roles:  []string{"admin"},
-	}, nil
-}
-
-func validateJWT(tokenString string, secretKey string) (*UserClaims, error) {
-	token, err := JWT.ParseWithClaims(tokenString, &CustomClaims{}, func(token *JWT.Token) (interface{}, error) {
-		if _, ok := token.Method.(*JWT.SigningMethodHMAC); !ok {
-			return nil, Fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(secretKey), nil
-	})
-
-	if err != nil {
-		if Errors.Is(err, JWT.ErrTokenExpired) {
-			return nil, Errors.New("token has expired")
-		}
-		return nil, Fmt.Errorf("invalid token: %w", err)
-	}
-
-	claims, ok := token.Claims.(*CustomClaims)
-	if !ok || !token.Valid {
-		return nil, Errors.New("invalid token claims")
-	}
-
-	return &UserClaims{
-		UserID: claims.UserID,
-		Roles:  claims.Roles,
-	}, nil
 }
 
 func RequireRole(requiredRole string) func(Http.Handler) Http.Handler {

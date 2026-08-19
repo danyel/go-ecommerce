@@ -4,7 +4,7 @@ import Uuid "github.com/google/uuid"
 
 //goland:noinspection GoNameStartsWithPackageName
 type ReservationAggregate struct {
-	ProductId        Uuid.UUID
-	ShoppingBasketId Uuid.UUID
+	ProductID        Uuid.UUID
+	ShoppingBasketID Uuid.UUID
 	Quantity         int16
 }

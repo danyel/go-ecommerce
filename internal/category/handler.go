@@ -19,17 +19,17 @@ type categoryHandler struct {
 
 func (h *categoryHandler) CreateCategory(w Http.ResponseWriter, r *Http.Request) {
 	var createCategory CreateCategory
-	var categoryId CategoryId
+	var categoryID CategoryID
 	var err error
-	if err = CommonHandler.ValidateRequest[CreateCategory](r, &createCategory); err != nil {
+	if err = CommonHandler.ValidateRequest(r, &createCategory); err != nil {
 		CommonHandler.StatusBadRequest(w, r)
 		return
 	}
-	if categoryId, err = h.s.CreateCategory(createCategory); err != nil {
+	if categoryID, err = h.s.CreateCategory(createCategory); err != nil {
 		CommonHandler.StatusInternalServerError(w, r)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusCreated, w, r, categoryId)
+	CommonHandler.WriteResponse(Http.StatusCreated, w, r, categoryID)
 }
 
 func (h *categoryHandler) CreateTranslations(_ Http.ResponseWriter, _ *Http.Request) {}
