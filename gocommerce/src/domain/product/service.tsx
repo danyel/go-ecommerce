@@ -39,7 +39,7 @@ class InternalProductService implements ProductService {
     return await res.json()
       .then((productDto: ProductDTO[]) => {
         return productDto.map(productDto => {
-          const product: Product = {
+          return {
             id: productDto.id,
             brand: productDto.brand,
             name: productDto.name,
@@ -58,9 +58,7 @@ class InternalProductService implements ProductService {
             imageUrl: productDto.image_url,
             stock: productDto.stock
           } as Product;
-          console.log('Product', product);
-          return product;
-        })
+        });
       });
   }
 
