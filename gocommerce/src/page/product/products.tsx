@@ -10,12 +10,18 @@ import { Optional } from "../../domain/common/optional.tsx";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [singleFetch, setSingleFetch] = useState<boolean>(false);
   const shoppingBasketService: ShoppingBasketService = ServiceFactoryFactory.SHOPPING_BASKET_SERVICE_FACTORY.newService();
   const globalStateType = useGlobalState();
   useEffect(() => {
-    ServiceFactoryFactory.PRODUCT_SERVICE_FACTORY.newService().fetchAll()
-      .then(data => setProducts(data));
-  }, []);
+    if (products.length == 0 && !singleFetch) {
+      ServiceFactoryFactory.PRODUCT_SERVICE_FACTORY.newService().fetchAll()
+        .then(data => {
+          setProducts(data);
+          setSingleFetch(true);
+        });
+    }
+  }, [products, singleFetch]);
 
   function addToCart(product: Product) {
     const updateShoppingBasketItem: UpdateShoppingBasketItem = { product_id: product.id, quantity: 1 };
