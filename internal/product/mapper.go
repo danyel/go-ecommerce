@@ -27,7 +27,9 @@ func (p *productMapper) MapProducts(models []*ProductModel) []Product {
 
 func (p *productMapper) MapProduct(productModel *ProductModel) Product {
 	categoryModel, _ := p.categoryService.GetCategory(productModel.CategoryID)
+	// TODO fetch that information from the header
 	description, _ := p.cmsService.GetTranslation(productModel.Description, "nl_BE")
+	// TODO fetch that information from the header
 	name, _ := p.cmsService.GetTranslation(productModel.Name, "nl_BE")
 	return Product{
 		Code:        productModel.Code,

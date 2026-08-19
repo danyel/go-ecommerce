@@ -5,7 +5,6 @@ import (
 	Http "net/http"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
-	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
 	Port "github.com/danyel/ecommerce/internal/common/port"
@@ -29,7 +28,7 @@ func (a *APIDefinition) ConfigRouter() *Router.Mux {
 	r.Use(Middleware.RequestID)
 	r.Use(Middleware.Logger)
 	r.Use(Middleware.Recoverer)
-	r.Use(ApplicationMiddleware.JwtAuthMiddleware(a.SC.JwtSecret))
+	// r.Use(ApplicationMiddleware.JwtAuthMiddleware(a.SC.JwtSecret))
 
 	r.Route("/api", func(r Router.Router) {
 		productV1Routing(r, a)

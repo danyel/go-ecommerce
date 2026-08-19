@@ -8,7 +8,7 @@ type CreateCategory struct {
 }
 
 type Category struct {
-	ID       Uuid.UUID  `json:"code"`
+	ID       Uuid.UUID  `json:"id"`
 	Name     string     `json:"name"`
 	Children []Category `json:"children,omitempty"`
 }

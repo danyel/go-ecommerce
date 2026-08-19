@@ -24,6 +24,7 @@ func (s *productService) GetProducts() []Product {
 	products := s.productRepository.FindAll(CommonRepository.SearchCriteria{OrderBy: &orderBy})
 	return s.productMapper.MapProducts(products)
 }
+
 func (s *productService) GetProduct(uuid Uuid.UUID) (Product, error) {
 	var product Product
 	productModel, err := s.productRepository.FindById(uuid)

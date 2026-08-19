@@ -28,13 +28,14 @@ type UpdateProduct struct {
 }
 
 type CreateProduct struct {
-	Brand       string   `json:"brand"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Code        string   `json:"code"`
-	Price       float64  `json:"price"`
-	CategoryID  Types.ID `json:"category_id"`
-	ImageURL    string   `json:"image_url"`
+	Brand         string   `json:"brand"`
+	Name          string   `json:"name"`
+	Description   string   `json:"description"`
+	Code          string   `json:"code"`
+	Price         float64  `json:"price"`
+	TaxPercentage int16    `json:"tax_percentage"`
+	CategoryID    Types.ID `json:"category_id"`
+	ImageURL      string   `json:"image_url"`
 }
 
 type Translations struct{}
