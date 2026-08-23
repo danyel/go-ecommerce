@@ -1,9 +1,10 @@
 package factory
 
 import (
-	Log "log"
 	Reflect "reflect"
 	Sync "sync"
+
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 )
 
 var (
@@ -17,13 +18,13 @@ var (
 
 func getInstanceOfType[T any](value *T, factoryMethod func() T) T {
 	typeName := Reflect.TypeFor[T]().String()
-	Log.Printf("[getInstanceOfType] value: %v", value)
+	Logger.Log.Debug("[getInstanceOfType] value: %v", value)
 	if isNil(any(*value)) {
-		Log.Printf("[getInstanceOfType] Creating new instance for type: %s", typeName)
+		Logger.Log.Debug("[getInstanceOfType] Creating new instance for type: %s", typeName)
 		*value = factoryMethod()
 		return *value
 	}
-	Log.Printf("[getInstanceOfType] Returning existing instance of type: %s (pointer: %p)", typeName, any(*value))
+	Logger.Log.Debug("[getInstanceOfType] Returning existing instance of type: %s (pointer: %p)", typeName, any(*value))
 
 	return *value
 }

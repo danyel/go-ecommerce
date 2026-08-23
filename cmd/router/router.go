@@ -1,10 +1,10 @@
 package router
 
 import (
-	Log "log"
 	Http "net/http"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
 	Factory "github.com/danyel/ecommerce/internal/common/factory"
@@ -127,8 +127,8 @@ func productV1Routing(router Router.Router, applicationConnectionFactory Factory
 }
 
 func (apiDefinition *APIDefinition) Run(router *Router.Mux) {
-	Log.Printf("Running the server on port %s", apiDefinition.ServerConfiguration.Addr)
+	Logger.Log.Info("Running the server on port %s", apiDefinition.ServerConfiguration.Addr)
 	if err := Http.ListenAndServe(apiDefinition.ServerConfiguration.Addr, router); err != nil {
-		Log.Fatal(err)
+		Logger.Log.Fatal(err)
 	}
 }

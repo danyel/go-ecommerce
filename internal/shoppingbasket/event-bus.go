@@ -2,9 +2,9 @@ package shoppingbasket
 
 import (
 	JSON "encoding/json"
-	Log "log"
 
 	Broker "github.com/danyel/ecommerce/cmd/broker"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Types "github.com/danyel/ecommerce/internal/common/types"
 )
 
@@ -12,6 +12,7 @@ const (
 	ExchangeShoppingBasket = "shopping-basket.topic"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 var ShoppingBasketCreated = Broker.QueueConfig{
 	Topic:      ExchangeShoppingBasket,
 	Queue:      "shopping-basket.shopping-basket-created",
@@ -50,10 +51,10 @@ type ShoppingBasketUpdatedEvent struct {
 func (shoppingBasketEvent *shoppingBasketEvent) handleShoppingBasketUpdated(body []byte) error {
 	var shoppingBasketUpdatedEvent ShoppingBasketUpdatedEvent
 	if err := JSON.Unmarshal(body, &shoppingBasketUpdatedEvent); err != nil {
-		Log.Printf("Error unmarshalling ShoppingBasketUpdated event: %v\n", err)
+		Logger.Log.Debug("Error unmarshalling ShoppingBasketUpdated event: %v\n", err)
 		return err
 	}
-	Log.Printf("Event [ShoppingBasketUpdated] Received: %v", shoppingBasketUpdatedEvent)
+	Logger.Log.Debug("Event [ShoppingBasketUpdated] Received: %v", shoppingBasketUpdatedEvent)
 	return nil
 }
 
@@ -62,7 +63,7 @@ func (shoppingBasketEvent *shoppingBasketEvent) handleShoppingBasketCreated(body
 	if err := JSON.Unmarshal(body, &shoppingBasketCreatedEvent); err != nil {
 		return err
 	}
-	Log.Printf("Event [ShoppingBasketCreated] Received: %v", shoppingBasketCreatedEvent)
+	Logger.Log.Debug("Event [ShoppingBasketCreated] Received: %v", shoppingBasketCreatedEvent)
 	return nil
 }
 

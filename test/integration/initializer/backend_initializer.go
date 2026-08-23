@@ -3,12 +3,13 @@ package initializer
 import (
 	Context "context"
 	SQL "database/sql"
-	Log "log"
 	OS "os"
 	Testing "testing"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
 	DatabaseConnection "github.com/danyel/ecommerce/cmd/database"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
+	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	_ "github.com/lib/pq" // ← REQUIRED for Goose + sql.Open("postgres")
 	Goose "github.com/pressly/goose/v3"
 	TestContainers "github.com/testcontainers/testcontainers-go"
@@ -49,27 +50,27 @@ func (backendInitializer *BackendInitializer) initializeBrokerConfiguration() {
 }
 
 func (backendInitializer *BackendInitializer) initializeRabbitMqTestContainer() TestContainers.Container {
-	Log.Printf("Initializing RabbitMQ container %s %s %s %s", backendInitializer.MessageBrokerConfiguration.Addr, backendInitializer.MessageBrokerConfiguration.Username, backendInitializer.MessageBrokerConfiguration.Password, backendInitializer.MessageBrokerConfiguration.Protocol)
+	Logger.Log.Info("Initializing RabbitMQ container %s %s %s %s", backendInitializer.MessageBrokerConfiguration.Addr, backendInitializer.MessageBrokerConfiguration.Username, backendInitializer.MessageBrokerConfiguration.Password, backendInitializer.MessageBrokerConfiguration.Protocol)
 	rabbitmqContainer, err := RabbitMQ.Run(Context.Background(), "rabbitmq:3-management", RabbitMQ.WithAdminUsername(backendInitializer.MessageBrokerConfiguration.Username), RabbitMQ.WithAdminPassword(backendInitializer.MessageBrokerConfiguration.Password))
 	if err != nil || rabbitmqContainer == nil {
-		Log.Printf("failed to start container: %s", err)
+		Logger.Log.Fatalf("failed to start container: %s", err)
 		return nil
 	}
 
 	host, err := rabbitmqContainer.Host(*backendInitializer.context)
 	if err != nil {
-		Log.Printf("failed to get container host: %s", err)
+		Logger.Log.Fatalf("failed to get container host: %s", err)
 		return nil
 	}
 	backendInitializer.MessageBrokerConfiguration.Addr = host
 	amqpURI, err := rabbitmqContainer.MappedPort(*backendInitializer.context, "5672/tcp")
 	if err != nil {
-		Log.Printf("failed to start container: %s", err)
+		Logger.Log.Fatalf("failed to start container: %s", err)
 		return nil
 	}
 
 	backendInitializer.MessageBrokerConfiguration.Port = amqpURI.Port()
-	Log.Printf("container started successfully: %s://%s:%s@%s:%s", backendInitializer.MessageBrokerConfiguration.Protocol, backendInitializer.MessageBrokerConfiguration.Username, backendInitializer.MessageBrokerConfiguration.Password, backendInitializer.MessageBrokerConfiguration.Addr, backendInitializer.MessageBrokerConfiguration.Port)
+	Logger.Log.Info("container started successfully: %s://%s:%s@%s:%s", backendInitializer.MessageBrokerConfiguration.Protocol, backendInitializer.MessageBrokerConfiguration.Username, backendInitializer.MessageBrokerConfiguration.Password, backendInitializer.MessageBrokerConfiguration.Addr, backendInitializer.MessageBrokerConfiguration.Port)
 
 	return rabbitmqContainer
 }
@@ -84,16 +85,17 @@ func (backendInitializer *BackendInitializer) initializePostgresTestContainer() 
 	)
 
 	if postgresContainer == nil {
-		Log.Fatalf("failed to start container")
+		Logger.Log.Fatalf("failed to start container")
+		OS.Exit(0)
 	}
 	port, err := postgresContainer.MappedPort(*backendInitializer.context, "5432/tcp")
 
 	if err != nil {
-		Log.Fatalf("failed to fetch port: %v", err)
+		Logger.Log.Fatalf("failed to fetch port: %v", err)
 	}
 
 	backendInitializer.DatabaseConfiguration.Port = port.Port()
-	Log.Printf("DatabaseConfiguration: postgres://%s:%s@%s:%s/%s", backendInitializer.DatabaseConfiguration.Username, backendInitializer.DatabaseConfiguration.Password, backendInitializer.DatabaseConfiguration.Host, backendInitializer.DatabaseConfiguration.Port, backendInitializer.DatabaseConfiguration.Schema)
+	Logger.Log.Info("DatabaseConfiguration: postgres://%s:%s@%s:%s/%s", backendInitializer.DatabaseConfiguration.Username, backendInitializer.DatabaseConfiguration.Password, backendInitializer.DatabaseConfiguration.Host, backendInitializer.DatabaseConfiguration.Port, backendInitializer.DatabaseConfiguration.Schema)
 	backendInitializer.postgresContainer = postgresContainer
 	return err
 }
@@ -101,32 +103,32 @@ func (backendInitializer *BackendInitializer) initializePostgresTestContainer() 
 func (backendInitializer *BackendInitializer) initializeMigrationScripts(postgresContainer *Postgres.PostgresContainer) {
 	connectionString, err := postgresContainer.ConnectionString(*backendInitializer.context)
 	if err != nil {
-		Log.Fatalf("failed to get DSN: %v", err)
+		Logger.Log.Fatalf("failed to get DSN: %v", err)
 	}
 
 	connectionString = connectionString + "sslmode=disable"
 
-	Log.Printf("Migration url %s", connectionString)
+	Logger.Log.Info("Migration url %s", connectionString)
 
 	connection, err := SQL.Open("postgres", connectionString)
 	if err != nil {
-		Log.Fatalf("sql open failed: %v", err)
+		Logger.Log.Fatalf("sql open failed: %v", err)
 	}
 	defer func(DB *SQL.DB) {
 		err := DB.Close()
 		if err != nil {
-			Log.Fatalf("failed to close connection: %v", err)
+			Logger.Log.Fatalf("failed to close connection: %v", err)
 		}
 	}(connection)
 
 	Goose.SetBaseFS(nil)
 	err = Goose.SetDialect("postgres")
 	if err != nil {
-		Log.Fatalf("failed to set goose dialect: %v", err)
+		Logger.Log.Fatalf("failed to set goose dialect: %v", err)
 	}
 
 	if err := Goose.Up(connection, "../../migrations"); err != nil {
-		Log.Fatalf("goose migration failed: %v", err)
+		Logger.Log.Fatalf("goose migration failed: %v", err)
 	}
 }
 
@@ -137,7 +139,7 @@ func (backendInitializer *BackendInitializer) connect(databaseConfiguration *Con
 func (backendInitializer *BackendInitializer) Terminate() {
 	err := backendInitializer.postgresContainer.Terminate(*backendInitializer.context)
 	if err != nil {
-		Log.Fatalf("failed to terminate postgres container: %v", err)
+		Logger.Log.Fatalf("failed to terminate postgres container: %v", err)
 	}
 }
 
@@ -153,14 +155,15 @@ func (backendInitializer *BackendInitializer) TestContainers(unitTest *Testing.T
 		unitTest.Cleanup(func() {
 			backgroundContext := Context.Background()
 			if err := rabbitMqTestContainer.Terminate(backgroundContext); err != nil {
-				Log.Printf("failed to terminate container: %s", err)
+				Logger.Log.Fatalf("failed to terminate container: %s", err)
+				OS.Exit(0)
 			}
 		})
 	}
 	backendInitializer.initializeDatabaseConfiguration()
 	err := backendInitializer.initializePostgresTestContainer()
 	if err != nil {
-		Log.Fatalf("failed to initialize test pg: %v", err)
+		Logger.Log.Fatalf("failed to initialize test pg: %v", err)
 	}
 }
 
@@ -170,7 +173,7 @@ func (backendInitializer *BackendInitializer) Run() {
 	backendInitializer.initializeMigrationScripts(backendInitializer.postgresContainer)
 	backendInitializer.database, err = backendInitializer.connect(backendInitializer.DatabaseConfiguration)
 	if err != nil {
-		Log.Fatalf("failed to connect to database: %v", err)
+		Logger.Log.Fatalf("failed to connect to database: %v", err)
 	}
 }
 
@@ -179,6 +182,7 @@ func isDevelopment() bool {
 }
 
 func NewBackendInitializer() *BackendInitializer {
+	TestUtils.PreInitTest()
 	backgroundContext := Context.Background()
 	messageBrokerConfiguration := Configuration.NewMessageBrokerConfiguration()
 	databaseConfiguration := Configuration.NewDatabaseConfiguration()

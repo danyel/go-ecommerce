@@ -2,10 +2,10 @@ package factory
 
 import (
 	Errors "errors"
-	Log "log"
 
 	MessageBroker "github.com/danyel/ecommerce/cmd/broker"
 	Configuration "github.com/danyel/ecommerce/cmd/config"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 )
 
 type MessageBrokerConnectionFactory interface {
@@ -20,7 +20,7 @@ type messageBrokerConnectionFactory struct {
 
 func (messageBrokerConnectionFactory *messageBrokerConnectionFactory) MessageBroker() *MessageBroker.MessageBroker {
 	if messageBrokerConnectionFactory.messageBroker == nil {
-		Log.Fatal("Critical: MessageBroker returned nil from the connection factory")
+		Logger.Log.Fatal("Critical: MessageBroker returned nil from the connection factory")
 	}
 	return messageBrokerConnectionFactory.messageBroker
 }
@@ -30,11 +30,11 @@ func (messageBrokerConnectionFactory *messageBrokerConnectionFactory) Start() er
 }
 
 func createMessageBroker(messageBrokerConfiguration *Configuration.MessageBrokerConfiguration) *MessageBroker.MessageBroker {
-	Log.Print("[BrokerConnectionFactory] Creating broker")
+	Logger.Log.Debug("[BrokerConnectionFactory] Creating broker")
 	messageBroker := MessageBroker.NewMessageBroker()
 
 	if messageBroker.CreateConnection(messageBrokerConfiguration) != nil {
-		Log.Fatal(Errors.New("Can not connect to broker: %s" + messageBrokerConfiguration.Addr))
+		Logger.Log.Fatal(Errors.New("Can not connect to broker: %s" + messageBrokerConfiguration.Addr))
 	}
 
 	return messageBroker

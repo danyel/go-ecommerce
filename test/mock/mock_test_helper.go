@@ -6,6 +6,7 @@ import (
 	HttpTest "net/http/httptest"
 	Testing "testing"
 
+	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	Router "github.com/go-chi/chi/v5"
 	Mock "github.com/stretchr/testify/mock"
 )
@@ -52,6 +53,7 @@ func (mockFluent MockFluent) Status() int {
 }
 
 func Run(unitTest *Testing.T) *MockHelper {
+	TestUtils.PreInitTest()
 	unitTest.Helper()
 	return &MockHelper{}
 }

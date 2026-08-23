@@ -1,8 +1,7 @@
 package shoppingbasket
 
 import (
-	Log "log"
-
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Port "github.com/danyel/ecommerce/internal/common/port"
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Types "github.com/danyel/ecommerce/internal/common/types"
@@ -11,6 +10,7 @@ import (
 	Uuid "github.com/google/uuid"
 )
 
+//goland:noinspection GoNameStartsWithPackageName
 type ShoppingBasketService interface {
 	CreateShoppingBasket() (ShoppingBasket, error)
 	UpdateShoppingBasketItem(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItem) (ShoppingBasket, error)
@@ -74,7 +74,7 @@ func (shoppingBasketService *shoppingBasketService) UpdateShoppingBasketItem(ID 
 	if err != nil {
 		return EmptyShoppingBasket(), err
 	}
-	Log.Printf("ShoppingBasketItem To Publish: %v", shoppingBasketItemModel)
+	Logger.Log.Debug("ShoppingBasketItem To Publish: %v", shoppingBasketItemModel)
 	if err = shoppingBasketService.publisher.Publish(ShoppingBasketUpdated.Queue, ShoppingBasketUpdatedEvent{
 		ID:        Types.NewID(ID),
 		Quantity:  i.Quantity,

@@ -1,9 +1,9 @@
 package integration
 
 import (
-	Log "log"
 	Testing "testing"
 
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
@@ -12,10 +12,12 @@ import (
 	Product "github.com/danyel/ecommerce/internal/product"
 	Shoppingbasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	Initializers "github.com/danyel/ecommerce/test/integration/initializer"
+	TestUtils "github.com/danyel/ecommerce/test/testutils"
 )
 
 func TestWebHandler(unitTest *Testing.T) {
-	Log.Print("Starting Web Handler Test Cases")
+	TestUtils.PreInitTest()
+	Logger.Log.Info("Starting Web Handler Test Cases")
 	webIntegration := Initializers.SetupWebIntegration(unitTest)
 	categoryRepository := Database(Repository.NewCrudRepository[Category.CategoryModel](webIntegration.DatabaseConnection()))
 	cmsRepository := Database(Repository.NewCrudRepository[CMS.CmsModel](webIntegration.DatabaseConnection()))

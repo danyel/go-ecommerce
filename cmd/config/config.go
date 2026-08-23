@@ -2,9 +2,9 @@ package config
 
 import (
 	Fmt "fmt"
-	Log "log"
 	OS "os"
 
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 )
 
@@ -78,7 +78,7 @@ func NewServerConfiguration() ServerConfiguration {
 		provider := ApplicationMiddleware.NewSecretKeyProvider()
 		generated, err := provider.GenerateKey()
 		if err != nil {
-			Log.Fatalf("Failed to generate fallback secret: %v", err)
+			Logger.Log.Fatalf("Failed to generate fallback secret: %v", err)
 		}
 		secret = generated
 	}

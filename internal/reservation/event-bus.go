@@ -2,9 +2,9 @@ package reservation
 
 import (
 	JSON "encoding/json"
-	Log "log"
 
 	Broker "github.com/danyel/ecommerce/cmd/broker"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Product "github.com/danyel/ecommerce/internal/product"
 )
 
@@ -13,6 +13,7 @@ const (
 	AddReservationQueue = "reservations.add_reservation"
 )
 
+//goland:noinspection ALL
 type ReservationEventHandler interface {
 	handleReservationCreate(body []byte) error
 }
@@ -29,7 +30,7 @@ func (h *reservationEvents) handleReservationCreated(body []byte) error {
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	Log.Println(event.ID)
+	Logger.Log.Debug(event.ID)
 
 	// create reservation if it does not exist
 

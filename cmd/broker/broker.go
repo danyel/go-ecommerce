@@ -4,8 +4,9 @@ import (
 	Context "context"
 	JSON "encoding/json"
 	Fmt "fmt"
-	Log "log"
 	SLog "log/slog"
+
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
 	AMQP "github.com/rabbitmq/amqp091-go"
@@ -105,9 +106,9 @@ func (messageBroker *MessageBroker) alreadyRegistered(queueConfig QueueConfig) b
 }
 
 func (messageBroker *MessageBroker) Publish(queue string, value any) error {
-	Log.Printf("Publishing message to queue %s with value %v\n", queue, value)
+	Logger.Log.Debug("Publishing message to queue %s with value %v", queue, value)
 	for _, queueRegistry := range messageBroker.queueRegistries {
-		Log.Printf("Registered: %v", messageBroker)
+		Logger.Log.Info("Registered: %v", messageBroker)
 		if queueRegistry.QueueConfig.Queue == queue && messageBroker.alreadyRegistered(queueRegistry.QueueConfig) {
 			body, e := JSON.Marshal(value)
 			if e != nil {
@@ -123,7 +124,7 @@ func (messageBroker *MessageBroker) consume(queueRegistry QueueRegistry) {
 	var err error
 	var messages <-chan AMQP.Delivery
 	if messages, err = messageBroker.channel.Consume(queueRegistry.QueueConfig.Queue, "", false, false, false, false, nil); err != nil {
-		Log.Printf("Error on consuming message: %s", err.Error())
+		Logger.Log.Debug("Error on consuming message: %v", err.Error())
 	}
 	go func() {
 		for message := range messages {
@@ -134,7 +135,7 @@ func (messageBroker *MessageBroker) consume(queueRegistry QueueRegistry) {
 			_ = message.Ack(false)
 		}
 	}()
-	Log.Println("[Consumer] Listening:", queueRegistry.QueueConfig.Queue)
+	Logger.Log.Debug("[Consumer] Listening: %v", queueRegistry.QueueConfig.Queue)
 }
 
 func (messageBroker *MessageBroker) Start() error {
@@ -159,7 +160,7 @@ func (messageBroker *MessageBroker) Start() error {
 						err := messageBroker.registerQueue(queueRegistry)
 
 						if err != nil {
-							Log.Printf("Error on registering registry: %s", err.Error())
+							Logger.Log.Fatalf("Error on registering registry: %s", err.Error())
 						} else {
 							messageBroker.queueConfigs = append(messageBroker.queueConfigs, queueRegistry.QueueConfig)
 						}

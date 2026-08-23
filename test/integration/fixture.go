@@ -1,8 +1,7 @@
 package integration
 
 import (
-	Log "log"
-
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
 )
 
@@ -13,7 +12,7 @@ type Fixture[T any] struct {
 func (f Fixture[T]) Insert(t *T) {
 	e := f.repository.Create(t)
 	if e != nil {
-		Log.Fatal(e)
+		Logger.Log.Fatal(e)
 	}
 }
 

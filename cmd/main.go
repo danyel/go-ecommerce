@@ -1,8 +1,9 @@
 package main
 
 import (
-	Log "log"
 	OS "os"
+
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
 	Router "github.com/danyel/ecommerce/cmd/router"
@@ -23,7 +24,7 @@ func main() {
 	}
 	err = GoDotEnv.Load(locations...)
 	if err != nil {
-		Log.Fatal(err)
+		Logger.Log.Fatal(err)
 	}
 	serverConfiguration := Configuration.NewServerConfiguration()
 	databaseConfiguration := Configuration.NewDatabaseConfiguration()
@@ -35,14 +36,14 @@ func main() {
 	ShoppingBasket.RegisterShoppingBasketEvents(applicationConnectionFactory.ShoppingBasketService(), brokerConnectionFactory.MessageBroker())
 	Reservation.RegisterReservationEvents(applicationConnectionFactory.ReservationService(), applicationConnectionFactory.ProductService(), brokerConnectionFactory.MessageBroker())
 	if err = brokerConnectionFactory.MessageBroker().Start(); err != nil {
-		Log.Println(err.Error())
+		Logger.Log.Debug("%v", err.Error())
 	}
 	apiDefinition := Router.APIDefinition{
 		ServerConfiguration:          &serverConfiguration,
 		ApplicationConnectionFactory: applicationConnectionFactory,
 	}
 	if err != nil {
-		Log.Fatal(err)
+		Logger.Log.Fatal(err)
 	}
 	apiDefinition.Run(apiDefinition.ConfigRouter())
 }

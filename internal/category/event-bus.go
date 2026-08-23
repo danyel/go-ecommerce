@@ -4,9 +4,9 @@ package category
 
 import (
 	JSON "encoding/json"
-	Log "log"
 
 	Broker "github.com/danyel/ecommerce/cmd/broker"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 )
 
 const (
@@ -31,7 +31,7 @@ func HandleCategoryCreated2(body []byte) error {
 	if err := JSON.Unmarshal(body, &categoryCreatedEvent); err != nil {
 		return err
 	}
-	Log.Println(categoryCreatedEvent.ID)
+	Logger.Log.Debug(categoryCreatedEvent.ID)
 	return nil
 }
 
@@ -41,6 +41,6 @@ func HandleCategoryCreated(body []byte) error {
 	if err := JSON.Unmarshal(body, &categoryCreatedEvent); err != nil {
 		return err
 	}
-	Log.Println(categoryCreatedEvent.ID)
+	Logger.Log.Debug(categoryCreatedEvent.ID)
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 
 	Types "github.com/danyel/ecommerce/internal/common/types"
 	Product "github.com/danyel/ecommerce/internal/product"
+	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	Uuid "github.com/google/uuid"
 	Assert "github.com/stretchr/testify/assert"
 	Mock "github.com/stretchr/testify/mock"
@@ -26,6 +27,7 @@ func (productService *MockProductService) GetProduct(ID Uuid.UUID) (Product.Prod
 }
 
 func TestProductHandler(unitTest *Testing.T) {
+	TestUtils.PreInitTest()
 	productService := new(MockProductService)
 	productHandler := Product.NewHandler(productService)
 	run := Run(unitTest)

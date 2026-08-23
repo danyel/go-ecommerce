@@ -1,22 +1,23 @@
 package initializer
 
 import (
-	"bytes"
+	Bytes "bytes"
 	JSON "encoding/json"
 	Fmt "fmt"
-	"io"
-	Log "log"
+	IO "io"
 	Http "net/http"
 	HttpTest "net/http/httptest"
 	Testing "testing"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
 	Factory "github.com/danyel/ecommerce/internal/common/factory"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
+	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	Assert "github.com/stretchr/testify/assert"
 	Database "gorm.io/gorm"
 )
@@ -131,11 +132,11 @@ func (webIntegration *WebIntegration) AssertBadRequest() *WebIntegration {
 }
 
 func (webIntegration *WebIntegration) doRequest(method string, URL string, body any) *WebIntegration {
-	var reader io.Reader
+	var reader IO.Reader
 	if body != nil {
 		serializedBody, err := JSON.Marshal(body)
 		Assert.Nil(webIntegration.unitTest, err)
-		reader = bytes.NewBuffer(serializedBody)
+		reader = Bytes.NewBuffer(serializedBody)
 	}
 	request, err := Http.NewRequest(method, URL, reader)
 	Assert.Nil(webIntegration.unitTest, err)
@@ -166,11 +167,12 @@ func createTestUser() *ApplicationMiddleware.UserClaims {
 }
 
 func SetupWebIntegration(unitTest *Testing.T) *WebIntegration {
+	TestUtils.PreInitTest()
 	var token string
 	secretKeyProvider := ApplicationMiddleware.NewSecretKeyProvider()
 	secretKey, err := secretKeyProvider.GenerateKey()
 	if err != nil {
-		Log.Println(err.Error())
+		Logger.Log.Fatal(err.Error())
 	}
 
 	unitTest.Helper()
@@ -186,7 +188,7 @@ func SetupWebIntegration(unitTest *Testing.T) *WebIntegration {
 
 	ShoppingBasket.RegisterShoppingBasketEvents(applicationConnectionFactory.ShoppingBasketService(), messageBrokerConnectionFactory.MessageBroker())
 	if err := messageBrokerConnectionFactory.MessageBroker().Start(); err != nil {
-		Log.Println(err.Error())
+		Logger.Log.Fatal(err.Error())
 	}
 	apiDefinition := ApplicationRouter.APIDefinition{
 		ServerConfiguration:          &serverConfiguration,

@@ -3,16 +3,20 @@ package integration
 import (
 	Testing "testing"
 
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Product "github.com/danyel/ecommerce/internal/product"
 	Initializers "github.com/danyel/ecommerce/test/integration/initializer"
+	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	_ "github.com/lib/pq" // ← REQUIRED for Goose + sql.Open("postgres")
 	Assert "github.com/stretchr/testify/assert"
 )
 
 func TestServiceIntegration(unitTest *Testing.T) {
+	TestUtils.PreInitTest()
+	Logger.Log.Info("Starting Service Integration Test Cases")
 	backendInitializer := Initializers.NewBackendInitializer()
 	backendInitializer.TestContainers(unitTest)
 	backendInitializer.Run()
