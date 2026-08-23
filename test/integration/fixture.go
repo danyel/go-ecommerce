@@ -3,11 +3,11 @@ package integration
 import (
 	Log "log"
 
-	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Repository "github.com/danyel/ecommerce/internal/common/repository"
 )
 
 type Fixture[T any] struct {
-	repository CommonRepository.CrudRepository[T]
+	repository Repository.CrudRepository[T]
 }
 
 func (f Fixture[T]) Insert(t *T) {
@@ -17,6 +17,6 @@ func (f Fixture[T]) Insert(t *T) {
 	}
 }
 
-func Database[T any](repository CommonRepository.CrudRepository[T]) Fixture[T] {
+func Database[T any](repository Repository.CrudRepository[T]) Fixture[T] {
 	return Fixture[T]{repository}
 }

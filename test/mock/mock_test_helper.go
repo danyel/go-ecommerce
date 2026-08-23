@@ -17,41 +17,41 @@ type MockHelper struct {
 
 //goland:noinspection GoNameStartsWithPackageName
 type MockFluent struct {
-	w *HttpTest.ResponseRecorder
-	r *Http.Request
-	m *Router.Mux
+	response *HttpTest.ResponseRecorder
+	request  *Http.Request
+	router   *Router.Mux
 }
 
-func (h *MockHelper) New() MockFluent {
+func (mockHelper *MockHelper) New() MockFluent {
 	return MockFluent{}
 }
 
-func (m MockFluent) NewRecoder() MockFluent {
-	m.w = HttpTest.NewRecorder()
-	return m
+func (mockFluent MockFluent) NewRecoder() MockFluent {
+	mockFluent.response = HttpTest.NewRecorder()
+	return mockFluent
 }
 
-func (m MockFluent) NewRouter(method string, pattern string, handlerFn Http.HandlerFunc) MockFluent {
-	m.m = Router.NewRouter()
-	m.m.Method(method, pattern, handlerFn)
-	return m
+func (mockFluent MockFluent) NewRouter(method string, pattern string, handlerFunc Http.HandlerFunc) MockFluent {
+	mockFluent.router = Router.NewRouter()
+	mockFluent.router.Method(method, pattern, handlerFunc)
+	return mockFluent
 }
 
-func (m MockFluent) NewRequest(method string, target string, body IO.Reader) MockFluent {
-	m.r = HttpTest.NewRequest(method, target, body)
-	return m
+func (mockFluent MockFluent) NewRequest(method string, target string, reader IO.Reader) MockFluent {
+	mockFluent.request = HttpTest.NewRequest(method, target, reader)
+	return mockFluent
 }
 
-func (m MockFluent) ServeHTTP() MockFluent {
-	m.m.ServeHTTP(m.w, m.r)
-	return m
+func (mockFluent MockFluent) ServeHTTP() MockFluent {
+	mockFluent.router.ServeHTTP(mockFluent.response, mockFluent.request)
+	return mockFluent
 }
 
-func (m MockFluent) Status() int {
-	return m.w.Result().StatusCode
+func (mockFluent MockFluent) Status() int {
+	return mockFluent.response.Result().StatusCode
 }
 
-func Run(t *Testing.T) *MockHelper {
-	t.Helper()
+func Run(unitTest *Testing.T) *MockHelper {
+	unitTest.Helper()
 	return &MockHelper{}
 }

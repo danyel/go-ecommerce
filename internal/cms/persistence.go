@@ -17,13 +17,13 @@ type CmsModel struct {
 	UpdatedAt Time.Time `gorm:"type:timestamp;"`
 }
 
-func (p *CmsModel) TableName() string {
+func (cmsModel *CmsModel) TableName() string {
 	return "cms"
 }
 
-func (p *CmsModel) BeforeCreate(_ *Database.DB) (err error) {
-	if p.ID == Uuid.Nil {
-		p.ID = Uuid.New()
+func (cmsModel *CmsModel) BeforeCreate(_ *Database.DB) (err error) {
+	if cmsModel.ID == Uuid.Nil {
+		cmsModel.ID = Uuid.New()
 	}
 
 	return

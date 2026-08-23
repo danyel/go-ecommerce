@@ -10,10 +10,10 @@ import (
 	HttpTest "net/http/httptest"
 	Testing "testing"
 
-	Broker "github.com/danyel/ecommerce/cmd/broker"
 	Configuration "github.com/danyel/ecommerce/cmd/config"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
+	Factory "github.com/danyel/ecommerce/internal/common/factory"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
@@ -22,140 +22,140 @@ import (
 )
 
 type WebIntegration struct {
-	db        *Database.DB
-	s         *HttpTest.Server
-	t         *Testing.T
-	r         *Http.Response
-	authToken string
+	databaseConnection *Database.DB
+	server             *HttpTest.Server
+	unitTest           *Testing.T
+	response           *Http.Response
+	authToken          string
 }
 
-func (wi *WebIntegration) WithAuth(userID string, roles []string, hexSecret string) *WebIntegration {
-	claims := &ApplicationMiddleware.UserClaims{
-		UserID: userID,
+func (webIntegration *WebIntegration) WithAuth(ID string, roles []string, hexSecret string) *WebIntegration {
+	useClaims := &ApplicationMiddleware.UserClaims{
+		UserID: ID,
 		Roles:  roles,
 	}
 
-	token, err := ApplicationMiddleware.EncryptClaims(claims, hexSecret)
-	Assert.Nil(wi.t, err)
+	authToken, err := ApplicationMiddleware.EncryptClaims(useClaims, hexSecret)
+	Assert.Nil(webIntegration.unitTest, err)
 
-	wi.authToken = token
-	return wi
+	webIntegration.authToken = authToken
+	return webIntegration
 }
 
-func (wi *WebIntegration) ProductManagementPostProducts(b *Product.CreateProduct) *WebIntegration {
-	return wi.Post(wi.forURL("/api/product-management/v1/products"), b)
+func (webIntegration *WebIntegration) ProductManagementPostProducts(createProduct *Product.CreateProduct) *WebIntegration {
+	return webIntegration.Post(webIntegration.forURL("/api/product-management/v1/products"), createProduct)
 }
 
-func (wi *WebIntegration) GetTranslations(l string) *WebIntegration {
-	u := "/api/cms/v1/translations"
-	if l != "" {
-		u += Fmt.Sprintf("?language=%s", l)
+func (webIntegration *WebIntegration) GetTranslations(language string) *WebIntegration {
+	baseUrl := "/api/cms/v1/translations"
+	if language != "" {
+		baseUrl += Fmt.Sprintf("?language=%s", language)
 	}
-	return wi.Get(wi.forURL(u))
+	return webIntegration.Get(webIntegration.forURL(baseUrl))
 }
 
-func (wi *WebIntegration) ManagementPostTranslations(b *Management.CreateCms) *WebIntegration {
-	return wi.Post(wi.forURL("/api/management/v1/translations"), b)
+func (webIntegration *WebIntegration) ManagementPostTranslations(createCms *Management.CreateCms) *WebIntegration {
+	return webIntegration.Post(webIntegration.forURL("/api/management/v1/translations"), createCms)
 }
 
-func (wi *WebIntegration) ProductManagementGetProducts() *WebIntegration {
-	return wi.Get(wi.forURL("/api/product-management/v1/products"))
+func (webIntegration *WebIntegration) ProductManagementGetProducts() *WebIntegration {
+	return webIntegration.Get(webIntegration.forURL("/api/product-management/v1/products"))
 }
 
-func (wi *WebIntegration) ShoppingBasketCreate() *WebIntegration {
-	return wi.Post(wi.forURL("/api/shopping-basket/v1/shopping-baskets"), nil)
+func (webIntegration *WebIntegration) ShoppingBasketCreate() *WebIntegration {
+	return webIntegration.Post(webIntegration.forURL("/api/shopping-basket/v1/shopping-baskets"), nil)
 }
 
-func (wi *WebIntegration) ShoppingBasketAddItem(id string, a ShoppingBasket.UpdateShoppingBasketItem) *WebIntegration {
-	return wi.Post(wi.forURL("/api/shopping-basket/v1/shopping-baskets/"+id), a)
+func (webIntegration *WebIntegration) ShoppingBasketAddItem(ID string, updateShoppingBasketItem ShoppingBasket.UpdateShoppingBasketItem) *WebIntegration {
+	return webIntegration.Post(webIntegration.forURL("/api/shopping-basket/v1/shopping-baskets/"+ID), updateShoppingBasketItem)
 }
 
-func (wi *WebIntegration) GetShoppingBasket(id string) *WebIntegration {
-	return wi.Get(wi.forURL("/api/shopping-basket/v1/shopping-baskets/" + id))
+func (webIntegration *WebIntegration) GetShoppingBasket(ID string) *WebIntegration {
+	return webIntegration.Get(webIntegration.forURL("/api/shopping-basket/v1/shopping-baskets/" + ID))
 }
 
-func (wi *WebIntegration) ProductManagementGetProductByID(i string) *WebIntegration {
-	return wi.Get(wi.forURL("/api/product-management/v1/products/" + i))
+func (webIntegration *WebIntegration) ProductManagementGetProductByID(ID string) *WebIntegration {
+	return webIntegration.Get(webIntegration.forURL("/api/product-management/v1/products/" + ID))
 }
 
-func (wi *WebIntegration) forURL(url string) string {
-	return wi.s.URL + url
+func (webIntegration *WebIntegration) forURL(URL string) string {
+	return webIntegration.server.URL + URL
 }
 
-func (wi *WebIntegration) DB() *Database.DB {
-	return wi.db
+func (webIntegration *WebIntegration) DatabaseConnection() *Database.DB {
+	return webIntegration.databaseConnection
 }
 
-func (wi *WebIntegration) Get(url string) *WebIntegration {
-	return wi.doRequest("GET", url, nil)
+func (webIntegration *WebIntegration) Get(URL string) *WebIntegration {
+	return webIntegration.doRequest("GET", URL, nil)
 }
 
-func (wi *WebIntegration) Delete(url string) *WebIntegration {
-	return wi.doRequest("DELETE", url, nil)
+func (webIntegration *WebIntegration) Delete(URL string) *WebIntegration {
+	return webIntegration.doRequest("DELETE", URL, nil)
 }
 
-func (wi *WebIntegration) Post(url string, body any) *WebIntegration {
-	return wi.doRequest("POST", url, body)
+func (webIntegration *WebIntegration) Post(URL string, body any) *WebIntegration {
+	return webIntegration.doRequest("POST", URL, body)
 }
 
-func (wi *WebIntegration) Put(url string, body any) *WebIntegration {
-	return wi.doRequest("PUT", url, body)
+func (webIntegration *WebIntegration) Put(URL string, body any) *WebIntegration {
+	return webIntegration.doRequest("PUT", URL, body)
 }
 
-func (wi *WebIntegration) GetResponseBody(b any) *WebIntegration {
-	err := JSON.NewDecoder(wi.r.Body).Decode(&b)
-	Assert.Nil(wi.t, err)
-	return wi
+func (webIntegration *WebIntegration) GetResponseBody(body any) *WebIntegration {
+	err := JSON.NewDecoder(webIntegration.response.Body).Decode(&body)
+	Assert.Nil(webIntegration.unitTest, err)
+	return webIntegration
 }
 
-func (wi *WebIntegration) AssertStatusCreated() *WebIntegration {
-	return wi.Equal(Http.StatusCreated, wi.r.StatusCode)
+func (webIntegration *WebIntegration) AssertStatusCreated() *WebIntegration {
+	return webIntegration.Equal(Http.StatusCreated, webIntegration.response.StatusCode)
 }
 
-func (wi *WebIntegration) IsNotNil(b any) *WebIntegration {
-	Assert.NotNil(wi.t, b)
-	return wi
+func (webIntegration *WebIntegration) IsNotNil(body any) *WebIntegration {
+	Assert.NotNil(webIntegration.unitTest, body)
+	return webIntegration
 }
 
-func (wi *WebIntegration) AssertStatusOk() *WebIntegration {
-	return wi.Equal(Http.StatusOK, wi.r.StatusCode)
+func (webIntegration *WebIntegration) AssertStatusOk() *WebIntegration {
+	return webIntegration.Equal(Http.StatusOK, webIntegration.response.StatusCode)
 }
 
-func (wi *WebIntegration) Equal(expected, actual any, msgAndArgs ...any) *WebIntegration {
-	Assert.Equal(wi.t, expected, actual, msgAndArgs...)
-	return wi
+func (webIntegration *WebIntegration) Equal(expected, actual any, arguments ...any) *WebIntegration {
+	Assert.Equal(webIntegration.unitTest, expected, actual, arguments...)
+	return webIntegration
 }
 
-func (wi *WebIntegration) AssertBadRequest() *WebIntegration {
-	return wi.Equal(Http.StatusBadRequest, wi.r.StatusCode)
+func (webIntegration *WebIntegration) AssertBadRequest() *WebIntegration {
+	return webIntegration.Equal(Http.StatusBadRequest, webIntegration.response.StatusCode)
 }
 
-func (wi *WebIntegration) doRequest(method string, url string, body any) *WebIntegration {
-	var bodyBuffer io.Reader
+func (webIntegration *WebIntegration) doRequest(method string, URL string, body any) *WebIntegration {
+	var reader io.Reader
 	if body != nil {
-		b, err := JSON.Marshal(body)
-		Assert.Nil(wi.t, err)
-		bodyBuffer = bytes.NewBuffer(b)
+		serializedBody, err := JSON.Marshal(body)
+		Assert.Nil(webIntegration.unitTest, err)
+		reader = bytes.NewBuffer(serializedBody)
 	}
-	req, err := Http.NewRequest(method, url, bodyBuffer)
-	Assert.Nil(wi.t, err)
-	if err != nil || req == nil {
-		Assert.Fail(wi.t, "Could not create the request")
-		return wi
+	request, err := Http.NewRequest(method, URL, reader)
+	Assert.Nil(webIntegration.unitTest, err)
+	if err != nil || request == nil {
+		Assert.Fail(webIntegration.unitTest, "Could not create the request")
+		return webIntegration
 	}
-	req.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Content-Type", "application/json")
 
-	if wi.authToken != "" {
-		req.Header.Set(ApplicationMiddleware.Authorization, Fmt.Sprintf("Bearer %s", wi.authToken))
+	if webIntegration.authToken != "" {
+		request.Header.Set(ApplicationMiddleware.Authorization, Fmt.Sprintf("Bearer %s", webIntegration.authToken))
 	}
 
 	client := &Http.Client{}
 
-	wi.r, err = client.Do(req)
+	webIntegration.response, err = client.Do(request)
 
-	Assert.Nil(wi.t, err)
+	Assert.Nil(webIntegration.unitTest, err)
 
-	return wi
+	return webIntegration
 }
 
 func createTestUser() *ApplicationMiddleware.UserClaims {
@@ -165,7 +165,7 @@ func createTestUser() *ApplicationMiddleware.UserClaims {
 	}
 }
 
-func SetupWebIntegration(t *Testing.T) *WebIntegration {
+func SetupWebIntegration(unitTest *Testing.T) *WebIntegration {
 	var token string
 	secretKeyProvider := ApplicationMiddleware.NewSecretKeyProvider()
 	secretKey, err := secretKeyProvider.GenerateKey()
@@ -173,42 +173,40 @@ func SetupWebIntegration(t *Testing.T) *WebIntegration {
 		Log.Println(err.Error())
 	}
 
-	t.Helper()
-	bi := NewBackendInitializer()
-	bi.TestContainers(t)
-	bi.Run()
-	db := bi.Db()
-	sc := Configuration.NewServerConfiguration()
-	sc.JwtSecret = secretKey
-	newBroker := Broker.NewBroker()
-	err = newBroker.CreateConnection(bi.BrokerConfiguration)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ShoppingBasket.RegisterShoppingBasketEvents(ShoppingBasket.NewService(db, newBroker), newBroker)
-	if err := newBroker.Start(); err != nil {
+	unitTest.Helper()
+	backendInitializer := NewBackendInitializer()
+	backendInitializer.TestContainers(unitTest)
+	backendInitializer.Run()
+	databaseConnection := backendInitializer.DatabaseConnection()
+	serverConfiguration := Configuration.NewServerConfiguration()
+	serverConfiguration.JwtSecret = secretKey
+	databaseConnectionFactory := Factory.NewDatabaseConnectionFactory(backendInitializer.DatabaseConfiguration)
+	messageBrokerConnectionFactory := Factory.NewMessageBrokerConnectionFactory(backendInitializer.MessageBrokerConfiguration)
+	applicationConnectionFactory := Factory.NewApplicationConnectionFactory(databaseConnectionFactory, messageBrokerConnectionFactory)
+
+	ShoppingBasket.RegisterShoppingBasketEvents(applicationConnectionFactory.ShoppingBasketService(), messageBrokerConnectionFactory.MessageBroker())
+	if err := messageBrokerConnectionFactory.MessageBroker().Start(); err != nil {
 		Log.Println(err.Error())
 	}
-	ad := ApplicationRouter.APIDefinition{
-		SC:             &sc,
-		DB:             db,
-		EventPublisher: newBroker,
+	apiDefinition := ApplicationRouter.APIDefinition{
+		ServerConfiguration:          &serverConfiguration,
+		ApplicationConnectionFactory: applicationConnectionFactory,
 	}
 
-	ts := HttpTest.NewServer(ad.ConfigRouter())
+	server := HttpTest.NewServer(apiDefinition.ConfigRouter())
 
-	t.Cleanup(func() {
-		ts.Close()
+	unitTest.Cleanup(func() {
+		server.Close()
 	})
 	token, err = ApplicationMiddleware.EncryptClaims(createTestUser(), secretKey)
 	if err != nil {
-		t.Fatal(err)
+		unitTest.Fatal(err)
 	}
 
 	return &WebIntegration{
-		db:        db,
-		s:         ts,
-		t:         t,
-		authToken: token,
+		databaseConnection: databaseConnection,
+		server:             server,
+		unitTest:           unitTest,
+		authToken:          token,
 	}
 }

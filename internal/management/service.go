@@ -2,31 +2,30 @@ package management
 
 import (
 	CMS "github.com/danyel/ecommerce/internal/cms"
-	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	Database "gorm.io/gorm"
+	Repository "github.com/danyel/ecommerce/internal/common/repository"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ManagementService interface {
-	CreateTranslation(createCms CreateCms) (cmsId CmsId, err error)
+	CreateTranslation(createCms CreateCms) (ID CmsID, err error)
 }
 
 type managementService struct {
-	cmsRepository CommonRepository.CrudRepository[CMS.CmsModel]
+	cmsRepository Repository.CrudRepository[CMS.CmsModel]
 }
 
-func (s *managementService) CreateTranslation(createCms CreateCms) (cmsId CmsId, err error) {
+func (managementService *managementService) CreateTranslation(createCms CreateCms) (ID CmsID, err error) {
 	cmsModel := &CMS.CmsModel{
 		Code:     createCms.Code,
 		Value:    createCms.Value,
 		Language: createCms.Language,
 	}
-	if err = s.cmsRepository.Create(cmsModel); err != nil {
-		return CmsId{}, err
+	if err = managementService.cmsRepository.Create(cmsModel); err != nil {
+		return CmsID{}, err
 	}
-	return CmsId{cmsModel.ID}, nil
+	return CmsID{cmsModel.ID}, nil
 }
 
-func NewManagementService(DB *Database.DB) ManagementService {
-	return &managementService{CommonRepository.NewCrudRepository[CMS.CmsModel](DB)}
+func NewService(cmsRepository Repository.CrudRepository[CMS.CmsModel]) ManagementService {
+	return &managementService{cmsRepository: cmsRepository}
 }

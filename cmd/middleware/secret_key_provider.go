@@ -38,8 +38,8 @@ func (s *secretKeyProvider) GenerateKey() (string, error) {
 }
 
 // EncryptClaims serializes and encrypts UserClaims into a URL-safe Base64 token string
-func EncryptClaims(claims *UserClaims, secretKey string) (string, error) {
-	plainText, err := JSON.Marshal(claims)
+func EncryptClaims(userClaims *UserClaims, secretKey string) (string, error) {
+	plainText, err := JSON.Marshal(userClaims)
 	if err != nil {
 		return "", Fmt.Errorf("failed to marshal claims: %w", err)
 	}
@@ -49,7 +49,7 @@ func EncryptClaims(claims *UserClaims, secretKey string) (string, error) {
 		return "", Fmt.Errorf("failed to decode hex secret key: %w", err)
 	}
 
-	block, err := AES.NewCipher([]byte(rawKey))
+	block, err := AES.NewCipher(rawKey)
 	if err != nil {
 		return "", Fmt.Errorf("invalid secret key length: %w", err)
 	}
@@ -66,9 +66,9 @@ func EncryptClaims(claims *UserClaims, secretKey string) (string, error) {
 
 	cipherText := gcm.Seal(nonce, nonce, plainText, nil)
 
-	c := Base64.URLEncoding.EncodeToString(cipherText)
+	encodedString := Base64.URLEncoding.EncodeToString(cipherText)
 
-	return c, nil
+	return encodedString, nil
 }
 
 // DecryptClaims reverses the process, authenticates the data, and returns the UserClaims
@@ -105,10 +105,10 @@ func DecryptClaims(tokenStr string, secretKey string) (*UserClaims, error) {
 		return nil, Errors.New("tampered or invalid encrypted token signature")
 	}
 
-	var claims UserClaims
-	if err := JSON.Unmarshal(plainText, &claims); err != nil {
+	var userClaims UserClaims
+	if err := JSON.Unmarshal(plainText, &userClaims); err != nil {
 		return nil, err
 	}
 
-	return &claims, nil
+	return &userClaims, nil
 }

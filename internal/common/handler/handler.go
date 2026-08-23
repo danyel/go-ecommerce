@@ -9,30 +9,30 @@ import (
 	Uuid "github.com/google/uuid"
 )
 
-func GetID(r *Http.Request, key string) (Types.ID, error) {
-	productID := Router.URLParam(r, key)
+func GetID(request *Http.Request, key string) (Types.ID, error) {
+	ID := Router.URLParam(request, key)
 	var err error
 	var newID Uuid.UUID
-	if newID, err = Uuid.Parse(productID); err != nil {
+	if newID, err = Uuid.Parse(ID); err != nil {
 		return Types.ID{}, err
 	}
 	return Types.ID{ID: newID}, nil
 }
 
-func GetHeader(r *Http.Request, key string) string {
-	return r.Header.Get(key)
+func GetHeader(request *Http.Request, key string) string {
+	return request.Header.Get(key)
 }
 
-func GetPathParam(r *Http.Request, key string) string {
-	return Router.URLParam(r, key)
+func GetPathParam(request *Http.Request, key string) string {
+	return Router.URLParam(request, key)
 }
 
-func GetRequestParam(r *Http.Request, key string) string {
-	return r.URL.Query().Get(key)
+func GetRequestParam(request *Http.Request, key string) string {
+	return request.URL.Query().Get(key)
 }
 
-func ValidateRequest[T any](req *Http.Request, model *T) error {
-	decoder := JSON.NewDecoder(req.Body)
+func ValidateRequest[T any](request *Http.Request, model *T) error {
+	decoder := JSON.NewDecoder(request.Body)
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(model); err != nil {
@@ -42,46 +42,46 @@ func ValidateRequest[T any](req *Http.Request, model *T) error {
 	return nil
 }
 
-func WriteResponse(status int, w Http.ResponseWriter, r *Http.Request, v any) {
-	setHeaders(w, r)
-	w.WriteHeader(status)
-	encoder := JSON.NewEncoder(w)
-	if err := encoder.Encode(v); err != nil {
-		StatusInternalServerError(w, r)
+func WriteResponse(status int, response Http.ResponseWriter, request *Http.Request, body any) {
+	setHeaders(response, request)
+	response.WriteHeader(status)
+	encoder := JSON.NewEncoder(response)
+	if err := encoder.Encode(body); err != nil {
+		StatusInternalServerError(response, request)
 	}
 }
 
 //goland:noinspection GoUnusedExportedFunction
-func StatusOK(w Http.ResponseWriter, r *Http.Request) {
-	setHeaders(w, r)
-	w.WriteHeader(Http.StatusOK)
+func StatusOK(response Http.ResponseWriter, request *Http.Request) {
+	setHeaders(response, request)
+	response.WriteHeader(Http.StatusOK)
 }
 
-func StatusNoContent(w Http.ResponseWriter, r *Http.Request) {
-	setHeaders(w, r)
-	w.WriteHeader(Http.StatusNoContent)
+func StatusNoContent(response Http.ResponseWriter, request *Http.Request) {
+	setHeaders(response, request)
+	response.WriteHeader(Http.StatusNoContent)
 }
 
-func StatusBadRequest(w Http.ResponseWriter, r *Http.Request) {
-	setHeaders(w, r)
-	w.WriteHeader(Http.StatusBadRequest)
+func StatusBadRequest(response Http.ResponseWriter, request *Http.Request) {
+	setHeaders(response, request)
+	response.WriteHeader(Http.StatusBadRequest)
 }
 
-func setHeaders(w Http.ResponseWriter, r *Http.Request) {
-	header := GetHeader(r, "X-Correlation-Id")
+func setHeaders(response Http.ResponseWriter, request *Http.Request) {
+	header := GetHeader(request, "X-Correlation-Id")
 	if header == "" {
 		header = Uuid.NewString()
 	}
-	w.Header().Set("X-Correlation-ID", header)
-	w.Header().Set("Content-Type", "application/json")
+	response.Header().Set("X-Correlation-ID", header)
+	response.Header().Set("Content-Type", "application/json")
 }
 
-func StatusNotFound(w Http.ResponseWriter, r *Http.Request) {
-	setHeaders(w, r)
-	w.WriteHeader(Http.StatusNotFound)
+func StatusNotFound(response Http.ResponseWriter, request *Http.Request) {
+	setHeaders(response, request)
+	response.WriteHeader(Http.StatusNotFound)
 }
 
-func StatusInternalServerError(w Http.ResponseWriter, r *Http.Request) {
-	setHeaders(w, r)
-	w.WriteHeader(Http.StatusInternalServerError)
+func StatusInternalServerError(response Http.ResponseWriter, request *Http.Request) {
+	setHeaders(response, request)
+	response.WriteHeader(Http.StatusInternalServerError)
 }

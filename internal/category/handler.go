@@ -3,40 +3,40 @@ package category
 import (
 	Http "net/http"
 
-	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	Database "gorm.io/gorm"
+	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type CategoryHandler interface {
-	CreateCategory(w Http.ResponseWriter, r *Http.Request)
-	CreateTranslations(_ Http.ResponseWriter, _ *Http.Request)
+	CreateCategory(response Http.ResponseWriter, request *Http.Request)
+	CreateTranslations(response Http.ResponseWriter, request *Http.Request)
 }
 
 type categoryHandler struct {
-	s CategoryService
+	categoryService CategoryService
 }
 
-func (h *categoryHandler) CreateCategory(w Http.ResponseWriter, r *Http.Request) {
+func (categoryHandler *categoryHandler) CreateCategory(response Http.ResponseWriter, request *Http.Request) {
 	var createCategory CreateCategory
 	var categoryID CategoryID
 	var err error
-	if err = CommonHandler.ValidateRequest(r, &createCategory); err != nil {
-		CommonHandler.StatusBadRequest(w, r)
+	if err = WebHandler.ValidateRequest(request, &createCategory); err != nil {
+		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if categoryID, err = h.s.CreateCategory(createCategory); err != nil {
-		CommonHandler.StatusInternalServerError(w, r)
+	if categoryID, err = categoryHandler.categoryService.CreateCategory(createCategory); err != nil {
+		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusCreated, w, r, categoryID)
+	WebHandler.WriteResponse(Http.StatusCreated, response, request, categoryID)
 }
 
-func (h *categoryHandler) CreateTranslations(_ Http.ResponseWriter, _ *Http.Request) {}
+func (categoryHandler *categoryHandler) CreateTranslations(response Http.ResponseWriter, request *Http.Request) {
+}
 
-func NewHandler(DB *Database.DB) CategoryHandler {
+func NewHandler(categoryService CategoryService) CategoryHandler {
 	handler := &categoryHandler{
-		NewCategoryService(DB),
+		categoryService,
 	}
 	return handler
 }

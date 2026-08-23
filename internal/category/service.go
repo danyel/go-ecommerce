@@ -1,50 +1,49 @@
 package category
 
 import (
-	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Uuid "github.com/google/uuid"
-	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type CategoryService interface {
 	GetCategories() []Category
-	GetCategory(categoryID Uuid.UUID) (Category, error)
+	GetCategory(ID Uuid.UUID) (Category, error)
 	CreateCategory(createCategory CreateCategory) (CategoryID, error)
 }
 
 type categoryService struct {
-	categoryRepository CommonRepository.CrudRepository[CategoryModel]
+	categoryRepository Repository.CrudRepository[CategoryModel]
 }
 
-func (s *categoryService) GetCategories() []Category {
-	categoryModels := s.categoryRepository.FindAll(CommonRepository.SearchCriteria{Preloads: []string{"Children"}})
-	return mapCategories(categoryModels)
+func (categoryService *categoryService) GetCategories() []Category {
+	categories := categoryService.categoryRepository.FindAll(Repository.SearchCriteria{Preloads: []string{"Children"}})
+	return mapCategories(categories)
 }
 
-func (s *categoryService) GetCategory(categoryID Uuid.UUID) (Category, error) {
+func (categoryService *categoryService) GetCategory(ID Uuid.UUID) (Category, error) {
 	var category Category
-	categoryModel, err := s.categoryRepository.FindById(categoryID)
+	categoryModel, err := categoryService.categoryRepository.FindById(ID)
 	if err != nil {
 		return category, err
 	}
 	return mapCategory(*categoryModel), err
 }
 
-func (s *categoryService) CreateCategory(createCategory CreateCategory) (CategoryID, error) {
+func (categoryService *categoryService) CreateCategory(createCategory CreateCategory) (CategoryID, error) {
 	var err error
-	var categoryID CategoryID
+	var ID CategoryID
 	category := &CategoryModel{
 		Name: createCategory.Name,
 	}
 
-	if err := s.categoryRepository.Create(category); err != nil {
-		return categoryID, err
+	if err := categoryService.categoryRepository.Create(category); err != nil {
+		return ID, err
 	}
 	var children []*CategoryModel
 	if len(createCategory.Children) > 0 {
-		children = s.categoryRepository.FindAll(CommonRepository.SearchCriteria{
-			WhereClause: CommonRepository.WhereClause{
+		children = categoryService.categoryRepository.FindAll(Repository.SearchCriteria{
+			WhereClause: Repository.WhereClause{
 				Query:  "id IN ?",
 				Params: []any{createCategory.Children},
 			},
@@ -52,23 +51,23 @@ func (s *categoryService) CreateCategory(createCategory CreateCategory) (Categor
 	}
 
 	if len(children) > 0 {
-		if err = s.categoryRepository.AssocAppend(category, "Children", children); err != nil {
-			return categoryID, err
+		if err = categoryService.categoryRepository.AssocAppend(category, "Children", children); err != nil {
+			return ID, err
 		}
 	}
-	categoryID.ID = category.ID
-	return categoryID, err
+	ID.ID = category.ID
+	return ID, err
 }
 
-func mapCategories(models []*CategoryModel) []Category {
-	categories := make([]Category, len(models))
+func mapCategories(categoryModels []*CategoryModel) []Category {
+	categories := make([]Category, len(categoryModels))
 
-	for i, m := range models {
-		categories[i] = Category{
-			ID:   m.ID,
-			Name: m.Name,
+	for index, categoryModel := range categoryModels {
+		categories[index] = Category{
+			ID:   categoryModel.ID,
+			Name: categoryModel.Name,
 			// Important: children as pointers
-			Children: mapCategories(m.Children),
+			Children: mapCategories(categoryModel.Children),
 		}
 	}
 
@@ -84,8 +83,8 @@ func mapCategory(categoryModel CategoryModel) Category {
 	}
 }
 
-func NewCategoryService(DB *Database.DB) CategoryService {
+func NewService(categoryRepository Repository.CrudRepository[CategoryModel]) CategoryService {
 	return &categoryService{
-		categoryRepository: CommonRepository.NewCrudRepository[CategoryModel](DB),
+		categoryRepository: categoryRepository,
 	}
 }

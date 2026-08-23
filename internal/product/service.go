@@ -1,11 +1,8 @@
 package product
 
 import (
-	Category "github.com/danyel/ecommerce/internal/category"
-	CMS "github.com/danyel/ecommerce/internal/cms"
-	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Uuid "github.com/google/uuid"
-	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -15,27 +12,27 @@ type ProductService interface {
 }
 
 type productService struct {
-	productRepository CommonRepository.CrudRepository[ProductModel]
+	productRepository Repository.CrudRepository[ProductModel]
 	productMapper     ProductMapper
 }
 
-func (s *productService) GetProducts() []Product {
+func (productService *productService) GetProducts() []Product {
 	orderBy := "created_at asc"
-	products := s.productRepository.FindAll(CommonRepository.SearchCriteria{OrderBy: &orderBy})
-	return s.productMapper.MapProducts(products)
+	products := productService.productRepository.FindAll(Repository.SearchCriteria{OrderBy: &orderBy})
+	return productService.productMapper.MapProducts(products)
 }
 
-func (s *productService) GetProduct(uuid Uuid.UUID) (Product, error) {
+func (productService *productService) GetProduct(ID Uuid.UUID) (Product, error) {
 	var product Product
-	productModel, err := s.productRepository.FindById(uuid)
+	productModel, err := productService.productRepository.FindById(ID)
 	if err != nil {
 		return product, err
 	}
 
-	return s.productMapper.MapProduct(productModel), nil
+	return productService.productMapper.MapProduct(productModel), nil
 }
 
-func NewProductService(DB *Database.DB) ProductService {
-	s := &productService{CommonRepository.NewCrudRepository[ProductModel](DB), NewProductMapper(Category.NewCategoryService(DB), CMS.NewCmsService(DB))}
-	return s
+func NewService(productRepository Repository.CrudRepository[ProductModel], productMapper ProductMapper) ProductService {
+	productService := &productService{productRepository, productMapper}
+	return productService
 }

@@ -38,7 +38,7 @@ type DatabaseConfiguration struct {
 	Schema   string
 }
 
-type BrokerConfiguration struct {
+type MessageBrokerConfiguration struct {
 	Protocol string
 	Username string
 	Password string
@@ -61,6 +61,16 @@ func NewDatabaseConfiguration() DatabaseConfiguration {
 	}
 }
 
+func NewMessageBrokerConfiguration() MessageBrokerConfiguration {
+	return MessageBrokerConfiguration{
+		Addr:     OS.Getenv(brokerAddress),
+		Port:     OS.Getenv(brokerPort),
+		Username: OS.Getenv(brokerUsername),
+		Password: OS.Getenv(brokerPassword),
+		Protocol: OS.Getenv(brokerProtocol),
+	}
+}
+
 func NewServerConfiguration() ServerConfiguration {
 	secret := OS.Getenv(jwtSecret)
 	if secret == "" {
@@ -75,15 +85,5 @@ func NewServerConfiguration() ServerConfiguration {
 	return ServerConfiguration{
 		Addr:      OS.Getenv(applicationPort),
 		JwtSecret: secret,
-	}
-}
-
-func NewBrokerConfiguration() BrokerConfiguration {
-	return BrokerConfiguration{
-		Protocol: OS.Getenv(brokerProtocol),
-		Addr:     OS.Getenv(brokerAddress),
-		Port:     OS.Getenv(brokerPort),
-		Username: OS.Getenv(brokerUsername),
-		Password: OS.Getenv(brokerPassword),
 	}
 }

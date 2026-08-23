@@ -15,51 +15,51 @@ type MockProductService struct {
 	Mock.Mock
 }
 
-func (m *MockProductService) GetProducts() []Product.Product {
-	args := m.Called()
+func (productService *MockProductService) GetProducts() []Product.Product {
+	args := productService.Called()
 	return args.Get(0).([]Product.Product)
 }
 
-func (m *MockProductService) GetProduct(uuid Uuid.UUID) (Product.Product, error) {
-	args := m.Called(uuid)
+func (productService *MockProductService) GetProduct(ID Uuid.UUID) (Product.Product, error) {
+	args := productService.Called(ID)
 	return args.Get(0).(Product.Product), args.Error(1)
 }
 
-func TestProductHandler(t *Testing.T) {
-	mockProductService := new(MockProductService)
-	h := Product.NewAPIHandler(mockProductService)
-	mh := Run(t)
+func TestProductHandler(unitTest *Testing.T) {
+	productService := new(MockProductService)
+	productHandler := Product.NewHandler(productService)
+	run := Run(unitTest)
 
-	t.Run("GetProducts", func(t *Testing.T) {
+	unitTest.Run("GetProducts", func(unitTest *Testing.T) {
 		products := []Product.Product{
 			{
 				Code:  "Code",
 				Price: Types.NewPrice(1000, "EUR"),
 			},
 		}
-		mockProductService.On("GetProducts").Return(products, nil)
-		Assert.Equal(t, Http.StatusOK, mh.New().
+		productService.On("GetProducts").Return(products, nil)
+		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
 			NewRequest(Http.MethodGet, "/api/product/v1/products", nil).
-			NewRouter(Http.MethodGet, "/api/product/v1/products", h.GetProducts).
+			NewRouter(Http.MethodGet, "/api/product/v1/products", productHandler.GetProducts).
 			ServeHTTP().
 			Status())
-		mockProductService.AssertCalled(t, "GetProducts")
-		mockProductService.AssertExpectations(t)
+		productService.AssertCalled(unitTest, "GetProducts")
+		productService.AssertExpectations(unitTest)
 	})
 
-	t.Run("GetProduct", func(t *Testing.T) {
-		i, _ := Uuid.Parse("aef8f0ce-c33f-456c-bc5c-91f951116cf7")
-		p := Product.Product{Code: "Code", Price: Types.NewPrice(1000, "EUR")}
-		mockProductService.On("GetProduct", i).Return(p, nil)
+	unitTest.Run("GetProduct", func(unitTest *Testing.T) {
+		ID, _ := Uuid.Parse("aef8f0ce-c33f-456c-bc5c-91f951116cf7")
+		product := Product.Product{Code: "Code", Price: Types.NewPrice(1000, "EUR")}
+		productService.On("GetProduct", ID).Return(product, nil)
 
-		Assert.Equal(t, Http.StatusOK, mh.New().
+		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
-			NewRequest(Http.MethodGet, "/api/product/v1/products/"+i.String(), nil).
-			NewRouter(Http.MethodGet, "/api/product/v1/products/{productID}", h.GetProduct).
+			NewRequest(Http.MethodGet, "/api/product/v1/products/"+ID.String(), nil).
+			NewRouter(Http.MethodGet, "/api/product/v1/products/{productID}", productHandler.GetProduct).
 			ServeHTTP().
 			Status())
-		mockProductService.AssertCalled(t, "GetProduct", i)
-		mockProductService.AssertExpectations(t)
+		productService.AssertCalled(unitTest, "GetProduct", ID)
+		productService.AssertExpectations(unitTest)
 	})
 }

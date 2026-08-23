@@ -3,11 +3,11 @@ package broker
 import (
 	Context "context"
 	JSON "encoding/json"
-	FMT "fmt"
+	Fmt "fmt"
 	Log "log"
 	SLog "log/slog"
 
-	Config "github.com/danyel/ecommerce/cmd/config"
+	Configuration "github.com/danyel/ecommerce/cmd/config"
 	AMQP "github.com/rabbitmq/amqp091-go"
 )
 
@@ -17,26 +17,26 @@ type QueueConfig struct {
 	RoutingKey string
 }
 
-type Broker struct {
-	registry   []QueueRegistry
-	channel    *AMQP.Channel
-	registered []QueueConfig
-	connection *AMQP.Connection
+type MessageBroker struct {
+	queueRegistries []QueueRegistry
+	channel         *AMQP.Channel
+	queueConfigs    []QueueConfig
+	connection      *AMQP.Connection
 }
 
-func (b *Broker) CreateConnection(c *Config.BrokerConfiguration) error {
-	brokerURL := FMT.Sprintf("%s://%s:%s@%s:%s", c.Protocol, c.Username, c.Password, c.Addr, c.Port)
+func (messageBroker *MessageBroker) CreateConnection(messageBrokerConfiguration *Configuration.MessageBrokerConfiguration) error {
+	brokerURL := Fmt.Sprintf("%s://%s:%s@%s:%s", messageBrokerConfiguration.Protocol, messageBrokerConfiguration.Username, messageBrokerConfiguration.Password, messageBrokerConfiguration.Addr, messageBrokerConfiguration.Port)
 	SLog.Info("connecting to " + brokerURL)
-	connection, err := AMQP.Dial(brokerURL)
+	messageBrokerConnection, err := AMQP.Dial(brokerURL)
 	if err != nil {
 		return err
 	}
 
-	if b.channel, err = connection.Channel(); err != nil {
+	if messageBroker.channel, err = messageBrokerConnection.Channel(); err != nil {
 		panic(err)
 	}
 
-	b.connection = connection
+	messageBroker.connection = messageBrokerConnection
 
 	return nil
 }
@@ -44,31 +44,31 @@ func (b *Broker) CreateConnection(c *Config.BrokerConfiguration) error {
 type HandlerFunc func([]byte) error
 
 type QueueRegistry struct {
-	H HandlerFunc
-	C QueueConfig
+	HandlerFunc HandlerFunc
+	QueueConfig QueueConfig
 }
 
-func (b *Broker) RegisterConsumer(queue QueueConfig, handler HandlerFunc) {
-	if b.registry == nil {
-		b.registry = []QueueRegistry{{handler, queue}}
+func (messageBroker *MessageBroker) RegisterConsumer(queueConfig QueueConfig, handlerFunc HandlerFunc) {
+	if messageBroker.queueRegistries == nil {
+		messageBroker.queueRegistries = []QueueRegistry{{handlerFunc, queueConfig}}
 	}
 	notFound := true
-	for _, registry := range b.registry {
-		if registry.C.Queue == queue.Queue && registry.C.Topic == queue.Topic && registry.C.RoutingKey == queue.RoutingKey {
+	for _, registry := range messageBroker.queueRegistries {
+		if registry.QueueConfig.Queue == queueConfig.Queue && registry.QueueConfig.Topic == queueConfig.Topic && registry.QueueConfig.RoutingKey == queueConfig.RoutingKey {
 			notFound = false
 			break
 		}
 	}
 
 	if notFound {
-		b.registry = append(b.registry, QueueRegistry{handler, queue})
+		messageBroker.queueRegistries = append(messageBroker.queueRegistries, QueueRegistry{handlerFunc, queueConfig})
 	}
 }
 
-func (b *Broker) setup() error {
-	for _, c := range b.registry {
-		if !b.alreadyRegistered(c.C) {
-			err := b.register(c)
+func (messageBroker *MessageBroker) setup() error {
+	for _, c := range messageBroker.queueRegistries {
+		if !messageBroker.alreadyRegistered(c.QueueConfig) {
+			err := messageBroker.registerQueue(c)
 			if err != nil {
 				return err
 			}
@@ -78,24 +78,24 @@ func (b *Broker) setup() error {
 	return nil
 }
 
-func (b *Broker) register(c QueueRegistry) error {
-	if er := b.channel.ExchangeDeclare(c.C.Topic, "topic", true, false, false, false, nil); er != nil {
-		return er
+func (messageBroker *MessageBroker) registerQueue(queueRegistry QueueRegistry) error {
+	if err := messageBroker.channel.ExchangeDeclare(queueRegistry.QueueConfig.Topic, "topic", true, false, false, false, nil); err != nil {
+		return err
 	}
-	if _, er := b.channel.QueueDeclare(c.C.Queue, true, false, false, false, nil); er != nil {
-		return er
+	if _, err := messageBroker.channel.QueueDeclare(queueRegistry.QueueConfig.Queue, true, false, false, false, nil); err != nil {
+		return err
 	}
-	if er := b.channel.QueueBind(c.C.Queue, c.C.RoutingKey, c.C.Topic, false, nil); er != nil {
-		return er
+	if err := messageBroker.channel.QueueBind(queueRegistry.QueueConfig.Queue, queueRegistry.QueueConfig.RoutingKey, queueRegistry.QueueConfig.Topic, false, nil); err != nil {
+		return err
 	}
-	b.registered = append(b.registered, c.C)
+	messageBroker.queueConfigs = append(messageBroker.queueConfigs, queueRegistry.QueueConfig)
 	return nil
 }
 
-func (b *Broker) alreadyRegistered(c QueueConfig) bool {
+func (messageBroker *MessageBroker) alreadyRegistered(queueConfig QueueConfig) bool {
 	found := false
-	for _, d := range b.registered {
-		if c.Topic == d.Topic && c.Queue == d.Queue && c.RoutingKey == d.RoutingKey {
+	for _, currentQueueConfig := range messageBroker.queueConfigs {
+		if queueConfig.Topic == currentQueueConfig.Topic && queueConfig.Queue == currentQueueConfig.Queue && queueConfig.RoutingKey == currentQueueConfig.RoutingKey {
 			found = true
 			break
 		}
@@ -104,68 +104,68 @@ func (b *Broker) alreadyRegistered(c QueueConfig) bool {
 	return found
 }
 
-func (b *Broker) Publish(queue string, v interface{}) error {
-	Log.Printf("Publishing message to queue %s with value %v\n", queue, v)
-	for _, r := range b.registry {
-		Log.Printf("Registered: %v", b)
-		if r.C.Queue == queue && b.alreadyRegistered(r.C) {
-			body, e := JSON.Marshal(v)
+func (messageBroker *MessageBroker) Publish(queue string, value any) error {
+	Log.Printf("Publishing message to queue %s with value %v\n", queue, value)
+	for _, queueRegistry := range messageBroker.queueRegistries {
+		Log.Printf("Registered: %v", messageBroker)
+		if queueRegistry.QueueConfig.Queue == queue && messageBroker.alreadyRegistered(queueRegistry.QueueConfig) {
+			body, e := JSON.Marshal(value)
 			if e != nil {
 				return e
 			}
-			return b.channel.PublishWithContext(Context.Background(), r.C.Topic, r.C.RoutingKey, false, false, AMQP.Publishing{ContentType: "application/json", Body: body})
+			return messageBroker.channel.PublishWithContext(Context.Background(), queueRegistry.QueueConfig.Topic, queueRegistry.QueueConfig.RoutingKey, false, false, AMQP.Publishing{ContentType: "application/json", Body: body})
 		}
 	}
-	return FMT.Errorf("no handler registered for queue %s", queue)
+	return Fmt.Errorf("no handler registered for queue %s", queue)
 }
 
-func (b *Broker) consume(r QueueRegistry) {
+func (messageBroker *MessageBroker) consume(queueRegistry QueueRegistry) {
 	var err error
 	var messages <-chan AMQP.Delivery
-	if messages, err = b.channel.Consume(r.C.Queue, "", false, false, false, false, nil); err != nil {
+	if messages, err = messageBroker.channel.Consume(queueRegistry.QueueConfig.Queue, "", false, false, false, false, nil); err != nil {
 		Log.Printf("Error on consuming message: %s", err.Error())
 	}
 	go func() {
-		for msg := range messages {
-			if err := r.H(msg.Body); err != nil {
-				_ = msg.Nack(false, false)
+		for message := range messages {
+			if err := queueRegistry.HandlerFunc(message.Body); err != nil {
+				_ = message.Nack(false, false)
 				continue
 			}
-			_ = msg.Ack(false)
+			_ = message.Ack(false)
 		}
 	}()
-	Log.Println("[Consumer] Listening:", r.C.Queue)
+	Log.Println("[Consumer] Listening:", queueRegistry.QueueConfig.Queue)
 }
 
-func (b *Broker) Start() error {
-	if err := b.setup(); err != nil {
+func (messageBroker *MessageBroker) Start() error {
+	if err := messageBroker.setup(); err != nil {
 		return err
 	}
-	for _, registry := range b.registry {
-		if b.alreadyRegistered(registry.C) {
-			go b.consume(registry)
+	for _, queueRegistry := range messageBroker.queueRegistries {
+		if messageBroker.alreadyRegistered(queueRegistry.QueueConfig) {
+			go messageBroker.consume(queueRegistry)
 		}
 	}
 
-	ctx, cancel := Context.WithCancel(Context.Background())
+	context, cancel := Context.WithCancel(Context.Background())
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-context.Done():
 				return
 			default:
-				for _, registry := range b.registry {
-					if !b.alreadyRegistered(registry.C) {
-						err := b.register(registry)
+				for _, queueRegistry := range messageBroker.queueRegistries {
+					if !messageBroker.alreadyRegistered(queueRegistry.QueueConfig) {
+						err := messageBroker.registerQueue(queueRegistry)
 
 						if err != nil {
 							Log.Printf("Error on registering registry: %s", err.Error())
 						} else {
-							b.registered = append(b.registered, registry.C)
+							messageBroker.queueConfigs = append(messageBroker.queueConfigs, queueRegistry.QueueConfig)
 						}
 					}
 				}
-				if len(b.registered) == len(b.registry) {
+				if len(messageBroker.queueConfigs) == len(messageBroker.queueRegistries) {
 					cancel()
 				}
 			}
@@ -175,9 +175,9 @@ func (b *Broker) Start() error {
 	return nil
 }
 
-func NewBroker() *Broker {
-	return &Broker{
-		registry:   make([]QueueRegistry, 0),
-		registered: make([]QueueConfig, 0),
+func NewMessageBroker() *MessageBroker {
+	return &MessageBroker{
+		queueRegistries: make([]QueueRegistry, 0),
+		queueConfigs:    make([]QueueConfig, 0),
 	}
 }

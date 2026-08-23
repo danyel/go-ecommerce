@@ -3,8 +3,7 @@ package cms
 import (
 	Fmt "fmt"
 
-	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
-	Database "gorm.io/gorm"
+	Repository "github.com/danyel/ecommerce/internal/common/repository"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -14,48 +13,47 @@ type CmsService interface {
 }
 
 type cmsService struct {
-	cmsRepository CommonRepository.CrudRepository[CmsModel]
+	cmsRepository Repository.CrudRepository[CmsModel]
 }
 
-func (s *cmsService) GetTranslations(language string) []Translation {
-	c := CommonRepository.SearchCriteria{}
+func (cmsService *cmsService) GetTranslations(language string) []Translation {
+	searchCriteria := Repository.SearchCriteria{}
 	if language != "" {
-		c.WhereClause = CommonRepository.WhereClause{
+		searchCriteria.WhereClause = Repository.WhereClause{
 			Query:  "language = ?",
 			Params: []any{language},
 		}
 	}
-	cms := s.cmsRepository.FindAll(c)
-	translations := make([]Translation, len(cms))
-	for i, cm := range cms {
-		translations[i] = Translation{
-			Code:     cm.Code,
-			Value:    cm.Value,
-			Language: cm.Language,
+	translation := cmsService.cmsRepository.FindAll(searchCriteria)
+	translations := make([]Translation, len(translation))
+	for index, cms := range translation {
+		translations[index] = Translation{
+			Code:     cms.Code,
+			Value:    cms.Value,
+			Language: cms.Language,
 		}
 	}
 
 	return translations
 }
 
-func (s *cmsService) GetTranslation(code string, language string) (Translation, error) {
-	cms := s.cmsRepository.FindAll(CommonRepository.SearchCriteria{WhereClause: CommonRepository.WhereClause{
+func (cmsService *cmsService) GetTranslation(code string, language string) (Translation, error) {
+	translations := cmsService.cmsRepository.FindAll(Repository.SearchCriteria{WhereClause: Repository.WhereClause{
 		Query:  "code = ? AND language = ?",
 		Params: []any{code, language},
 	}})
 
-	if len(cms) == 0 {
+	if len(translations) == 0 {
 		return Translation{}, Fmt.Errorf("cms not found")
 	}
-	cm := cms[0]
+	cms := translations[0]
 	return Translation{
-		Code:     cm.Code,
-		Value:    cm.Value,
-		Language: cm.Language,
+		Code:     cms.Code,
+		Value:    cms.Value,
+		Language: cms.Language,
 	}, nil
 }
 
-func NewCmsService(DB *Database.DB) CmsService {
-	cmsRepository := CommonRepository.NewCrudRepository[CmsModel](DB)
+func NewService(cmsRepository Repository.CrudRepository[CmsModel]) CmsService {
 	return &cmsService{cmsRepository}
 }

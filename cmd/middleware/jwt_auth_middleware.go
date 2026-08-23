@@ -29,34 +29,34 @@ type CustomClaims struct {
 
 func JwtAuthMiddleware(secretKey string) func(handler Http.Handler) Http.Handler {
 	return func(next Http.Handler) Http.Handler {
-		return Http.HandlerFunc(func(w Http.ResponseWriter, r *Http.Request) {
-			authHeader := r.Header.Get(Authorization)
+		return Http.HandlerFunc(func(response Http.ResponseWriter, request *Http.Request) {
+			authHeader := request.Header.Get(Authorization)
 			if authHeader == "" || !Strings.HasPrefix(authHeader, "Bearer ") {
-				Http.Error(w, "Unauthorized: Missing or malformed token", Http.StatusUnauthorized)
+				Http.Error(response, "Unauthorized: Missing or malformed token", Http.StatusUnauthorized)
 				return
 			}
 			tokenString := Strings.TrimPrefix(authHeader, "Bearer ")
 			claims, err := DecryptClaims(tokenString, secretKey)
 			if err != nil {
-				Http.Error(w, "Unauthorized: Invalid token", Http.StatusUnauthorized)
+				Http.Error(response, "Unauthorized: Invalid token", Http.StatusUnauthorized)
 				return
 			}
 
-			ctx := Context.WithValue(r.Context(), UserContextKey, claims)
-			next.ServeHTTP(w, r.WithContext(ctx))
+			ctx := Context.WithValue(request.Context(), UserContextKey, claims)
+			next.ServeHTTP(response, request.WithContext(ctx))
 		})
 	}
 }
 
 func RequireRole(requiredRole string) func(Http.Handler) Http.Handler {
 	return func(next Http.Handler) Http.Handler {
-		return Http.HandlerFunc(func(w Http.ResponseWriter, r *Http.Request) {
-			claims, ok := r.Context().Value(UserContextKey).(*UserClaims)
+		return Http.HandlerFunc(func(response Http.ResponseWriter, request *Http.Request) {
+			claims, ok := request.Context().Value(UserContextKey).(*UserClaims)
 			if !ok || !Array.Contains(claims.Roles, requiredRole) {
-				Http.Error(w, "Forbidden: Insufficient permissions", Http.StatusForbidden)
+				Http.Error(response, "Forbidden: Insufficient permissions", Http.StatusForbidden)
 				return
 			}
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(response, request)
 		})
 	}
 }

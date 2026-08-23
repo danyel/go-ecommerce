@@ -1,5 +1,5 @@
 package port
 
 type EventPublisher interface {
-	Publish(queue string, v interface{}) error
+	Publish(queue string, event any) error
 }

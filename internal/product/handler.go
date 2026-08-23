@@ -3,41 +3,41 @@ package product
 import (
 	Http "net/http"
 
-	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
 	Types "github.com/danyel/ecommerce/internal/common/types"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ProductHandler interface {
-	GetProducts(w Http.ResponseWriter, r *Http.Request)
-	GetProduct(w Http.ResponseWriter, r *Http.Request)
+	GetProducts(response Http.ResponseWriter, request *Http.Request)
+	GetProduct(response Http.ResponseWriter, request *Http.Request)
 }
 
-type productAPIHandler struct {
-	p ProductService
+type productHandler struct {
+	productService ProductService
 }
 
-func (h *productAPIHandler) GetProducts(w Http.ResponseWriter, r *Http.Request) {
-	CommonHandler.WriteResponse(Http.StatusOK, w, r, h.p.GetProducts())
+func (productHandler *productHandler) GetProducts(response Http.ResponseWriter, request *Http.Request) {
+	WebHandler.WriteResponse(Http.StatusOK, response, request, productHandler.productService.GetProducts())
 }
 
-func (h *productAPIHandler) GetProduct(w Http.ResponseWriter, r *Http.Request) {
+func (productHandler *productHandler) GetProduct(response Http.ResponseWriter, request *Http.Request) {
 	var product Product
 	var productID Types.ID
 	var err error
-	if productID, err = CommonHandler.GetID(r, "productID"); err != nil {
-		CommonHandler.StatusBadRequest(w, r)
+	if productID, err = WebHandler.GetID(request, "productID"); err != nil {
+		WebHandler.StatusBadRequest(response, request)
 		return
 	}
 
-	if product, err = h.p.GetProduct(productID.ID); err != nil {
-		CommonHandler.StatusNotFound(w, r)
+	if product, err = productHandler.productService.GetProduct(productID.ID); err != nil {
+		WebHandler.StatusNotFound(response, request)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusOK, w, r, product)
+	WebHandler.WriteResponse(Http.StatusOK, response, request, product)
 }
 
-func NewAPIHandler(p ProductService) ProductHandler {
-	h := &productAPIHandler{p}
-	return h
+func NewHandler(productService ProductService) ProductHandler {
+	productHandler := &productHandler{productService}
+	return productHandler
 }

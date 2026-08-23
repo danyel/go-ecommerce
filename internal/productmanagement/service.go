@@ -1,14 +1,13 @@
 package productmanagement
 
 import (
-	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Types "github.com/danyel/ecommerce/internal/common/types"
 	Product "github.com/danyel/ecommerce/internal/product"
-	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
-type ProductService interface {
+type ProductManagementService interface {
 	GetProducts() []Product.Product
 	GetProduct(id Types.ID) (Product.Product, error)
 	DeleteProduct(id Types.ID) error
@@ -16,56 +15,55 @@ type ProductService interface {
 	CreateProduct(createProduct Product.CreateProduct) (Types.ID, error)
 }
 
-type productService struct {
-	productRepository CommonRepository.CrudRepository[Product.ProductModel]
+type productMangementService struct {
+	productRepository Repository.CrudRepository[Product.ProductModel]
 	productService    Product.ProductService
 }
 
-func (s *productService) GetProducts() []Product.Product {
-	return s.productService.GetProducts()
+func (productManagementService *productMangementService) GetProducts() []Product.Product {
+	return productManagementService.productService.GetProducts()
 }
 
-func (s *productService) GetProduct(uuid Types.ID) (Product.Product, error) {
-	var p Product.Product
-	productModel, err := s.productService.GetProduct(uuid.ID)
+func (productManagementService *productMangementService) GetProduct(ID Types.ID) (Product.Product, error) {
+	product, err := productManagementService.productService.GetProduct(ID.ID)
 	if err != nil {
-		return p, err
+		return product, err
 	}
 	return Product.Product{
-		Code:        productModel.Code,
-		Price:       productModel.Price,
-		Stock:       productModel.Stock,
-		Category:    productModel.Category,
-		ImageURL:    productModel.ImageURL,
-		Brand:       productModel.Brand,
-		Description: productModel.Description,
-		Name:        productModel.Name,
-		ID:          productModel.ID,
+		Code:        product.Code,
+		Price:       product.Price,
+		Stock:       product.Stock,
+		Category:    product.Category,
+		ImageURL:    product.ImageURL,
+		Brand:       product.Brand,
+		Description: product.Description,
+		Name:        product.Name,
+		ID:          product.ID,
 	}, nil
 }
 
-func (s *productService) DeleteProduct(uuid Types.ID) error {
-	return s.productRepository.Delete(uuid.ID)
+func (productManagementService *productMangementService) DeleteProduct(ID Types.ID) error {
+	return productManagementService.productRepository.Delete(ID.ID)
 }
 
-func (s *productService) UpdateProduct(uuid Types.ID, updateProduct Product.UpdateProduct) error {
-	p, err := s.productRepository.FindById(uuid.ID)
+func (productManagementService *productMangementService) UpdateProduct(ID Types.ID, updateProduct Product.UpdateProduct) error {
+	productModel, err := productManagementService.productRepository.FindById(ID.ID)
 	if err != nil {
 		return err
 	}
-	p.Name = updateProduct.Name
-	p.Brand = updateProduct.Brand
-	p.Description = updateProduct.Description
-	p.Stock = updateProduct.Stock
-	p.CategoryID = updateProduct.CategoryID.ID
-	p.ImageURL = updateProduct.ImageURL
-	p.Price = updateProduct.Price
-	return s.productRepository.Update(p)
+	productModel.Name = updateProduct.Name
+	productModel.Brand = updateProduct.Brand
+	productModel.Description = updateProduct.Description
+	productModel.Stock = updateProduct.Stock
+	productModel.CategoryID = updateProduct.CategoryID.ID
+	productModel.ImageURL = updateProduct.ImageURL
+	productModel.Price = updateProduct.Price
+	return productManagementService.productRepository.Update(productModel)
 }
 
-func (s *productService) CreateProduct(createProduct Product.CreateProduct) (Types.ID, error) {
+func (productManagementService *productMangementService) CreateProduct(createProduct Product.CreateProduct) (Types.ID, error) {
 	var productID Types.ID
-	p := Product.ProductModel{
+	productModel := Product.ProductModel{
 		Code:        createProduct.Code,
 		Price:       createProduct.Price,
 		CategoryID:  createProduct.CategoryID.ID,
@@ -74,16 +72,16 @@ func (s *productService) CreateProduct(createProduct Product.CreateProduct) (Typ
 		Description: createProduct.Description,
 		Name:        createProduct.Name,
 	}
-	err := s.productRepository.Create(&p)
+	err := productManagementService.productRepository.Create(&productModel)
 	if err != nil {
 		return productID, err
 	}
-	return Types.NewID(p.ID), nil
+	return Types.NewID(productModel.ID), nil
 }
 
-func NewProductService(DB *Database.DB) ProductService {
-	return &productService{
-		CommonRepository.NewCrudRepository[Product.ProductModel](DB),
-		Product.NewProductService(DB),
+func NewService(productRepository Repository.CrudRepository[Product.ProductModel], productService Product.ProductService) ProductManagementService {
+	return &productMangementService{
+		productRepository,
+		productService,
 	}
 }

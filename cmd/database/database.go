@@ -9,15 +9,15 @@ import (
 	Database "gorm.io/gorm"
 )
 
-func Connect(database *Configuration.DatabaseConfiguration) (*Database.DB, error) {
-	dns := database.ToDNS()
-	db, err := Database.Open(Postgres.Open(dns), &Database.Config{})
-	Log.Printf("Database connection established with DSN: %s", dns)
+func Connect(databaseConfiguration *Configuration.DatabaseConfiguration) (*Database.DB, error) {
+	connectionString := databaseConfiguration.ToDNS()
+	connection, err := Database.Open(Postgres.Open(connectionString), &Database.Config{})
+	Log.Printf("Database connection established with DSN: %s", connectionString)
 	if err != nil {
-		Log.Fatal(Fmt.Sprintf("Failed to connect to the database: [%s]", dns), err)
+		Log.Fatal(Fmt.Sprintf("Failed to connect to the database: [%s]", connectionString), err)
 		return nil, err
 	}
 
-	Log.Printf("Successfully connected to the database[%s]\n", dns)
-	return db, nil
+	Log.Printf("Successfully connected to the database[%s]\n", connectionString)
+	return connection, nil
 }

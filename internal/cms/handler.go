@@ -3,41 +3,40 @@ package cms
 import (
 	Http "net/http"
 
-	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	Database "gorm.io/gorm"
+	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type CmsHandler interface {
-	GetTranslation(w Http.ResponseWriter, r *Http.Request)
-	GetTranslations(w Http.ResponseWriter, r *Http.Request)
+	GetTranslation(response Http.ResponseWriter, request *Http.Request)
+	GetTranslations(response Http.ResponseWriter, request *Http.Request)
 }
 
 type cmsHandler struct {
-	s CmsService
+	cmsService CmsService
 }
 
-func (h *cmsHandler) GetTranslation(w Http.ResponseWriter, r *Http.Request) {
-	language := CommonHandler.GetPathParam(r, "language")
-	code := CommonHandler.GetPathParam(r, "code")
+func (cmsHandler *cmsHandler) GetTranslation(response Http.ResponseWriter, request *Http.Request) {
+	language := WebHandler.GetPathParam(request, "language")
+	code := WebHandler.GetPathParam(request, "code")
 	var translation Translation
 	var err error
 
-	if translation, err = h.s.GetTranslation(code, language); err != nil {
-		CommonHandler.StatusNotFound(w, r)
+	if translation, err = cmsHandler.cmsService.GetTranslation(code, language); err != nil {
+		WebHandler.StatusNotFound(response, request)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusOK, w, r, translation)
+	WebHandler.WriteResponse(Http.StatusOK, response, request, translation)
 }
 
-func (h *cmsHandler) GetTranslations(w Http.ResponseWriter, r *Http.Request) {
-	language := CommonHandler.GetRequestParam(r, "language")
+func (cmsHandler *cmsHandler) GetTranslations(response Http.ResponseWriter, request *Http.Request) {
+	language := WebHandler.GetRequestParam(request, "language")
 
-	CommonHandler.WriteResponse(Http.StatusOK, w, r, h.s.GetTranslations(language))
+	WebHandler.WriteResponse(Http.StatusOK, response, request, cmsHandler.cmsService.GetTranslations(language))
 }
 
-func NewHandler(db *Database.DB) CmsHandler {
+func NewHandler(cmsService CmsService) CmsHandler {
 	return &cmsHandler{
-		NewCmsService(db),
+		cmsService,
 	}
 }

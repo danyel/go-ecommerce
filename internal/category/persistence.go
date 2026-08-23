@@ -16,13 +16,13 @@ type CategoryModel struct {
 	UpdatedAt Time.Time
 }
 
-func (c *CategoryModel) TableName() string {
+func (categoryModel *CategoryModel) TableName() string {
 	return "categories"
 }
 
-func (c *CategoryModel) BeforeCreate(_ *Database.DB) (err error) {
-	if c.ID == Uuid.Nil {
-		c.ID = Uuid.New()
+func (categoryModel *CategoryModel) BeforeCreate(_ *Database.DB) (err error) {
+	if categoryModel.ID == Uuid.Nil {
+		categoryModel.ID = Uuid.New()
 	}
 	return
 }

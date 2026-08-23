@@ -7,130 +7,128 @@ import (
 	Configuration "github.com/danyel/ecommerce/cmd/config"
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
-	Port "github.com/danyel/ecommerce/internal/common/port"
+	Factory "github.com/danyel/ecommerce/internal/common/factory"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
 	ProductManagement "github.com/danyel/ecommerce/internal/productmanagement"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	Router "github.com/go-chi/chi/v5"
 	Middleware "github.com/go-chi/chi/v5/middleware"
-	Database "gorm.io/gorm"
 )
 
 type APIDefinition struct {
-	SC             *Configuration.ServerConfiguration
-	DB             *Database.DB
-	EventPublisher Port.EventPublisher
+	ServerConfiguration          *Configuration.ServerConfiguration
+	ApplicationConnectionFactory Factory.ApplicationConnectionFactory
 }
 
-func (a *APIDefinition) ConfigRouter() *Router.Mux {
-	r := Router.NewRouter()
-	r.Use(Middleware.RequestID)
-	r.Use(Middleware.Logger)
-	r.Use(Middleware.Recoverer)
+func (apiDefinition *APIDefinition) ConfigRouter() *Router.Mux {
+	router := Router.NewRouter()
+	router.Use(Middleware.RequestID)
+	router.Use(Middleware.Logger)
+	router.Use(Middleware.Recoverer)
 	// r.Use(ApplicationMiddleware.JwtAuthMiddleware(a.SC.JwtSecret))
-
-	r.Route("/api", func(r Router.Router) {
-		productV1Routing(r, a)
-		categoryV1Routing(r, a)
-		productManagementV1Routing(r, a)
-		managementV1Routing(r, a)
-		cmsV1Routing(r, a)
-		paymentV1Routing(r, a)
-		orderV1Routing(r, a)
-		shoppingBasketV1Routing(r, a)
+	applicationConnectionFactory := apiDefinition.ApplicationConnectionFactory
+	router.Route("/api", func(router Router.Router) {
+		productV1Routing(router, applicationConnectionFactory)
+		categoryV1Routing(router, applicationConnectionFactory)
+		productManagementV1Routing(router, applicationConnectionFactory)
+		managementV1Routing(router, applicationConnectionFactory)
+		cmsV1Routing(router, applicationConnectionFactory)
+		paymentV1Routing(router, applicationConnectionFactory)
+		orderV1Routing(router, applicationConnectionFactory)
+		shoppingBasketV1Routing(router, applicationConnectionFactory)
 	})
-	return r
+	return router
 }
 
 // Shopping Basket api V1 /api/shopping-basket/v1/shopping-baskets
-func shoppingBasketV1Routing(r Router.Router, a *APIDefinition) Router.Router {
-	return r.Route("/shopping-basket/v1/shopping-baskets", func(r Router.Router) {
-		h := ShoppingBasket.NewHandler(a.DB, a.EventPublisher)
-		r.Post("/", h.CreateShoppingBasket)
-		r.Route("/{shoppingBasketID}", func(r Router.Router) {
-			r.Post("/", h.UpdateShoppingBasketItem)
-			r.Get("/", h.GetShoppingBasket)
+func shoppingBasketV1Routing(router Router.Router, applicationConnectionFactory Factory.ApplicationConnectionFactory) Router.Router {
+	return router.Route("/shopping-basket/v1/shopping-baskets", func(router Router.Router) {
+		shoppingBasketHandler := ShoppingBasket.NewHandler(applicationConnectionFactory.ShoppingBasketService())
+		router.Post("/", shoppingBasketHandler.CreateShoppingBasket)
+		router.Route("/{shoppingBasketID}", func(router Router.Router) {
+			router.Post("/", shoppingBasketHandler.UpdateShoppingBasketItem)
+			router.Get("/", shoppingBasketHandler.GetShoppingBasket)
 		})
 	})
 }
 
 // Product Management api V1 /api/product-management/v1
-func productManagementV1Routing(r Router.Router, a *APIDefinition) Router.Router {
-	return r.Route("/product-management/v1", func(r Router.Router) {
-		r.Route("/products", func(r Router.Router) {
-			h := ProductManagement.NewHandler(a.DB)
-			r.Get("/", h.GetProducts)
-			r.Post("/", h.CreateProduct)
-			r.Route("/{productID}", func(r Router.Router) {
-				r.Get("/", h.GetProduct)
-				r.Delete("/", h.DeleteProduct)
-				r.Put("/", h.UpdateProduct)
+func productManagementV1Routing(router Router.Router, applicationConnectionFactory Factory.ApplicationConnectionFactory) Router.Router {
+	return router.Route("/product-management/v1", func(router Router.Router) {
+		router.Route("/products", func(router Router.Router) {
+			productManagementHandler := ProductManagement.NewHandler(applicationConnectionFactory.CategoryService(), applicationConnectionFactory.CmsService(), applicationConnectionFactory.ProductManagementService())
+			router.Get("/", productManagementHandler.GetProducts)
+			router.Post("/", productManagementHandler.CreateProduct)
+			router.Route("/{productID}", func(router Router.Router) {
+				router.Get("/", productManagementHandler.GetProduct)
+				router.Delete("/", productManagementHandler.DeleteProduct)
+				router.Put("/", productManagementHandler.UpdateProduct)
 			})
 		})
 	})
 }
 
 // Order api V1 /api/order/v1/orders
-func orderV1Routing(r Router.Router, _ *APIDefinition) Router.Router {
-	return r.Route("/order/v1/orders", func(r Router.Router) {
+func orderV1Routing(router Router.Router, _ Factory.ApplicationConnectionFactory) Router.Router {
+	return router.Route("/order/v1/orders", func(router Router.Router) {
 		//
 	})
 }
 
 // Category api V1 /api/category/v1/categories
-func categoryV1Routing(r Router.Router, a *APIDefinition) Router.Router {
-	return r.Route("/category/v1", func(r Router.Router) {
-		h := Category.NewHandler(a.DB)
-		r.Route("/categories", func(r Router.Router) {
-			r.Post("/", h.CreateCategory)
+func categoryV1Routing(router Router.Router, applicationConnectionFactory Factory.ApplicationConnectionFactory) Router.Router {
+	return router.Route("/category/v1", func(router Router.Router) {
+		categoryHandler := Category.NewHandler(applicationConnectionFactory.CategoryService())
+		router.Route("/categories", func(router Router.Router) {
+			router.Post("/", categoryHandler.CreateCategory)
 		})
-		r.Post("/translations", h.CreateTranslations)
+		router.Post("/translations", categoryHandler.CreateTranslations)
 	})
 }
 
 // Payment api V1 /api/payment/v1/payments
-func paymentV1Routing(r Router.Router, _ *APIDefinition) Router.Router {
-	return r.Route("/payment/v1/payments", func(r Router.Router) {
+func paymentV1Routing(router Router.Router, _ Factory.ApplicationConnectionFactory) Router.Router {
+	return router.Route("/payment/v1/payments", func(router Router.Router) {
 		//
 	})
 }
 
 // CMS api V1 /api/cms/v1/translations
-func cmsV1Routing(r Router.Router, a *APIDefinition) Router.Router {
-	return r.Route("/cms/v1/translations", func(r Router.Router) {
-		h := CMS.NewHandler(a.DB)
-		r.Get("/", h.GetTranslations)
-		r.Get("/{language}/{ID}", h.GetTranslation)
+func cmsV1Routing(router Router.Router, applicationConnectionFactory Factory.ApplicationConnectionFactory) Router.Router {
+	return router.Route("/cms/v1/translations", func(router Router.Router) {
+		cmsHandler := CMS.NewHandler(applicationConnectionFactory.CmsService())
+		router.Get("/", cmsHandler.GetTranslations)
+		router.Get("/{language}/{ID}", cmsHandler.GetTranslation)
 	})
 }
 
 // Management api V1 /api/management/v1
-func managementV1Routing(r Router.Router, a *APIDefinition) Router.Router {
-	return r.Route("/management/v1", func(r Router.Router) {
-		h := Management.NewHandler(a.DB)
-		r.Route("/categories", func(r Router.Router) {
-			r.Get("/", h.GetCategories)
+func managementV1Routing(router Router.Router, applicationConnectionFactory Factory.ApplicationConnectionFactory) Router.Router {
+	return router.Route("/management/v1", func(router Router.Router) {
+		managementHandler := Management.NewHandler(applicationConnectionFactory.CategoryService(), applicationConnectionFactory.ManagementService(), applicationConnectionFactory.CmsService())
+		router.Route("/categories", func(router Router.Router) {
+			router.Get("/", managementHandler.GetCategories)
 		})
-		r.Post("/translations", h.CreateTranslations)
+		router.Post("/translations", managementHandler.CreateTranslations)
 	})
 }
 
 // Product api V1 /api/product/v1/products
-func productV1Routing(r Router.Router, a *APIDefinition) Router.Router {
-	return r.Route("/product/v1/products", func(r Router.Router) {
-		h := Product.NewAPIHandler(Product.NewProductService(a.DB))
-		r.Get("/", h.GetProducts)
+func productV1Routing(router Router.Router, applicationConnectionFactory Factory.ApplicationConnectionFactory) Router.Router {
+	return router.Route("/product/v1/products", func(router Router.Router) {
+		productHandler := Product.NewHandler(applicationConnectionFactory.ProductService())
+		router.Get("/", productHandler.GetProducts)
 		// /api/product/v1/products/{productID}
-		r.Route("/{productID}", func(r Router.Router) {
-			r.Get("/", h.GetProduct)
+		router.Route("/{productID}", func(router Router.Router) {
+			router.Get("/", productHandler.GetProduct)
 		})
 	})
 }
 
-func (a *APIDefinition) Run(r *Router.Mux) {
-	Log.Printf("Running the server on port %s", a.SC.Addr)
-	if err := Http.ListenAndServe(a.SC.Addr, r); err != nil {
+func (apiDefinition *APIDefinition) Run(router *Router.Mux) {
+	Log.Printf("Running the server on port %s", apiDefinition.ServerConfiguration.Addr)
+	if err := Http.ListenAndServe(apiDefinition.ServerConfiguration.Addr, router); err != nil {
 		Log.Fatal(err)
 	}
 }

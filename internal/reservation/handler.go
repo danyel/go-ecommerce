@@ -3,46 +3,45 @@ package reservation
 import (
 	Http "net/http"
 
-	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
+	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
 	Types "github.com/danyel/ecommerce/internal/common/types"
-	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ReservationHandler interface {
-	CreateReservation(w Http.ResponseWriter, r *Http.Request)
-	GetReservations(w Http.ResponseWriter, r *Http.Request)
+	CreateReservation(response Http.ResponseWriter, request *Http.Request)
+	GetReservations(response Http.ResponseWriter, request *Http.Request)
 }
 
 type reservationHandler struct {
-	s ReservationService
+	reservationService ReservationService
 }
 
-func (h *reservationHandler) CreateReservation(w Http.ResponseWriter, r *Http.Request) {
+func (reservationHandler *reservationHandler) CreateReservation(response Http.ResponseWriter, request *Http.Request) {
 	var createReservation CreateReservation
-	var reservationID Types.ID
+	var ID Types.ID
 	var err error
-	if err = CommonHandler.ValidateRequest[CreateReservation](r, &createReservation); err != nil {
-		CommonHandler.StatusBadRequest(w, r)
+	if err = WebHandler.ValidateRequest[CreateReservation](request, &createReservation); err != nil {
+		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if reservationID, err = h.s.CreateReservation(createReservation); err != nil {
-		CommonHandler.StatusInternalServerError(w, r)
+	if ID, err = reservationHandler.reservationService.CreateReservation(createReservation); err != nil {
+		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusCreated, w, r, reservationID)
+	WebHandler.WriteResponse(Http.StatusCreated, response, request, ID)
 }
 
-func (h *reservationHandler) GetReservations(w Http.ResponseWriter, r *Http.Request) {
-	CommonHandler.WriteResponse(Http.StatusOK, w, r, h.s.GetReservations())
+func (reservationHandler *reservationHandler) GetReservations(response Http.ResponseWriter, request *Http.Request) {
+	WebHandler.WriteResponse(Http.StatusOK, response, request, reservationHandler.reservationService.GetReservations())
 }
 
 // NewHandler adding to router (todo)
 //
 //goland:noinspection GoUnusedExportedFunction
-func NewHandler(DB *Database.DB) ReservationHandler {
+func NewHandler(reservationService ReservationService) ReservationHandler {
 	handler := &reservationHandler{
-		NewReservationService(DB),
+		reservationService: reservationService,
 	}
 	return handler
 }

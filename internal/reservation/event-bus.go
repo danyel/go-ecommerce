@@ -5,12 +5,17 @@ import (
 	Log "log"
 
 	Broker "github.com/danyel/ecommerce/cmd/broker"
+	Product "github.com/danyel/ecommerce/internal/product"
 )
 
 const (
 	ExchangeReservation = "reservation.topic"
 	AddReservationQueue = "reservations.add_reservation"
 )
+
+type ReservationEventHandler interface {
+	handleReservationCreate(body []byte) error
+}
 
 //goland:noinspection GoUnusedGlobalVariable,GoNameStartsWithPackageName
 var ReservationCreated = Broker.QueueConfig{
@@ -19,26 +24,26 @@ var ReservationCreated = Broker.QueueConfig{
 }
 
 //goland:noinspection GoNameStartsWithPackageName
-type ReservationCreatedEvent struct {
-	ID string `json:"id"`
-}
-
-//goland:noinspection GoUnusedExportedFunction
-func HandleReservationCreated2(body []byte) error {
+func (h *reservationEvents) handleReservationCreated(body []byte) error {
 	var event ReservationCreatedEvent
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
 	Log.Println(event.ID)
+
+	// create reservation if it does not exist
+
+	// alter the quantity of the product
+
 	return nil
 }
 
-//goland:noinspection GoUnusedExportedFunction
-func HandleReservationCreated(body []byte) error {
-	var event ReservationCreatedEvent
-	if err := JSON.Unmarshal(body, &event); err != nil {
-		return err
-	}
-	Log.Println(event.ID)
-	return nil
+type reservationEvents struct {
+	s ReservationService
+	p Product.ProductService
+}
+
+func RegisterReservationEvents(reservationService ReservationService, productService Product.ProductService, b *Broker.MessageBroker) {
+	h := &reservationEvents{reservationService, productService}
+	b.RegisterConsumer(ReservationCreated, h.handleReservationCreated)
 }

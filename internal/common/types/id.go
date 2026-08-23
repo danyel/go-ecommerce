@@ -15,10 +15,10 @@ func NewID(val Uuid.UUID) ID {
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (i ID) MarshalJSON() ([]byte, error) {
-	return JSON.Marshal(i.ID)
+func (ID ID) MarshalJSON() ([]byte, error) {
+	return JSON.Marshal(ID.ID)
 }
 
-func (i *ID) UnmarshalJSON(data []byte) error {
-	return JSON.Unmarshal(data, &i.ID)
+func (ID *ID) UnmarshalJSON(data []byte) error {
+	return JSON.Unmarshal(data, &ID.ID)
 }

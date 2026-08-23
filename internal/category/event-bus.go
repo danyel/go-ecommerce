@@ -27,20 +27,20 @@ type CategoryCreatedEvent struct {
 
 //goland:noinspection GoUnusedExportedFunction
 func HandleCategoryCreated2(body []byte) error {
-	var event CategoryCreatedEvent
-	if err := JSON.Unmarshal(body, &event); err != nil {
+	var categoryCreatedEvent CategoryCreatedEvent
+	if err := JSON.Unmarshal(body, &categoryCreatedEvent); err != nil {
 		return err
 	}
-	Log.Println(event.ID)
+	Log.Println(categoryCreatedEvent.ID)
 	return nil
 }
 
 //goland:noinspection GoUnusedExportedFunction
 func HandleCategoryCreated(body []byte) error {
-	var event CategoryCreatedEvent
-	if err := JSON.Unmarshal(body, &event); err != nil {
+	var categoryCreatedEvent CategoryCreatedEvent
+	if err := JSON.Unmarshal(body, &categoryCreatedEvent); err != nil {
 		return err
 	}
-	Log.Println(event.ID)
+	Log.Println(categoryCreatedEvent.ID)
 	return nil
 }

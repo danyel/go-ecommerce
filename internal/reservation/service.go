@@ -1,9 +1,8 @@
 package reservation
 
 import (
-	CommonRepository "github.com/danyel/ecommerce/internal/common/repository"
+	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Types "github.com/danyel/ecommerce/internal/common/types"
-	Database "gorm.io/gorm"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -14,11 +13,11 @@ type ReservationService interface {
 }
 
 type reservationService struct {
-	reservationRepository CommonRepository.CrudRepository[ReservationModel]
+	reservationRepository Repository.CrudRepository[ReservationModel]
 }
 
 func (s *reservationService) GetReservations() []Reservation {
-	reservationModels := s.reservationRepository.FindAll(CommonRepository.SearchCriteria{Preloads: []string{"Children"}})
+	reservationModels := s.reservationRepository.FindAll(Repository.SearchCriteria{Preloads: []string{"Children"}})
 	return mapReservations(reservationModels)
 }
 
@@ -63,8 +62,8 @@ func mapReservation(reservationModel *ReservationModel) Reservation {
 	}
 }
 
-func NewReservationService(DB *Database.DB) ReservationService {
+func NewService(reservationRepository Repository.CrudRepository[ReservationModel]) ReservationService {
 	return &reservationService{
-		reservationRepository: CommonRepository.NewCrudRepository[ReservationModel](DB),
+		reservationRepository: reservationRepository,
 	}
 }

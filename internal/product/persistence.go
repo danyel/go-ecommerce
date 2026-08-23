@@ -22,13 +22,13 @@ type ProductModel struct {
 	UpdatedAt   Time.Time
 }
 
-func (p *ProductModel) TableName() string {
+func (productModel *ProductModel) TableName() string {
 	return "products"
 }
 
-func (p *ProductModel) BeforeCreate(_ *Database.DB) (err error) {
-	if p.ID == Uuid.Nil {
-		p.ID = Uuid.New()
+func (productModel *ProductModel) BeforeCreate(_ *Database.DB) (err error) {
+	if productModel.ID == Uuid.Nil {
+		productModel.ID = Uuid.New()
 	}
 
 	return

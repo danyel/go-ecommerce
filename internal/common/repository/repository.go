@@ -8,10 +8,10 @@ import (
 type CrudRepository[T any] interface {
 	FindAll(searchCriteria SearchCriteria) []*T
 	FetchAll() []*T
-	FindById(id Uuid.UUID, preloads ...string) (*T, error)
-	Create(p *T) error
-	Update(p *T) error
-	Delete(id Uuid.UUID) error
+	FindById(ID Uuid.UUID, preloads ...string) (*T, error)
+	Create(model *T) error
+	Update(model *T) error
+	Delete(ID Uuid.UUID) error
 	Paginate(criteria SearchCriteria) ([]T, int64)
 	AssocAppend(parent *T, assoc string, values any) error
 	AssocReplace(parent *T, assoc string, values any) error
@@ -34,19 +34,19 @@ type SearchCriteria struct {
 }
 
 type crudRepository[T any] struct {
-	db *Database.DB
+	databaseConnection *Database.DB
 }
 
-func (r *crudRepository[T]) FetchAll() []*T {
+func (crudRepository *crudRepository[T]) FetchAll() []*T {
 	var results []*T
-	query := r.db.Model(new(T))
+	query := crudRepository.databaseConnection.Model(new(T))
 	query.Find(&results)
 	return results
 }
 
-func (r *crudRepository[T]) FindAll(searchCriteria SearchCriteria) []*T {
+func (crudRepository *crudRepository[T]) FindAll(searchCriteria SearchCriteria) []*T {
 	var results []*T
-	query := r.db.Model(new(T))
+	query := crudRepository.databaseConnection.Model(new(T))
 
 	if searchCriteria.WhereClause.Query != "" {
 		query = query.Where(
@@ -75,32 +75,32 @@ func (r *crudRepository[T]) FindAll(searchCriteria SearchCriteria) []*T {
 	query.Find(&results)
 	return results
 }
-func (r *crudRepository[T]) FindById(id Uuid.UUID, preloads ...string) (*T, error) {
+func (crudRepository *crudRepository[T]) FindById(ID Uuid.UUID, preloads ...string) (*T, error) {
 	var model T
 	var result *Database.DB
-	query := r.db.Model(&model)
+	query := crudRepository.databaseConnection.Model(&model)
 
 	for _, preload := range preloads {
 		query = query.Preload(preload)
 	}
 
-	if result = query.First(&model, "id = ?", id); result.Error != nil {
+	if result = query.First(&model, "id = ?", ID); result.Error != nil {
 		return nil, result.Error
 	}
 
 	return &model, nil
 }
-func (r *crudRepository[T]) Create(p *T) error {
-	return r.db.Create(p).Error
+func (crudRepository *crudRepository[T]) Create(p *T) error {
+	return crudRepository.databaseConnection.Create(p).Error
 }
 
-func (r *crudRepository[T]) Update(p *T) error {
-	return r.db.Save(p).Error
+func (crudRepository *crudRepository[T]) Update(p *T) error {
+	return crudRepository.databaseConnection.Save(p).Error
 }
 
-func (r *crudRepository[T]) Delete(id Uuid.UUID) error {
+func (crudRepository *crudRepository[T]) Delete(ID Uuid.UUID) error {
 	var result *Database.DB
-	if result = r.db.Delete(new(T), id); result.Error != nil {
+	if result = crudRepository.databaseConnection.Delete(new(T), ID); result.Error != nil {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
@@ -109,11 +109,11 @@ func (r *crudRepository[T]) Delete(id Uuid.UUID) error {
 	return nil
 }
 
-func (r *crudRepository[T]) Paginate(criteria SearchCriteria) ([]T, int64) {
+func (crudRepository *crudRepository[T]) Paginate(criteria SearchCriteria) ([]T, int64) {
 	var results []T
 	var total int64
 
-	base := r.db.Model(new(T))
+	base := crudRepository.databaseConnection.Model(new(T))
 
 	// Count total
 	if criteria.WhereClause.Query != "" {
@@ -143,26 +143,26 @@ func (r *crudRepository[T]) Paginate(criteria SearchCriteria) ([]T, int64) {
 	return results, total
 }
 
-func (r *crudRepository[T]) AssocAppend(parent *T, assoc string, values any) error {
-	return r.db.Session(&Database.Session{FullSaveAssociations: false}).Model(parent).Association(assoc).Append(values)
+func (crudRepository *crudRepository[T]) AssocAppend(parent *T, assoc string, values any) error {
+	return crudRepository.databaseConnection.Session(&Database.Session{FullSaveAssociations: false}).Model(parent).Association(assoc).Append(values)
 }
 
-func (r *crudRepository[T]) AssocReplace(parent *T, assoc string, values any) error {
-	return r.db.Model(parent).Association(assoc).Replace(values)
+func (crudRepository *crudRepository[T]) AssocReplace(parent *T, assoc string, values any) error {
+	return crudRepository.databaseConnection.Model(parent).Association(assoc).Replace(values)
 }
 
-func (r *crudRepository[T]) AssocDelete(parent *T, assoc string, values any) error {
-	return r.db.Model(parent).Association(assoc).Delete(values)
+func (crudRepository *crudRepository[T]) AssocDelete(parent *T, assoc string, values any) error {
+	return crudRepository.databaseConnection.Model(parent).Association(assoc).Delete(values)
 }
 
-func (r *crudRepository[T]) AssocClear(parent *T, assoc string) error {
-	return r.db.Model(parent).Association(assoc).Clear()
+func (crudRepository *crudRepository[T]) AssocClear(parent *T, assoc string) error {
+	return crudRepository.databaseConnection.Model(parent).Association(assoc).Clear()
 }
 
-func (r *crudRepository[T]) AssocCount(parent *T, assoc string) (int64, error) {
-	return r.db.Model(parent).Association(assoc).Count(), nil
+func (crudRepository *crudRepository[T]) AssocCount(parent *T, assoc string) (int64, error) {
+	return crudRepository.databaseConnection.Model(parent).Association(assoc).Count(), nil
 }
 
-func NewCrudRepository[T any](db *Database.DB) CrudRepository[T] {
-	return &crudRepository[T]{db: db}
+func NewCrudRepository[T any](databaseConnection *Database.DB) CrudRepository[T] {
+	return &crudRepository[T]{databaseConnection: databaseConnection}
 }

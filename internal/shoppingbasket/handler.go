@@ -3,68 +3,65 @@ package shoppingbasket
 import (
 	Http "net/http"
 
-	CommonHandler "github.com/danyel/ecommerce/internal/common/handler"
-	Port "github.com/danyel/ecommerce/internal/common/port"
-	Database "gorm.io/gorm"
+	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
 )
 
 type ShoppingBasketHandler interface {
-	CreateShoppingBasket(w Http.ResponseWriter, r *Http.Request)
-	UpdateShoppingBasketItem(w Http.ResponseWriter, r *Http.Request)
-	GetShoppingBasket(w Http.ResponseWriter, r *Http.Request)
+	CreateShoppingBasket(response Http.ResponseWriter, request *Http.Request)
+	UpdateShoppingBasketItem(response Http.ResponseWriter, request *Http.Request)
+	GetShoppingBasket(response Http.ResponseWriter, request *Http.Request)
 }
 
 type shoppingBasketHandler struct {
-	s ShoppingBasketService
+	shoppingBasketService ShoppingBasketService
 }
 
-func (h *shoppingBasketHandler) CreateShoppingBasket(w Http.ResponseWriter, r *Http.Request) {
-	sh, err := h.s.CreateShoppingBasket()
+func (shoppingBasketHandler *shoppingBasketHandler) CreateShoppingBasket(response Http.ResponseWriter, request *Http.Request) {
+	shoppingBasket, err := shoppingBasketHandler.shoppingBasketService.CreateShoppingBasket()
 	if err != nil {
-		CommonHandler.StatusInternalServerError(w, r)
+		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusCreated, w, r, sh.ID)
+	WebHandler.WriteResponse(Http.StatusCreated, response, request, shoppingBasket.ID)
 }
 
 // UpdateShoppingBasketItem web handler function that will update the shopping basket
-func (h *shoppingBasketHandler) UpdateShoppingBasketItem(w Http.ResponseWriter, r *Http.Request) {
+func (shoppingBasketHandler *shoppingBasketHandler) UpdateShoppingBasketItem(response Http.ResponseWriter, request *Http.Request) {
 	var updateShoppingBasketItem UpdateShoppingBasketItem
 	var err error
 	var shoppingBasket ShoppingBasket
-	shoppingBasketID, err := CommonHandler.GetID(r, "shoppingBasketID")
+	shoppingBasketID, err := WebHandler.GetID(request, "shoppingBasketID")
 	if err != nil {
-		CommonHandler.StatusBadRequest(w, r)
+		WebHandler.StatusBadRequest(response, request)
 		return
 	}
 
-	if err = CommonHandler.ValidateRequest[UpdateShoppingBasketItem](r, &updateShoppingBasketItem); err != nil {
-		CommonHandler.StatusBadRequest(w, r)
+	if err = WebHandler.ValidateRequest(request, &updateShoppingBasketItem); err != nil {
+		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if shoppingBasket, err = h.s.UpdateShoppingBasketItem(shoppingBasketID.ID, updateShoppingBasketItem); err != nil {
-		CommonHandler.StatusInternalServerError(w, r)
+	if shoppingBasket, err = shoppingBasketHandler.shoppingBasketService.UpdateShoppingBasketItem(shoppingBasketID.ID, updateShoppingBasketItem); err != nil {
+		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusOK, w, r, shoppingBasket)
+	WebHandler.WriteResponse(Http.StatusOK, response, request, shoppingBasket)
 }
 
-func (h *shoppingBasketHandler) GetShoppingBasket(w Http.ResponseWriter, r *Http.Request) {
+func (shoppingBasketHandler *shoppingBasketHandler) GetShoppingBasket(response Http.ResponseWriter, request *Http.Request) {
 	var err error
 	var shoppingBasket ShoppingBasket
-	ID, err := CommonHandler.GetID(r, "shoppingBasketID")
+	ID, err := WebHandler.GetID(request, "shoppingBasketID")
 	if err != nil {
-		CommonHandler.StatusBadRequest(w, r)
+		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if shoppingBasket, err = h.s.GetShoppingBasket(ID.ID); err != nil {
-		CommonHandler.StatusInternalServerError(w, r)
+	if shoppingBasket, err = shoppingBasketHandler.shoppingBasketService.GetShoppingBasket(ID.ID); err != nil {
+		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
-	CommonHandler.WriteResponse(Http.StatusOK, w, r, shoppingBasket)
+	WebHandler.WriteResponse(Http.StatusOK, response, request, shoppingBasket)
 }
 
-func NewHandler(db *Database.DB, p Port.EventPublisher) ShoppingBasketHandler {
-	s := NewService(db, p)
-	return &shoppingBasketHandler{s}
+func NewHandler(shoppingBasketService ShoppingBasketService) ShoppingBasketHandler {
+	return &shoppingBasketHandler{shoppingBasketService}
 }

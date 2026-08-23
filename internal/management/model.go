@@ -9,12 +9,12 @@ type CreateCategory struct {
 
 type RemoveChild struct {
 	ID      Uuid.UUID `json:"id"`
-	ChildId Uuid.UUID `json:"child_id"`
+	ChildID Uuid.UUID `json:"child_id"`
 }
 
 type AddChild struct {
 	ID      Uuid.UUID `json:"id"`
-	ChildId Uuid.UUID `json:"child_id"`
+	ChildID Uuid.UUID `json:"child_id"`
 }
 
 type CreateCms struct {
@@ -23,6 +23,6 @@ type CreateCms struct {
 	Language string `json:"language"`
 }
 
-type CmsId struct {
+type CmsID struct {
 	ID Uuid.UUID `json:"id"`
 }

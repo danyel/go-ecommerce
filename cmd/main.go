@@ -4,19 +4,17 @@ import (
 	Log "log"
 	OS "os"
 
-	Broker "github.com/danyel/ecommerce/cmd/broker"
-	Config "github.com/danyel/ecommerce/cmd/config"
-	DatabaseConnection "github.com/danyel/ecommerce/cmd/database"
+	Configuration "github.com/danyel/ecommerce/cmd/config"
 	Router "github.com/danyel/ecommerce/cmd/router"
+	Factory "github.com/danyel/ecommerce/internal/common/factory"
+	Reservation "github.com/danyel/ecommerce/internal/reservation"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	GoDotEnv "github.com/joho/godotenv"
-	Database "gorm.io/gorm"
 )
 
 // project setup is done here.
 func main() {
 	var err error
-	var db *Database.DB
 	var locations []string
 	if OS.Getenv("ENV") == "dev" {
 		locations = []string{".env.dev"}
@@ -27,25 +25,24 @@ func main() {
 	if err != nil {
 		Log.Fatal(err)
 	}
-	sc := Config.NewServerConfiguration()
-	dc := Config.NewDatabaseConfiguration()
-	bc := Config.NewBrokerConfiguration()
-	db, err = DatabaseConnection.Connect(&dc)
-	b := Broker.NewBroker()
-	if b.CreateConnection(&bc) != nil {
-		Log.Fatal(err)
-	}
-	ShoppingBasket.RegisterShoppingBasketEvents(ShoppingBasket.NewService(db, b), b)
-	if err = b.Start(); err != nil {
+	serverConfiguration := Configuration.NewServerConfiguration()
+	databaseConfiguration := Configuration.NewDatabaseConfiguration()
+	messageBrokerConfiguration := Configuration.NewMessageBrokerConfiguration()
+	databaseConnectionFactory := Factory.NewDatabaseConnectionFactory(&databaseConfiguration)
+	brokerConnectionFactory := Factory.NewMessageBrokerConnectionFactory(&messageBrokerConfiguration)
+	applicationConnectionFactory := Factory.NewApplicationConnectionFactory(databaseConnectionFactory, brokerConnectionFactory)
+
+	ShoppingBasket.RegisterShoppingBasketEvents(applicationConnectionFactory.ShoppingBasketService(), brokerConnectionFactory.MessageBroker())
+	Reservation.RegisterReservationEvents(applicationConnectionFactory.ReservationService(), applicationConnectionFactory.ProductService(), brokerConnectionFactory.MessageBroker())
+	if err = brokerConnectionFactory.MessageBroker().Start(); err != nil {
 		Log.Println(err.Error())
 	}
-	r := Router.APIDefinition{
-		SC:             &sc,
-		DB:             db,
-		EventPublisher: b,
+	apiDefinition := Router.APIDefinition{
+		ServerConfiguration:          &serverConfiguration,
+		ApplicationConnectionFactory: applicationConnectionFactory,
 	}
 	if err != nil {
 		Log.Fatal(err)
 	}
-	r.Run(r.ConfigRouter())
+	apiDefinition.Run(apiDefinition.ConfigRouter())
 }

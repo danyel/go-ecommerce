@@ -17,20 +17,20 @@ type productMapper struct {
 	cmsService      CMS.CmsService
 }
 
-func (p *productMapper) MapProducts(models []*ProductModel) []Product {
-	result := make([]Product, len(models))
-	for i, productModel := range models {
-		result[i] = p.MapProduct(productModel)
+func (productMapper *productMapper) MapProducts(productModels []*ProductModel) []Product {
+	result := make([]Product, len(productModels))
+	for index, productModel := range productModels {
+		result[index] = productMapper.MapProduct(productModel)
 	}
 	return result
 }
 
-func (p *productMapper) MapProduct(productModel *ProductModel) Product {
-	categoryModel, _ := p.categoryService.GetCategory(productModel.CategoryID)
+func (productMapper *productMapper) MapProduct(productModel *ProductModel) Product {
+	categoryModel, _ := productMapper.categoryService.GetCategory(productModel.CategoryID)
 	// TODO fetch that information from the header
-	description, _ := p.cmsService.GetTranslation(productModel.Description, "nl_BE")
+	description, _ := productMapper.cmsService.GetTranslation(productModel.Description, "nl_BE")
 	// TODO fetch that information from the header
-	name, _ := p.cmsService.GetTranslation(productModel.Name, "nl_BE")
+	name, _ := productMapper.cmsService.GetTranslation(productModel.Name, "nl_BE")
 	return Product{
 		Code:        productModel.Code,
 		Price:       Types.NewPrice(productModel.Price, "EUR"),
@@ -44,6 +44,6 @@ func (p *productMapper) MapProduct(productModel *ProductModel) Product {
 	}
 }
 
-func NewProductMapper(p Category.CategoryService, c CMS.CmsService) ProductMapper {
-	return &productMapper{categoryService: p, cmsService: c}
+func NewProductMapper(categoryService Category.CategoryService, cmsService CMS.CmsService) ProductMapper {
+	return &productMapper{categoryService: categoryService, cmsService: cmsService}
 }
