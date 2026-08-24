@@ -102,13 +102,14 @@ func (apiRouter *apiRouter) configureApiRouting() {
 
 // shoppingBasket Shopping Basket api /api/shopping-basket
 func shoppingBasket(router Router.Router, shoppingBasketWebHandler ShoppingBasket.ShoppingBasketWebHandler) Router.Router {
-	return router.Route(ShoppingBasketRootContext, func(router Router.Router) {
-		router.Route(VersionOne, func(router Router.Router) {
-			router.Route(ShoppingBasketsRootContext, func(router Router.Router) {
-				router.Post(BaseContextPath, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
-				router.Route(ById, func(router Router.Router) {
-					router.Post(BaseContextPath, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
-					router.Get(SLASH, shoppingBasketWebHandler.HandleGetShoppingBasketV1)
+	return router.Route(ShoppingBasketRootContext, func(shoppingBasketRouter Router.Router) {
+		shoppingBasketRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
+			versionOneRouter.Route(ShoppingBasketsRootContext, func(shoppingBasketsRouter Router.Router) {
+				shoppingBasketsRouter.Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
+				shoppingBasketsRouter.Route(ById, func(byIdRouter Router.Router) {
+					Logger.Log.Debug("Shopping Basket By Id")
+					byIdRouter.Get(SLASH, shoppingBasketWebHandler.HandleGetShoppingBasketByIdV1)
+					byIdRouter.Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
 				})
 			})
 		})
@@ -149,7 +150,9 @@ func cms(router Router.Router, cmsWebHandler CMS.CmsWebHandler) Router.Router {
 	return router.Route(CmsRootContext, func(router Router.Router) {
 		router.Route(VersionOne, func(router Router.Router) {
 			router.Route(TranslationsRootContext, func(router Router.Router) {
-				router.Get(BaseContextPath, cmsWebHandler.HandleV1)
+				Logger.Log.Debug("Hitting Url: %s", BaseContextPath+CmsRootContext+VersionOne+TranslationsRootContext)
+				router.Get(ByLanguage, cmsWebHandler.HandleV1)
+				router.Get(SLASH, cmsWebHandler.HandleV1)
 				router.Get(ByLanguage+ByCode, cmsWebHandler.HandleGetTranslationV1)
 			})
 		})
@@ -162,7 +165,7 @@ func product(router Router.Router, productWebHandler Product.ProductWebHandler) 
 		router.Route(VersionOne, func(router Router.Router) {
 			router.Get(SLASH, productWebHandler.HandleGetProductsV1)
 			router.Route(ById, func(router Router.Router) {
-				router.Get(BaseContextPath, productWebHandler.HandleGetProductV1)
+				router.Get(SLASH, productWebHandler.HandleGetProductV1)
 			})
 		})
 	})

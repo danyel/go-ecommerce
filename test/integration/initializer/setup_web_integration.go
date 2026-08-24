@@ -25,7 +25,8 @@ import (
 const (
 	CmsTranslationsUrl               = ApplicationRouter.BaseContextPath + ApplicationRouter.CmsRootContext + ApplicationRouter.VersionOne + ApplicationRouter.TranslationsRootContext
 	ProductManagementProductsUrl     = ApplicationRouter.BaseContextPath + ApplicationRouter.ProductManagementRootContext + ApplicationRouter.VersionOne + ApplicationRouter.ProductsRootContext
-	ManagementTranslationsUrl        = ApplicationRouter.BaseContextPath + ApplicationRouter.CmsRootContext + ApplicationRouter.VersionOne + ApplicationRouter.TranslationsRootContext
+	ProductProductsUrl               = ApplicationRouter.BaseContextPath + ApplicationRouter.ProductRootContext + ApplicationRouter.VersionOne + ApplicationRouter.ProductsRootContext
+	ManagementTranslationsUrl        = ApplicationRouter.BaseContextPath + ApplicationRouter.ManagementRootContext + ApplicationRouter.VersionOne + ApplicationRouter.TranslationsRootContext
 	ShoppingBasketShoppingBasketsUrl = ApplicationRouter.BaseContextPath + ApplicationRouter.ShoppingBasketRootContext + ApplicationRouter.VersionOne + ApplicationRouter.ShoppingBasketsRootContext
 )
 
@@ -57,7 +58,7 @@ func (webIntegration *WebIntegration) ProductManagementPostProducts(createProduc
 func (webIntegration *WebIntegration) GetTranslations(language string) *WebIntegration {
 	baseUrl := CmsTranslationsUrl
 	if language != "" {
-		baseUrl += Fmt.Sprintf("?language=%s", language)
+		baseUrl += ApplicationRouter.SLASH + language
 	}
 	return webIntegration.Get(webIntegration.forURL(baseUrl))
 }
@@ -75,7 +76,7 @@ func (webIntegration *WebIntegration) ShoppingBasketCreate() *WebIntegration {
 }
 
 func (webIntegration *WebIntegration) ShoppingBasketAddItem(ID string, updateShoppingBasketItem ShoppingBasket.UpdateShoppingBasketItem) *WebIntegration {
-	return webIntegration.Post(webIntegration.forURL(ShoppingBasketShoppingBasketsUrl+ApplicationRouter.SLASH+ID), updateShoppingBasketItem)
+	return webIntegration.Put(webIntegration.forURL(ShoppingBasketShoppingBasketsUrl+ApplicationRouter.SLASH+ID), updateShoppingBasketItem)
 }
 
 func (webIntegration *WebIntegration) GetShoppingBasket(ID string) *WebIntegration {

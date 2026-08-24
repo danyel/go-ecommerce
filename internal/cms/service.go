@@ -3,6 +3,7 @@ package cms
 import (
 	Fmt "fmt"
 
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
 )
 
@@ -33,7 +34,7 @@ func (cmsService *cmsService) GetTranslations(language string) []Translation {
 			Language: cms.Language,
 		}
 	}
-
+	Logger.Log.Debug("GetTranslations: %v", translations)
 	return translations
 }
 

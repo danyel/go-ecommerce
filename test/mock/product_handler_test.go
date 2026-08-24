@@ -4,8 +4,10 @@ import (
 	Http "net/http"
 	Testing "testing"
 
+	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
 	Types "github.com/danyel/ecommerce/internal/common/types"
 	Product "github.com/danyel/ecommerce/internal/product"
+	SetupWebIntegration "github.com/danyel/ecommerce/test/integration/initializer"
 	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	Uuid "github.com/google/uuid"
 	Assert "github.com/stretchr/testify/assert"
@@ -42,8 +44,8 @@ func TestProductHandler(unitTest *Testing.T) {
 		productService.On("GetProducts").Return(products, nil)
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
-			NewRequest(Http.MethodGet, "/api/product/v1/products", nil).
-			NewRouter(Http.MethodGet, "/api/product/v1/products", productHandler.HandleGetProductsV1).
+			NewRequest(Http.MethodGet, SetupWebIntegration.ProductProductsUrl, nil).
+			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsUrl, productHandler.HandleGetProductsV1).
 			ServeHTTP().
 			Status())
 		productService.AssertCalled(unitTest, "GetProducts")
@@ -57,8 +59,8 @@ func TestProductHandler(unitTest *Testing.T) {
 
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
-			NewRequest(Http.MethodGet, "/api/product/v1/products/"+ID.String(), nil).
-			NewRouter(Http.MethodGet, "/api/product/v1/products/{productID}", productHandler.HandleGetProductV1).
+			NewRequest(Http.MethodGet, SetupWebIntegration.ProductProductsUrl+ApplicationRouter.SLASH+ID.String(), nil).
+			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsUrl+ApplicationRouter.ById, productHandler.HandleGetProductV1).
 			ServeHTTP().
 			Status())
 		productService.AssertCalled(unitTest, "GetProduct", ID)

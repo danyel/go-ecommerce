@@ -87,6 +87,7 @@ func (shoppingBasketService *shoppingBasketService) UpdateShoppingBasketItem(ID 
 
 func (shoppingBasketService *shoppingBasketService) GetShoppingBasket(ID Uuid.UUID) (ShoppingBasket, error) {
 	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindById(ID, "Items")
+	Logger.Log.Debug("Shopping Basket By Id: %v", shoppingBasketModel)
 	totalPrice := float64(0)
 	if err != nil {
 		return EmptyShoppingBasket(), err

@@ -3,6 +3,7 @@ package shoppingbasket
 import (
 	Http "net/http"
 
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
 )
 
@@ -10,7 +11,7 @@ import (
 type ShoppingBasketWebHandler interface {
 	HandleCreateShoppingBasketV1(response Http.ResponseWriter, request *Http.Request)
 	HandleUpdateShoppingBasketItemV1(response Http.ResponseWriter, request *Http.Request)
-	HandleGetShoppingBasketV1(response Http.ResponseWriter, request *Http.Request)
+	HandleGetShoppingBasketByIdV1(response Http.ResponseWriter, request *Http.Request)
 }
 
 type shoppingBasketWebHandler struct {
@@ -18,6 +19,7 @@ type shoppingBasketWebHandler struct {
 }
 
 func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleCreateShoppingBasketV1(response Http.ResponseWriter, request *Http.Request) {
+	Logger.Log.Debug("HandleCreateShoppingBasketV1")
 	shoppingBasket, err := shoppingBasketWebHandler.shoppingBasketService.CreateShoppingBasket()
 	if err != nil {
 		WebHandler.StatusInternalServerError(response, request)
@@ -28,10 +30,11 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleCreateShoppingBa
 
 // HandleUpdateShoppingBasketItemV1 web handler function that will update the shopping basket
 func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleUpdateShoppingBasketItemV1(response Http.ResponseWriter, request *Http.Request) {
+	Logger.Log.Debug("HandleUpdateShoppingBasketItemV1")
 	var updateShoppingBasketItem UpdateShoppingBasketItem
 	var err error
 	var shoppingBasket ShoppingBasket
-	shoppingBasketID, err := WebHandler.GetID(request)
+	ID, err := WebHandler.GetID(request)
 	if err != nil {
 		WebHandler.StatusBadRequest(response, request)
 		return
@@ -41,14 +44,15 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleUpdateShoppingBa
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if shoppingBasket, err = shoppingBasketWebHandler.shoppingBasketService.UpdateShoppingBasketItem(shoppingBasketID.ID, updateShoppingBasketItem); err != nil {
+	if shoppingBasket, err = shoppingBasketWebHandler.shoppingBasketService.UpdateShoppingBasketItem(ID.ID, updateShoppingBasketItem); err != nil {
 		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusOK, response, request, shoppingBasket)
 }
 
-func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleGetShoppingBasketV1(response Http.ResponseWriter, request *Http.Request) {
+func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleGetShoppingBasketByIdV1(response Http.ResponseWriter, request *Http.Request) {
+	Logger.Log.Debug("HandleGetShoppingBasketByIdV1")
 	var err error
 	var shoppingBasket ShoppingBasket
 	ID, err := WebHandler.GetID(request)
@@ -56,10 +60,13 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleGetShoppingBaske
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
+	Logger.Log.Debug("Fetching for id: %s", ID.ID.String())
 	if shoppingBasket, err = shoppingBasketWebHandler.shoppingBasketService.GetShoppingBasket(ID.ID); err != nil {
+		Logger.Log.Debug(err.Error())
 		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
+	Logger.Log.Debug("Shopping Basket fetched: %v", shoppingBasket)
 	WebHandler.WriteResponse(Http.StatusOK, response, request, shoppingBasket)
 }
 

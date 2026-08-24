@@ -3,6 +3,7 @@ package cms
 import (
 	Http "net/http"
 
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
 )
 
@@ -30,8 +31,8 @@ func (cmsWebHandler *cmsWebHandler) HandleGetTranslationV1(response Http.Respons
 }
 
 func (cmsWebHandler *cmsWebHandler) HandleV1(response Http.ResponseWriter, request *Http.Request) {
-	language := WebHandler.GetRequestParam(request, "language")
-
+	language := WebHandler.GetPathParam(request, "language")
+	Logger.Log.Debug("Searching translations for language: %s", language)
 	WebHandler.WriteResponse(Http.StatusOK, response, request, cmsWebHandler.cmsService.GetTranslations(language))
 }
 
