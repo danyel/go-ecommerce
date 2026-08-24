@@ -9,8 +9,8 @@ import (
 	Uuid "github.com/google/uuid"
 )
 
-func GetID(request *Http.Request, key string) (Types.ID, error) {
-	ID := Router.URLParam(request, key)
+func GetID(request *Http.Request) (Types.ID, error) {
+	ID := Router.URLParam(request, "ID")
 	var err error
 	var newID Uuid.UUID
 	if newID, err = Uuid.Parse(ID); err != nil {

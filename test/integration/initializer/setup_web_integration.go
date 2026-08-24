@@ -13,13 +13,20 @@ import (
 	Logger "github.com/danyel/ecommerce/cmd/logger"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
-	Factory "github.com/danyel/ecommerce/internal/common/factory"
+	Factory "github.com/danyel/ecommerce/internal/common/factory/context"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	Assert "github.com/stretchr/testify/assert"
 	Database "gorm.io/gorm"
+)
+
+const (
+	CmsTranslationsUrl               = ApplicationRouter.BaseContextPath + ApplicationRouter.CmsRootContext + ApplicationRouter.VersionOne + ApplicationRouter.TranslationsRootContext
+	ProductManagementProductsUrl     = ApplicationRouter.BaseContextPath + ApplicationRouter.ProductManagementRootContext + ApplicationRouter.VersionOne + ApplicationRouter.ProductsRootContext
+	ManagementTranslationsUrl        = ApplicationRouter.BaseContextPath + ApplicationRouter.CmsRootContext + ApplicationRouter.VersionOne + ApplicationRouter.TranslationsRootContext
+	ShoppingBasketShoppingBasketsUrl = ApplicationRouter.BaseContextPath + ApplicationRouter.ShoppingBasketRootContext + ApplicationRouter.VersionOne + ApplicationRouter.ShoppingBasketsRootContext
 )
 
 type WebIntegration struct {
@@ -44,11 +51,11 @@ func (webIntegration *WebIntegration) WithAuth(ID string, roles []string, hexSec
 }
 
 func (webIntegration *WebIntegration) ProductManagementPostProducts(createProduct *Product.CreateProduct) *WebIntegration {
-	return webIntegration.Post(webIntegration.forURL("/api/product-management/v1/products"), createProduct)
+	return webIntegration.Post(webIntegration.forURL(ProductManagementProductsUrl), createProduct)
 }
 
 func (webIntegration *WebIntegration) GetTranslations(language string) *WebIntegration {
-	baseUrl := "/api/cms/v1/translations"
+	baseUrl := CmsTranslationsUrl
 	if language != "" {
 		baseUrl += Fmt.Sprintf("?language=%s", language)
 	}
@@ -56,27 +63,27 @@ func (webIntegration *WebIntegration) GetTranslations(language string) *WebInteg
 }
 
 func (webIntegration *WebIntegration) ManagementPostTranslations(createCms *Management.CreateCms) *WebIntegration {
-	return webIntegration.Post(webIntegration.forURL("/api/management/v1/translations"), createCms)
+	return webIntegration.Post(webIntegration.forURL(ManagementTranslationsUrl), createCms)
 }
 
 func (webIntegration *WebIntegration) ProductManagementGetProducts() *WebIntegration {
-	return webIntegration.Get(webIntegration.forURL("/api/product-management/v1/products"))
+	return webIntegration.Get(webIntegration.forURL(ProductManagementProductsUrl))
 }
 
 func (webIntegration *WebIntegration) ShoppingBasketCreate() *WebIntegration {
-	return webIntegration.Post(webIntegration.forURL("/api/shopping-basket/v1/shopping-baskets"), nil)
+	return webIntegration.Post(webIntegration.forURL(ShoppingBasketShoppingBasketsUrl), nil)
 }
 
 func (webIntegration *WebIntegration) ShoppingBasketAddItem(ID string, updateShoppingBasketItem ShoppingBasket.UpdateShoppingBasketItem) *WebIntegration {
-	return webIntegration.Post(webIntegration.forURL("/api/shopping-basket/v1/shopping-baskets/"+ID), updateShoppingBasketItem)
+	return webIntegration.Post(webIntegration.forURL(ShoppingBasketShoppingBasketsUrl+ApplicationRouter.SLASH+ID), updateShoppingBasketItem)
 }
 
 func (webIntegration *WebIntegration) GetShoppingBasket(ID string) *WebIntegration {
-	return webIntegration.Get(webIntegration.forURL("/api/shopping-basket/v1/shopping-baskets/" + ID))
+	return webIntegration.Get(webIntegration.forURL(ShoppingBasketShoppingBasketsUrl + ApplicationRouter.SLASH + ID))
 }
 
 func (webIntegration *WebIntegration) ProductManagementGetProductByID(ID string) *WebIntegration {
-	return webIntegration.Get(webIntegration.forURL("/api/product-management/v1/products/" + ID))
+	return webIntegration.Get(webIntegration.forURL(ProductManagementProductsUrl + ApplicationRouter.SLASH + ID))
 }
 
 func (webIntegration *WebIntegration) forURL(URL string) string {
@@ -182,20 +189,17 @@ func SetupWebIntegration(unitTest *Testing.T) *WebIntegration {
 	databaseConnection := backendInitializer.DatabaseConnection()
 	serverConfiguration := Configuration.NewServerConfiguration()
 	serverConfiguration.JwtSecret = secretKey
-	databaseConnectionFactory := Factory.NewDatabaseConnectionFactory(backendInitializer.DatabaseConfiguration)
-	messageBrokerConnectionFactory := Factory.NewMessageBrokerConnectionFactory(backendInitializer.MessageBrokerConfiguration)
-	applicationConnectionFactory := Factory.NewApplicationConnectionFactory(databaseConnectionFactory, messageBrokerConnectionFactory)
+	Factory.InitializeDatabaseContextFactory(backendInitializer.DatabaseConfiguration)
+	Factory.InitializeMessageBrokerContextFactory(backendInitializer.MessageBrokerConfiguration)
+	applicationContextFactory := Factory.BuildApplicationContextFactory()
+	webHandlerContextFactory := Factory.BuildAWebHandlerContextFactory()
 
-	ShoppingBasket.RegisterShoppingBasketEvents(applicationConnectionFactory.ShoppingBasketService(), messageBrokerConnectionFactory.MessageBroker())
-	if err := messageBrokerConnectionFactory.MessageBroker().Start(); err != nil {
+	ShoppingBasket.RegisterShoppingBasketEvents(applicationContextFactory.ShoppingBasketService(), applicationContextFactory.MessageBroker())
+	if err := applicationContextFactory.StartMessageBroker(); err != nil {
 		Logger.Log.Fatal(err.Error())
 	}
-	apiDefinition := ApplicationRouter.APIDefinition{
-		ServerConfiguration:          &serverConfiguration,
-		ApplicationConnectionFactory: applicationConnectionFactory,
-	}
-
-	server := HttpTest.NewServer(apiDefinition.ConfigRouter())
+	apiRouter := ApplicationRouter.NewApiRouter(&serverConfiguration, webHandlerContextFactory)
+	server := HttpTest.NewServer(apiRouter.Router())
 
 	unitTest.Cleanup(func() {
 		server.Close()

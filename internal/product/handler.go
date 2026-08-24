@@ -8,36 +8,36 @@ import (
 )
 
 //goland:noinspection GoNameStartsWithPackageName
-type ProductHandler interface {
-	GetProducts(response Http.ResponseWriter, request *Http.Request)
-	GetProduct(response Http.ResponseWriter, request *Http.Request)
+type ProductWebHandler interface {
+	HandleGetProductsV1(response Http.ResponseWriter, request *Http.Request)
+	HandleGetProductV1(response Http.ResponseWriter, request *Http.Request)
 }
 
-type productHandler struct {
+type productWebHandler struct {
 	productService ProductService
 }
 
-func (productHandler *productHandler) GetProducts(response Http.ResponseWriter, request *Http.Request) {
-	WebHandler.WriteResponse(Http.StatusOK, response, request, productHandler.productService.GetProducts())
+func (productWebHandler *productWebHandler) HandleGetProductsV1(response Http.ResponseWriter, request *Http.Request) {
+	WebHandler.WriteResponse(Http.StatusOK, response, request, productWebHandler.productService.GetProducts())
 }
 
-func (productHandler *productHandler) GetProduct(response Http.ResponseWriter, request *Http.Request) {
+func (productWebHandler *productWebHandler) HandleGetProductV1(response Http.ResponseWriter, request *Http.Request) {
 	var product Product
-	var productID Types.ID
+	var ID Types.ID
 	var err error
-	if productID, err = WebHandler.GetID(request, "productID"); err != nil {
+	if ID, err = WebHandler.GetID(request); err != nil {
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
 
-	if product, err = productHandler.productService.GetProduct(productID.ID); err != nil {
+	if product, err = productWebHandler.productService.GetProduct(ID.ID); err != nil {
 		WebHandler.StatusNotFound(response, request)
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusOK, response, request, product)
 }
 
-func NewHandler(productService ProductService) ProductHandler {
-	productHandler := &productHandler{productService}
-	return productHandler
+func NewWebHandler(productService ProductService) ProductWebHandler {
+	productWebHandler := &productWebHandler{productService}
+	return productWebHandler
 }

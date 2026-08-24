@@ -7,36 +7,36 @@ import (
 )
 
 //goland:noinspection GoNameStartsWithPackageName
-type CmsHandler interface {
-	GetTranslation(response Http.ResponseWriter, request *Http.Request)
-	GetTranslations(response Http.ResponseWriter, request *Http.Request)
+type CmsWebHandler interface {
+	HandleGetTranslationV1(response Http.ResponseWriter, request *Http.Request)
+	HandleV1(response Http.ResponseWriter, request *Http.Request)
 }
 
-type cmsHandler struct {
+type cmsWebHandler struct {
 	cmsService CmsService
 }
 
-func (cmsHandler *cmsHandler) GetTranslation(response Http.ResponseWriter, request *Http.Request) {
+func (cmsWebHandler *cmsWebHandler) HandleGetTranslationV1(response Http.ResponseWriter, request *Http.Request) {
 	language := WebHandler.GetPathParam(request, "language")
 	code := WebHandler.GetPathParam(request, "code")
 	var translation Translation
 	var err error
 
-	if translation, err = cmsHandler.cmsService.GetTranslation(code, language); err != nil {
+	if translation, err = cmsWebHandler.cmsService.GetTranslation(code, language); err != nil {
 		WebHandler.StatusNotFound(response, request)
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusOK, response, request, translation)
 }
 
-func (cmsHandler *cmsHandler) GetTranslations(response Http.ResponseWriter, request *Http.Request) {
+func (cmsWebHandler *cmsWebHandler) HandleV1(response Http.ResponseWriter, request *Http.Request) {
 	language := WebHandler.GetRequestParam(request, "language")
 
-	WebHandler.WriteResponse(Http.StatusOK, response, request, cmsHandler.cmsService.GetTranslations(language))
+	WebHandler.WriteResponse(Http.StatusOK, response, request, cmsWebHandler.cmsService.GetTranslations(language))
 }
 
-func NewHandler(cmsService CmsService) CmsHandler {
-	return &cmsHandler{
+func NewWebHandler(cmsService CmsService) CmsWebHandler {
+	return &cmsWebHandler{
 		cmsService,
 	}
 }

@@ -13,25 +13,25 @@ import (
 )
 
 //goland:noinspection GoNameStartsWithPackageName
-type ProductManagementHandler interface {
-	GetProducts(response Http.ResponseWriter, request *Http.Request)
-	GetProduct(response Http.ResponseWriter, request *Http.Request)
-	DeleteProduct(response Http.ResponseWriter, request *Http.Request)
-	UpdateProduct(response Http.ResponseWriter, request *Http.Request)
-	CreateProduct(response Http.ResponseWriter, request *Http.Request)
+type ProductManagementWebHandler interface {
+	HandleGetProductsV1(response Http.ResponseWriter, request *Http.Request)
+	HandleGetProductV1(response Http.ResponseWriter, request *Http.Request)
+	HandleDeleteProductV1(response Http.ResponseWriter, request *Http.Request)
+	HandleUpdateProductV1(response Http.ResponseWriter, request *Http.Request)
+	HandleCreateProductV1(response Http.ResponseWriter, request *Http.Request)
 }
 
-type productManagementHandler struct {
+type productManagementWebHandler struct {
 	productManagementService ProductManagementService
 	productMapper            Product.ProductMapper
 }
 
-func (productManagementHandler *productManagementHandler) GetProducts(response Http.ResponseWriter, request *Http.Request) {
-	products := productManagementHandler.productManagementService.GetProducts()
+func (productManagementWebHandler *productManagementWebHandler) HandleGetProductsV1(response Http.ResponseWriter, request *Http.Request) {
+	products := productManagementWebHandler.productManagementService.GetProducts()
 	WebHandler.WriteResponse(Http.StatusOK, response, request, products)
 }
 
-func (productManagementHandler *productManagementHandler) DeleteProduct(response Http.ResponseWriter, request *Http.Request) {
+func (productManagementWebHandler *productManagementWebHandler) HandleDeleteProductV1(response Http.ResponseWriter, request *Http.Request) {
 	var productID Uuid.UUID
 	var err error
 	productIDToParse := Router.URLParam(request, "productID")
@@ -40,15 +40,15 @@ func (productManagementHandler *productManagementHandler) DeleteProduct(response
 		return
 	}
 
-	if err = productManagementHandler.productManagementService.DeleteProduct(Types.NewID(productID)); err != nil {
+	if err = productManagementWebHandler.productManagementService.DeleteProduct(Types.NewID(productID)); err != nil {
 		WebHandler.StatusNotFound(response, request)
 		return
 	}
 	WebHandler.StatusNoContent(response, request)
 }
 
-func (productManagementHandler *productManagementHandler) UpdateProduct(response Http.ResponseWriter, request *Http.Request) {
-	productID, err := WebHandler.GetID(request, "productID")
+func (productManagementWebHandler *productManagementWebHandler) HandleUpdateProductV1(response Http.ResponseWriter, request *Http.Request) {
+	productID, err := WebHandler.GetID(request)
 	if err != nil {
 		WebHandler.StatusNotFound(response, request)
 	}
@@ -57,13 +57,13 @@ func (productManagementHandler *productManagementHandler) UpdateProduct(response
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if err = productManagementHandler.productManagementService.UpdateProduct(productID, updateProduct); err != nil {
+	if err = productManagementWebHandler.productManagementService.UpdateProduct(productID, updateProduct); err != nil {
 		WebHandler.StatusNotFound(response, request)
 		return
 	}
 }
 
-func (productManagementHandler *productManagementHandler) CreateProduct(response Http.ResponseWriter, request *Http.Request) {
+func (productManagementWebHandler *productManagementWebHandler) HandleCreateProductV1(response Http.ResponseWriter, request *Http.Request) {
 	var createProduct Product.CreateProduct
 	var ID Types.ID
 	var err error
@@ -72,32 +72,32 @@ func (productManagementHandler *productManagementHandler) CreateProduct(response
 		WebHandler.StatusBadRequest(response, request)
 	}
 
-	if ID, err = productManagementHandler.productManagementService.CreateProduct(createProduct); err != nil {
+	if ID, err = productManagementWebHandler.productManagementService.CreateProduct(createProduct); err != nil {
 		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusCreated, response, request, ID)
 }
 
-func (productManagementHandler *productManagementHandler) GetProduct(response Http.ResponseWriter, request *Http.Request) {
+func (productManagementWebHandler *productManagementWebHandler) HandleGetProductV1(response Http.ResponseWriter, request *Http.Request) {
 	var ID Types.ID
 	var err error
 	var product Product.Product
-	ID, err = WebHandler.GetID(request, "productID")
+	ID, err = WebHandler.GetID(request)
 	if err != nil {
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
 
-	if product, err = productManagementHandler.productManagementService.GetProduct(ID); err != nil {
+	if product, err = productManagementWebHandler.productManagementService.GetProduct(ID); err != nil {
 		WebHandler.StatusNotFound(response, request)
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusOK, response, request, product)
 }
 
-func NewHandler(categoryService Category.CategoryService, cmsService CMS.CmsService, productManagementService ProductManagementService) ProductManagementHandler {
-	return &productManagementHandler{
+func NewWebHandler(categoryService Category.CategoryService, cmsService CMS.CmsService, productManagementService ProductManagementService) ProductManagementWebHandler {
+	return &productManagementWebHandler{
 		productManagementService: productManagementService,
 		productMapper:            Product.NewProductMapper(categoryService, cmsService),
 	}

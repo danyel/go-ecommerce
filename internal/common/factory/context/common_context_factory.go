@@ -1,4 +1,4 @@
-package factory
+package contextfactory
 
 import (
 	Reflect "reflect"
@@ -8,12 +8,14 @@ import (
 )
 
 var (
-	applicationConnectionFactoryInstance ApplicationConnectionFactory
-	databaseConnectionFactoryInstance    DatabaseConnectionFactory
-	brokerConnectionFactoryInstance      MessageBrokerConnectionFactory
-	brokerConfigurationOnce              Sync.Once
-	applicationConnectionOnce            Sync.Once
-	databaseConnectionOnce               Sync.Once
+	applicationContextFactoryInstance   ApplicationContextFactory
+	repositoryContextFactoryInstance    RepositoryContextFactory
+	messageBrokerContextFactoryInstance MessageBrokerContextFactory
+	webHandlerContextFactoryInstance    WebHandlerContextFactory
+	messageBrokerContextFactoryOnce     Sync.Once
+	applicationContextFactoryOnce       Sync.Once
+	databaseContextFactoryOnce          Sync.Once
+	webHandlerContextFactoryOnce        Sync.Once
 )
 
 func getInstanceOfType[T any](value *T, factoryMethod func() T) T {

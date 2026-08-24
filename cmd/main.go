@@ -3,11 +3,10 @@ package main
 import (
 	OS "os"
 
-	Logger "github.com/danyel/ecommerce/cmd/logger"
-
 	Configuration "github.com/danyel/ecommerce/cmd/config"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Router "github.com/danyel/ecommerce/cmd/router"
-	Factory "github.com/danyel/ecommerce/internal/common/factory"
+	Factory "github.com/danyel/ecommerce/internal/common/factory/context"
 	Reservation "github.com/danyel/ecommerce/internal/reservation"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	GoDotEnv "github.com/joho/godotenv"
@@ -25,25 +24,21 @@ func main() {
 	err = GoDotEnv.Load(locations...)
 	if err != nil {
 		Logger.Log.Fatal(err)
+		OS.Exit(0)
 	}
 	serverConfiguration := Configuration.NewServerConfiguration()
 	databaseConfiguration := Configuration.NewDatabaseConfiguration()
 	messageBrokerConfiguration := Configuration.NewMessageBrokerConfiguration()
-	databaseConnectionFactory := Factory.NewDatabaseConnectionFactory(&databaseConfiguration)
-	brokerConnectionFactory := Factory.NewMessageBrokerConnectionFactory(&messageBrokerConfiguration)
-	applicationConnectionFactory := Factory.NewApplicationConnectionFactory(databaseConnectionFactory, brokerConnectionFactory)
+	Factory.InitializeDatabaseContextFactory(&databaseConfiguration)
+	Factory.InitializeMessageBrokerContextFactory(&messageBrokerConfiguration)
+	applicationContextFactory := Factory.BuildApplicationContextFactory()
+	webHandlerContextFactory := Factory.BuildAWebHandlerContextFactory()
 
-	ShoppingBasket.RegisterShoppingBasketEvents(applicationConnectionFactory.ShoppingBasketService(), brokerConnectionFactory.MessageBroker())
-	Reservation.RegisterReservationEvents(applicationConnectionFactory.ReservationService(), applicationConnectionFactory.ProductService(), brokerConnectionFactory.MessageBroker())
-	if err = brokerConnectionFactory.MessageBroker().Start(); err != nil {
+	ShoppingBasket.RegisterShoppingBasketEvents(applicationContextFactory.ShoppingBasketService(), applicationContextFactory.MessageBroker())
+	Reservation.RegisterReservationEvents(applicationContextFactory.ReservationService(), applicationContextFactory.ProductService(), applicationContextFactory.MessageBroker())
+	if err = applicationContextFactory.StartMessageBroker(); err != nil {
 		Logger.Log.Debug("%v", err.Error())
+		OS.Exit(0)
 	}
-	apiDefinition := Router.APIDefinition{
-		ServerConfiguration:          &serverConfiguration,
-		ApplicationConnectionFactory: applicationConnectionFactory,
-	}
-	if err != nil {
-		Logger.Log.Fatal(err)
-	}
-	apiDefinition.Run(apiDefinition.ConfigRouter())
+	Router.NewApiRouter(&serverConfiguration, webHandlerContextFactory).Start()
 }

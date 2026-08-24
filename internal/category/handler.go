@@ -7,16 +7,16 @@ import (
 )
 
 //goland:noinspection GoNameStartsWithPackageName
-type CategoryHandler interface {
-	CreateCategory(response Http.ResponseWriter, request *Http.Request)
-	CreateTranslations(response Http.ResponseWriter, request *Http.Request)
+type CategoryWebHandler interface {
+	HandleCreateCategoryV1(response Http.ResponseWriter, request *Http.Request)
+	HandleCreateTranslationsV1(response Http.ResponseWriter, request *Http.Request)
 }
 
-type categoryHandler struct {
+type categoryWebHandler struct {
 	categoryService CategoryService
 }
 
-func (categoryHandler *categoryHandler) CreateCategory(response Http.ResponseWriter, request *Http.Request) {
+func (categoryWebHandler *categoryWebHandler) HandleCreateCategoryV1(response Http.ResponseWriter, request *Http.Request) {
 	var createCategory CreateCategory
 	var categoryID CategoryID
 	var err error
@@ -24,18 +24,18 @@ func (categoryHandler *categoryHandler) CreateCategory(response Http.ResponseWri
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if categoryID, err = categoryHandler.categoryService.CreateCategory(createCategory); err != nil {
+	if categoryID, err = categoryWebHandler.categoryService.CreateCategory(createCategory); err != nil {
 		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusCreated, response, request, categoryID)
 }
 
-func (categoryHandler *categoryHandler) CreateTranslations(response Http.ResponseWriter, request *Http.Request) {
+func (categoryWebHandler *categoryWebHandler) HandleCreateTranslationsV1(response Http.ResponseWriter, request *Http.Request) {
 }
 
-func NewHandler(categoryService CategoryService) CategoryHandler {
-	handler := &categoryHandler{
+func NewWebHandler(categoryService CategoryService) CategoryWebHandler {
+	handler := &categoryWebHandler{
 		categoryService,
 	}
 	return handler

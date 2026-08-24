@@ -29,7 +29,7 @@ func (productService *MockProductService) GetProduct(ID Uuid.UUID) (Product.Prod
 func TestProductHandler(unitTest *Testing.T) {
 	TestUtils.PreInitTest()
 	productService := new(MockProductService)
-	productHandler := Product.NewHandler(productService)
+	productHandler := Product.NewWebHandler(productService)
 	run := Run(unitTest)
 
 	unitTest.Run("GetProducts", func(unitTest *Testing.T) {
@@ -43,7 +43,7 @@ func TestProductHandler(unitTest *Testing.T) {
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
 			NewRequest(Http.MethodGet, "/api/product/v1/products", nil).
-			NewRouter(Http.MethodGet, "/api/product/v1/products", productHandler.GetProducts).
+			NewRouter(Http.MethodGet, "/api/product/v1/products", productHandler.HandleGetProductsV1).
 			ServeHTTP().
 			Status())
 		productService.AssertCalled(unitTest, "GetProducts")
@@ -58,7 +58,7 @@ func TestProductHandler(unitTest *Testing.T) {
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
 			NewRequest(Http.MethodGet, "/api/product/v1/products/"+ID.String(), nil).
-			NewRouter(Http.MethodGet, "/api/product/v1/products/{productID}", productHandler.GetProduct).
+			NewRouter(Http.MethodGet, "/api/product/v1/products/{productID}", productHandler.HandleGetProductV1).
 			ServeHTTP().
 			Status())
 		productService.AssertCalled(unitTest, "GetProduct", ID)
