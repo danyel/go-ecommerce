@@ -84,7 +84,7 @@ func (apiRouter *apiRouter) configureLog() {
 	apiRouter.rootRouter.Use(Middleware.RequestID)
 	apiRouter.rootRouter.Use(Middleware.Logger)
 	apiRouter.rootRouter.Use(Middleware.Recoverer)
-	//router.Use(ApplicationMiddleware.JwtAuthMiddleware(apiRouter.ServerConfiguration.JwtSecret))
+	//apiRouter.Use(ApplicationMiddleware.JwtAuthMiddleware(apiRouter.ServerConfiguration.JwtSecret))
 }
 
 // configureApiRouting All API routing defined here
@@ -118,15 +118,15 @@ func shoppingBasket(router Router.Router, shoppingBasketWebHandler ShoppingBaske
 
 // productManagement Product Management api /api/product-management
 func productManagement(router Router.Router, productManagementWebHandler ProductManagement.ProductManagementWebHandler) Router.Router {
-	return router.Route(ProductManagementRootContext, func(router Router.Router) {
-		router.Route(VersionOne, func(router Router.Router) {
-			router.Route(ProductsRootContext, func(router Router.Router) {
-				router.Get(SLASH, productManagementWebHandler.HandleGetProductsV1)
-				router.Post(SLASH, productManagementWebHandler.HandleCreateProductV1)
-				router.Route(ById, func(router Router.Router) {
-					router.Get(SLASH, productManagementWebHandler.HandleGetProductV1)
-					router.Delete(SLASH, productManagementWebHandler.HandleDeleteProductV1)
-					router.Put(SLASH, productManagementWebHandler.HandleUpdateProductV1)
+	return router.Route(ProductManagementRootContext, func(productManagementRootRouter Router.Router) {
+		productManagementRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
+			versionOneRouter.Route(ProductsRootContext, func(productsRootRouter Router.Router) {
+				productsRootRouter.Get(SLASH, productManagementWebHandler.HandleGetProductsV1)
+				productsRootRouter.Post(SLASH, productManagementWebHandler.HandleCreateProductV1)
+				productsRootRouter.Route(ById, func(byIdRouter Router.Router) {
+					byIdRouter.Get(SLASH, productManagementWebHandler.HandleGetProductV1)
+					byIdRouter.Delete(SLASH, productManagementWebHandler.HandleDeleteProductV1)
+					byIdRouter.Put(SLASH, productManagementWebHandler.HandleUpdateProductV1)
 				})
 			})
 		})
@@ -135,25 +135,25 @@ func productManagement(router Router.Router, productManagementWebHandler Product
 
 // category api /api/category
 func category(router Router.Router, categoryWebHandler Category.CategoryWebHandler) Router.Router {
-	return router.Route(CategoryRootContext, func(router Router.Router) {
-		router.Route(VersionOne, func(router Router.Router) {
-			router.Route(CategoriesRootContext, func(router Router.Router) {
-				router.Post(BaseContextPath, categoryWebHandler.HandleCreateCategoryV1)
+	return router.Route(CategoryRootContext, func(categoryRootRouter Router.Router) {
+		categoryRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
+			versionOneRouter.Route(CategoriesRootContext, func(categoriesRootRouter Router.Router) {
+				categoriesRootRouter.Post(BaseContextPath, categoryWebHandler.HandleCreateCategoryV1)
 			})
-			router.Post(TranslationsRootContext, categoryWebHandler.HandleCreateTranslationsV1)
+			versionOneRouter.Post(TranslationsRootContext, categoryWebHandler.HandleCreateTranslationsV1)
 		})
 	})
 }
 
 // cms api /api/cms
 func cms(router Router.Router, cmsWebHandler CMS.CmsWebHandler) Router.Router {
-	return router.Route(CmsRootContext, func(router Router.Router) {
-		router.Route(VersionOne, func(router Router.Router) {
-			router.Route(TranslationsRootContext, func(router Router.Router) {
+	return router.Route(CmsRootContext, func(cmsRootRouter Router.Router) {
+		cmsRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
+			versionOneRouter.Route(TranslationsRootContext, func(translationsRootRouter Router.Router) {
 				Logger.Log.Debug("Hitting Url: %s", BaseContextPath+CmsRootContext+VersionOne+TranslationsRootContext)
-				router.Get(ByLanguage, cmsWebHandler.HandleV1)
-				router.Get(SLASH, cmsWebHandler.HandleV1)
-				router.Get(ByLanguage+ByCode, cmsWebHandler.HandleGetTranslationV1)
+				translationsRootRouter.Get(ByLanguage, cmsWebHandler.HandleV1)
+				translationsRootRouter.Get(SLASH, cmsWebHandler.HandleV1)
+				translationsRootRouter.Get(ByLanguage+ByCode, cmsWebHandler.HandleGetTranslationV1)
 			})
 		})
 	})
@@ -161,11 +161,11 @@ func cms(router Router.Router, cmsWebHandler CMS.CmsWebHandler) Router.Router {
 
 // product api /api/product
 func product(router Router.Router, productWebHandler Product.ProductWebHandler) Router.Router {
-	return router.Route(ProductRootContext, func(router Router.Router) {
-		router.Route(VersionOne, func(router Router.Router) {
-			router.Get(SLASH, productWebHandler.HandleGetProductsV1)
-			router.Route(ById, func(router Router.Router) {
-				router.Get(SLASH, productWebHandler.HandleGetProductV1)
+	return router.Route(ProductRootContext, func(productRootRouter Router.Router) {
+		productRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
+			versionOneRouter.Get(SLASH, productWebHandler.HandleGetProductsV1)
+			versionOneRouter.Route(ById, func(byIdRouter Router.Router) {
+				byIdRouter.Get(SLASH, productWebHandler.HandleGetProductV1)
 			})
 		})
 	})
@@ -173,12 +173,12 @@ func product(router Router.Router, productWebHandler Product.ProductWebHandler) 
 
 // management api /api/management
 func management(router Router.Router, managementWebHandler Management.ManagementWebHandler) Router.Router {
-	return router.Route(ManagementRootContext, func(router Router.Router) {
-		router.Route(VersionOne, func(router Router.Router) {
-			router.Route(CategoriesRootContext, func(router Router.Router) {
-				router.Get(BaseContextPath, managementWebHandler.HandleGetCategoriesV1)
+	return router.Route(ManagementRootContext, func(managementRootRouter Router.Router) {
+		managementRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
+			versionOneRouter.Route(CategoriesRootContext, func(categoriesRootRouter Router.Router) {
+				categoriesRootRouter.Get(BaseContextPath, managementWebHandler.HandleGetCategoriesV1)
 			})
-			router.Post(TranslationsRootContext, managementWebHandler.HandleCreateTranslationsV1)
+			versionOneRouter.Post(TranslationsRootContext, managementWebHandler.HandleCreateTranslationsV1)
 		})
 	})
 }
