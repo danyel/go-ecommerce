@@ -66,9 +66,9 @@ func (repositoryContextFactory *repositoryContextFactory) ReservationRepository(
 	})
 }
 
-func InitializeDatabaseContextFactory(databaseConfiguration *Configuration.DatabaseConfiguration) {
+func InitializeDatabaseContextFactory() {
 	databaseContextFactoryOnce.Do(func() {
-		databaseConnection, err := DatabaseConnection.Connect(databaseConfiguration)
+		databaseConnection, err := DatabaseConnection.Connect(Configuration.Database())
 		if err != nil {
 			panic(err)
 		}

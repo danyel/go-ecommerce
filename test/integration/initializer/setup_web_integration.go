@@ -10,14 +10,16 @@ import (
 	Testing "testing"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
+	DatabaseConnection "github.com/danyel/ecommerce/cmd/database"
+	Factory "github.com/danyel/ecommerce/cmd/factory/context"
 	Logger "github.com/danyel/ecommerce/cmd/logger"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
-	Factory "github.com/danyel/ecommerce/internal/common/factory/context"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	TestUtils "github.com/danyel/ecommerce/test/testutils"
+	Uuid "github.com/google/uuid"
 	Assert "github.com/stretchr/testify/assert"
 	Database "gorm.io/gorm"
 )
@@ -153,6 +155,7 @@ func (webIntegration *WebIntegration) doRequest(method string, URL string, body 
 		return webIntegration
 	}
 	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Correlation-ID", Uuid.NewString())
 
 	if webIntegration.authToken != "" {
 		request.Header.Set(ApplicationMiddleware.Authorization, Fmt.Sprintf("Bearer %s", webIntegration.authToken))
@@ -187,19 +190,9 @@ func SetupWebIntegration(unitTest *Testing.T) *WebIntegration {
 	backendInitializer := NewBackendInitializer()
 	backendInitializer.TestContainers(unitTest)
 	backendInitializer.Run()
-	databaseConnection := backendInitializer.DatabaseConnection()
-	serverConfiguration := Configuration.NewServerConfiguration()
-	serverConfiguration.JwtSecret = secretKey
-	Factory.InitializeDatabaseContextFactory(backendInitializer.DatabaseConfiguration)
-	Factory.InitializeMessageBrokerContextFactory(backendInitializer.MessageBrokerConfiguration)
-	applicationContextFactory := Factory.BuildApplicationContextFactory()
-	webHandlerContextFactory := Factory.BuildAWebHandlerContextFactory()
-
-	ShoppingBasket.RegisterShoppingBasketEvents(applicationContextFactory.ShoppingBasketService(), applicationContextFactory.MessageBroker())
-	if err := applicationContextFactory.StartMessageBroker(); err != nil {
-		Logger.Log.Fatal(err.Error())
-	}
-	apiRouter := ApplicationRouter.NewApiRouter(&serverConfiguration, webHandlerContextFactory)
+	Configuration.NewServerConfiguration().JwtSecret = secretKey
+	startApplicationContextFactory := Factory.InitializeStartApplicationContextFactory().StartMessageBroker()
+	apiRouter := ApplicationRouter.NewApiRouter(Configuration.NewServerConfiguration(), startApplicationContextFactory.WebHandlerContextFactory())
 	server := HttpTest.NewServer(apiRouter.Router())
 
 	unitTest.Cleanup(func() {
@@ -210,6 +203,11 @@ func SetupWebIntegration(unitTest *Testing.T) *WebIntegration {
 		unitTest.Fatal(err)
 	}
 
+	databaseConnection, err := DatabaseConnection.Connect(Configuration.Database())
+	if err != nil {
+		// should not happen
+		unitTest.Fatal(err)
+	}
 	return &WebIntegration{
 		databaseConnection: databaseConnection,
 		server:             server,

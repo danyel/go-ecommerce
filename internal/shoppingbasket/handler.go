@@ -52,7 +52,7 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleUpdateShoppingBa
 }
 
 func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleGetShoppingBasketByIdV1(response Http.ResponseWriter, request *Http.Request) {
-	Logger.Log.Debug("HandleGetShoppingBasketByIdV1")
+	Logger.Log.DebugCtx(request.Context(), "HandleGetShoppingBasketByIdV1")
 	var err error
 	var shoppingBasket ShoppingBasket
 	ID, err := WebHandler.GetID(request)
@@ -60,13 +60,13 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleGetShoppingBaske
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	Logger.Log.Debug("Fetching for id: %s", ID.ID.String())
+	Logger.Log.DebugCtx(request.Context(), "Fetching for id: %s", ID.ID.String())
 	if shoppingBasket, err = shoppingBasketWebHandler.shoppingBasketService.GetShoppingBasket(ID.ID); err != nil {
-		Logger.Log.Debug(err.Error())
+		Logger.Log.DebugCtx(request.Context(), "%s", err.Error())
 		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
-	Logger.Log.Debug("Shopping Basket fetched: %v", shoppingBasket)
+	Logger.Log.DebugCtx(request.Context(), "Shopping Basket fetched: %v", shoppingBasket)
 	WebHandler.WriteResponse(Http.StatusOK, response, request, shoppingBasket)
 }
 

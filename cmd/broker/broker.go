@@ -4,7 +4,6 @@ import (
 	Context "context"
 	JSON "encoding/json"
 	Fmt "fmt"
-	SLog "log/slog"
 
 	Logger "github.com/danyel/ecommerce/cmd/logger"
 
@@ -27,7 +26,7 @@ type MessageBroker struct {
 
 func (messageBroker *MessageBroker) CreateConnection(messageBrokerConfiguration *Configuration.MessageBrokerConfiguration) error {
 	brokerURL := Fmt.Sprintf("%s://%s:%s@%s:%s", messageBrokerConfiguration.Protocol, messageBrokerConfiguration.Username, messageBrokerConfiguration.Password, messageBrokerConfiguration.Addr, messageBrokerConfiguration.Port)
-	SLog.Info("connecting to " + brokerURL)
+	Logger.Log.Info("connecting to %s", brokerURL)
 	messageBrokerConnection, err := AMQP.Dial(brokerURL)
 	if err != nil {
 		return err
@@ -124,7 +123,7 @@ func (messageBroker *MessageBroker) consume(queueRegistry QueueRegistry) {
 	var err error
 	var messages <-chan AMQP.Delivery
 	if messages, err = messageBroker.channel.Consume(queueRegistry.QueueConfig.Queue, "", false, false, false, false, nil); err != nil {
-		Logger.Log.Debug("Error on consuming message: %v", err.Error())
+		Logger.Log.Fatalf("Error on consuming message: %v", err.Error())
 	}
 	go func() {
 		for message := range messages {

@@ -31,7 +31,7 @@ func HandleCategoryCreated2(body []byte) error {
 	if err := JSON.Unmarshal(body, &categoryCreatedEvent); err != nil {
 		return err
 	}
-	Logger.Log.Debug(categoryCreatedEvent.ID)
+	Logger.Log.Debug("%s", categoryCreatedEvent.ID)
 	return nil
 }
 
@@ -41,6 +41,6 @@ func HandleCategoryCreated(body []byte) error {
 	if err := JSON.Unmarshal(body, &categoryCreatedEvent); err != nil {
 		return err
 	}
-	Logger.Log.Debug(categoryCreatedEvent.ID)
+	Logger.Log.Debug("%s", categoryCreatedEvent.ID)
 	return nil
 }

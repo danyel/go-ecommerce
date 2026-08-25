@@ -5,10 +5,11 @@ import (
 	OS "os"
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
+	Factory "github.com/danyel/ecommerce/cmd/factory/context"
 	Logger "github.com/danyel/ecommerce/cmd/logger"
+	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
-	Factory "github.com/danyel/ecommerce/internal/common/factory/context"
 	Management "github.com/danyel/ecommerce/internal/management"
 	Product "github.com/danyel/ecommerce/internal/product"
 	ProductManagement "github.com/danyel/ecommerce/internal/productmanagement"
@@ -84,6 +85,7 @@ func (apiRouter *apiRouter) configureLog() {
 	apiRouter.rootRouter.Use(Middleware.RequestID)
 	apiRouter.rootRouter.Use(Middleware.Logger)
 	apiRouter.rootRouter.Use(Middleware.Recoverer)
+	apiRouter.rootRouter.Use(ApplicationMiddleware.CorrelationIDMiddleware)
 	//apiRouter.Use(ApplicationMiddleware.JwtAuthMiddleware(apiRouter.ServerConfiguration.JwtSecret))
 }
 

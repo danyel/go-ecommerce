@@ -19,39 +19,37 @@ import (
 )
 
 type BackendInitializer struct {
-	context                    *Context.Context
-	database                   *Database.DB
-	postgresContainer          *Postgres.PostgresContainer
-	MessageBrokerConfiguration *Configuration.MessageBrokerConfiguration
-	DatabaseConfiguration      *Configuration.DatabaseConfiguration
+	context           *Context.Context
+	database          *Database.DB
+	postgresContainer *Postgres.PostgresContainer
 }
 
 func (backendInitializer *BackendInitializer) initializeDatabaseConfiguration() {
-	backendInitializer.DatabaseConfiguration.Username = "test"
-	backendInitializer.DatabaseConfiguration.Password = "test"
-	backendInitializer.DatabaseConfiguration.Database = "ecommerce"
-	backendInitializer.DatabaseConfiguration.Schema = "ecommerce"
+	Configuration.Database().Username = "test"
+	Configuration.Database().Password = "test"
+	Configuration.Database().Database = "ecommerce"
+	Configuration.Database().Schema = "ecommerce"
 	if isDevelopment() {
-		backendInitializer.DatabaseConfiguration.Host = "172.17.0.1"
+		Configuration.Database().Host = "172.17.0.1"
 	} else {
-		backendInitializer.DatabaseConfiguration.Host = "localhost"
+		Configuration.Database().Host = "localhost"
 	}
 }
 
 func (backendInitializer *BackendInitializer) initializeBrokerConfiguration() {
-	backendInitializer.MessageBrokerConfiguration.Username = "developer"
-	backendInitializer.MessageBrokerConfiguration.Password = "developer"
-	backendInitializer.MessageBrokerConfiguration.Protocol = "amqp"
+	Configuration.MessageBroker().Username = "developer"
+	Configuration.MessageBroker().Password = "developer"
+	Configuration.MessageBroker().Protocol = "amqp"
 	if isDevelopment() {
-		backendInitializer.MessageBrokerConfiguration.Addr = "172.17.0.1"
+		Configuration.MessageBroker().Addr = "172.17.0.1"
 	} else {
-		backendInitializer.MessageBrokerConfiguration.Addr = "localhost"
+		Configuration.MessageBroker().Addr = "localhost"
 	}
 }
 
 func (backendInitializer *BackendInitializer) initializeRabbitMqTestContainer() TestContainers.Container {
-	Logger.Log.Info("Initializing RabbitMQ container %s %s %s %s", backendInitializer.MessageBrokerConfiguration.Addr, backendInitializer.MessageBrokerConfiguration.Username, backendInitializer.MessageBrokerConfiguration.Password, backendInitializer.MessageBrokerConfiguration.Protocol)
-	rabbitmqContainer, err := RabbitMQ.Run(Context.Background(), "rabbitmq:3-management", RabbitMQ.WithAdminUsername(backendInitializer.MessageBrokerConfiguration.Username), RabbitMQ.WithAdminPassword(backendInitializer.MessageBrokerConfiguration.Password))
+	Logger.Log.Info("Initializing RabbitMQ container %s %s %s %s", Configuration.MessageBroker().Addr, Configuration.MessageBroker().Username, Configuration.MessageBroker().Password, Configuration.MessageBroker().Protocol)
+	rabbitmqContainer, err := RabbitMQ.Run(Context.Background(), "rabbitmq:3-management", RabbitMQ.WithAdminUsername(Configuration.MessageBroker().Username), RabbitMQ.WithAdminPassword(Configuration.MessageBroker().Password))
 	if err != nil || rabbitmqContainer == nil {
 		Logger.Log.Fatalf("failed to start container: %s", err)
 		return nil
@@ -62,15 +60,15 @@ func (backendInitializer *BackendInitializer) initializeRabbitMqTestContainer() 
 		Logger.Log.Fatalf("failed to get container host: %s", err)
 		return nil
 	}
-	backendInitializer.MessageBrokerConfiguration.Addr = host
+	Configuration.MessageBroker().Addr = host
 	amqpURI, err := rabbitmqContainer.MappedPort(*backendInitializer.context, "5672/tcp")
 	if err != nil {
 		Logger.Log.Fatalf("failed to start container: %s", err)
 		return nil
 	}
 
-	backendInitializer.MessageBrokerConfiguration.Port = amqpURI.Port()
-	Logger.Log.Info("container started successfully: %s://%s:%s@%s:%s", backendInitializer.MessageBrokerConfiguration.Protocol, backendInitializer.MessageBrokerConfiguration.Username, backendInitializer.MessageBrokerConfiguration.Password, backendInitializer.MessageBrokerConfiguration.Addr, backendInitializer.MessageBrokerConfiguration.Port)
+	Configuration.MessageBroker().Port = amqpURI.Port()
+	Logger.Log.Info("container started successfully: %s://%s:%s@%s:%s", Configuration.MessageBroker().Protocol, Configuration.MessageBroker().Username, Configuration.MessageBroker().Password, Configuration.MessageBroker().Addr, Configuration.MessageBroker().Port)
 
 	return rabbitmqContainer
 }
@@ -78,9 +76,9 @@ func (backendInitializer *BackendInitializer) initializeRabbitMqTestContainer() 
 func (backendInitializer *BackendInitializer) initializePostgresTestContainer() error {
 	postgresContainer, err := Postgres.Run(*backendInitializer.context,
 		"postgres:18-alpine",
-		Postgres.WithDatabase(backendInitializer.DatabaseConfiguration.Database),
-		Postgres.WithUsername(backendInitializer.DatabaseConfiguration.Username),
-		Postgres.WithPassword(backendInitializer.DatabaseConfiguration.Password),
+		Postgres.WithDatabase(Configuration.Database().Database),
+		Postgres.WithUsername(Configuration.Database().Username),
+		Postgres.WithPassword(Configuration.Database().Password),
 		Postgres.BasicWaitStrategies(),
 	)
 
@@ -94,8 +92,8 @@ func (backendInitializer *BackendInitializer) initializePostgresTestContainer() 
 		Logger.Log.Fatalf("failed to fetch port: %v", err)
 	}
 
-	backendInitializer.DatabaseConfiguration.Port = port.Port()
-	Logger.Log.Info("DatabaseConfiguration: postgres://%s:%s@%s:%s/%s", backendInitializer.DatabaseConfiguration.Username, backendInitializer.DatabaseConfiguration.Password, backendInitializer.DatabaseConfiguration.Host, backendInitializer.DatabaseConfiguration.Port, backendInitializer.DatabaseConfiguration.Schema)
+	Configuration.Database().Port = port.Port()
+	Logger.Log.Info("DatabaseConfiguration: postgres://%s:%s@%s:%s/%s", Configuration.Database().Username, Configuration.Database().Password, Configuration.Database().Host, Configuration.Database().Port, Configuration.Database().Schema)
 	backendInitializer.postgresContainer = postgresContainer
 	return err
 }
@@ -132,8 +130,8 @@ func (backendInitializer *BackendInitializer) initializeMigrationScripts(postgre
 	}
 }
 
-func (backendInitializer *BackendInitializer) connect(databaseConfiguration *Configuration.DatabaseConfiguration) (*Database.DB, error) {
-	return DatabaseConnection.Connect(databaseConfiguration)
+func (backendInitializer *BackendInitializer) connect() (*Database.DB, error) {
+	return DatabaseConnection.Connect(Configuration.Database())
 }
 
 func (backendInitializer *BackendInitializer) Terminate() {
@@ -171,7 +169,7 @@ func (backendInitializer *BackendInitializer) Run() {
 	backendInitializer.initializeDatabaseConfiguration()
 	var err error
 	backendInitializer.initializeMigrationScripts(backendInitializer.postgresContainer)
-	backendInitializer.database, err = backendInitializer.connect(backendInitializer.DatabaseConfiguration)
+	backendInitializer.database, err = backendInitializer.connect()
 	if err != nil {
 		Logger.Log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -184,11 +182,7 @@ func isDevelopment() bool {
 func NewBackendInitializer() *BackendInitializer {
 	TestUtils.PreInitTest()
 	backgroundContext := Context.Background()
-	messageBrokerConfiguration := Configuration.NewMessageBrokerConfiguration()
-	databaseConfiguration := Configuration.NewDatabaseConfiguration()
 	return &BackendInitializer{
-		context:                    &backgroundContext,
-		MessageBrokerConfiguration: &messageBrokerConfiguration,
-		DatabaseConfiguration:      &databaseConfiguration,
+		context: &backgroundContext,
 	}
 }

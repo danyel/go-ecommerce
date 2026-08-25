@@ -14,20 +14,19 @@ type MessageBrokerContextFactory interface {
 }
 
 type messageBrokerContextFactory struct {
-	messageBrokerConfiguration *Configuration.MessageBrokerConfiguration
-	messageBroker              *MessageBroker.MessageBroker
+	messageBroker *MessageBroker.MessageBroker
 }
 
 func (messageBrokerContextFactory *messageBrokerContextFactory) Start() error {
 	return messageBrokerContextFactory.messageBroker.Start()
 }
 
-func createMessageBroker(messageBrokerConfiguration *Configuration.MessageBrokerConfiguration) *MessageBroker.MessageBroker {
+func createMessageBroker() *MessageBroker.MessageBroker {
 	Logger.Log.Debug("[BrokerConnectionFactory] Creating broker")
 	messageBroker := MessageBroker.NewMessageBroker()
 
-	if messageBroker.CreateConnection(messageBrokerConfiguration) != nil {
-		Logger.Log.Fatal(Errors.New("Can not connect to broker: %s" + messageBrokerConfiguration.Addr))
+	if messageBroker.CreateConnection(Configuration.MessageBroker()) != nil {
+		Logger.Log.Fatal(Errors.New("Can not connect to broker: %s" + Configuration.MessageBroker().Addr))
 	}
 
 	return messageBroker
@@ -44,17 +43,13 @@ func (messageBrokerContextFactory *messageBrokerContextFactory) getMessageBroker
 	if messageBrokerContextFactory.messageBroker != nil {
 		return messageBrokerContextFactory.messageBroker
 	}
-	if messageBrokerContextFactory.messageBrokerConfiguration != nil {
-		return createMessageBroker(messageBrokerContextFactory.messageBrokerConfiguration)
-	}
-	return nil
+	return createMessageBroker()
 }
 
-func InitializeMessageBrokerContextFactory(messageBrokerConfiguration *Configuration.MessageBrokerConfiguration) {
+func InitializeMessageBrokerContextFactory() {
 	messageBrokerContextFactoryOnce.Do(func() {
 		messageBrokerContextFactoryInstance = &messageBrokerContextFactory{
-			messageBrokerConfiguration: messageBrokerConfiguration,
-			messageBroker:              createMessageBroker(messageBrokerConfiguration),
+			messageBroker: createMessageBroker(),
 		}
 	})
 }

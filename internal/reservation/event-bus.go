@@ -13,7 +13,6 @@ const (
 	AddReservationQueue = "reservations.add_reservation"
 )
 
-//goland:noinspection ALL
 type ReservationEventHandler interface {
 	handleReservationCreate(body []byte) error
 }
@@ -30,7 +29,7 @@ func (h *reservationEvents) handleReservationCreated(body []byte) error {
 	if err := JSON.Unmarshal(body, &event); err != nil {
 		return err
 	}
-	Logger.Log.Debug(event.ID)
+	Logger.Log.Debug("%s", event.ID)
 
 	// create reservation if it does not exist
 
