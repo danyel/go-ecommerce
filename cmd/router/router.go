@@ -32,15 +32,15 @@ const (
 	CategoryRootContext          = "/category"
 	CategoriesRootContext        = "/categories"
 	TranslationsRootContext      = "/translations"
-	ById                         = "/{ID}"
+	ByID                         = "/{ID}"
 	ByCode                       = "/{code}"
 	ByLanguage                   = "/{language}"
 )
 
-// ApiRouter Definition the web layer.
+// APIRouter Definition the web layer.
 // WebHandlerContextFactory will provide instances of web handlers to be used.
 // ServerConfiguration will provide the application port to be used.
-type ApiRouter interface {
+type APIRouter interface {
 	// Start the http server
 	Start()
 	// Router configuration of the loggers and api routing
@@ -51,7 +51,7 @@ type ApiRouter interface {
 func (apiRouter *apiRouter) Router() *Router.Mux {
 	apiRouter.rootRouter = Router.NewRouter()
 	apiRouter.configureLog()
-	apiRouter.configureApiRouting()
+	apiRouter.configureAPIRouting()
 	return apiRouter.rootRouter
 }
 
@@ -64,8 +64,8 @@ func (apiRouter *apiRouter) Start() {
 	}
 }
 
-// NewApiRouter Factory method for the ApiRouter interface
-func NewApiRouter(serverConfiguration *Configuration.ServerConfiguration, webHandlerContextFactory Factory.WebHandlerContextFactory) ApiRouter {
+// NewAPIRouter Factory method for the ApiRouter interface
+func NewAPIRouter(serverConfiguration *Configuration.ServerConfiguration, webHandlerContextFactory Factory.WebHandlerContextFactory) APIRouter {
 	apiRouter := &apiRouter{
 		serverConfiguration:      serverConfiguration,
 		webHandlerContextFactory: webHandlerContextFactory,
@@ -89,8 +89,8 @@ func (apiRouter *apiRouter) configureLog() {
 	//apiRouter.Use(ApplicationMiddleware.JwtAuthMiddleware(apiRouter.ServerConfiguration.JwtSecret))
 }
 
-// configureApiRouting All API routing defined here
-func (apiRouter *apiRouter) configureApiRouting() {
+// configureAPIRouting All API routing defined here
+func (apiRouter *apiRouter) configureAPIRouting() {
 	webHandlerContextFactory := apiRouter.webHandlerContextFactory
 	apiRouter.rootRouter.Route(BaseContextPath, func(router Router.Router) {
 		product(router, webHandlerContextFactory.ProductWebHandler())
@@ -108,7 +108,7 @@ func shoppingBasket(router Router.Router, shoppingBasketWebHandler ShoppingBaske
 		shoppingBasketRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ShoppingBasketsRootContext, func(shoppingBasketsRouter Router.Router) {
 				shoppingBasketsRouter.Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
-				shoppingBasketsRouter.Route(ById, func(byIdRouter Router.Router) {
+				shoppingBasketsRouter.Route(ByID, func(byIdRouter Router.Router) {
 					Logger.Log.Debug("Shopping Basket By Id")
 					byIdRouter.Get(SLASH, shoppingBasketWebHandler.HandleGetShoppingBasketByIDV1)
 					byIdRouter.Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
@@ -125,7 +125,7 @@ func productManagement(router Router.Router, productManagementWebHandler Product
 			versionOneRouter.Route(ProductsRootContext, func(productsRootRouter Router.Router) {
 				productsRootRouter.Get(SLASH, productManagementWebHandler.HandleGetProductsV1)
 				productsRootRouter.Post(SLASH, productManagementWebHandler.HandleCreateProductV1)
-				productsRootRouter.Route(ById, func(byIdRouter Router.Router) {
+				productsRootRouter.Route(ByID, func(byIdRouter Router.Router) {
 					byIdRouter.Get(SLASH, productManagementWebHandler.HandleGetProductV1)
 					byIdRouter.Delete(SLASH, productManagementWebHandler.HandleDeleteProductV1)
 					byIdRouter.Put(SLASH, productManagementWebHandler.HandleUpdateProductV1)
@@ -166,7 +166,7 @@ func product(router Router.Router, productWebHandler Product.ProductWebHandler) 
 	return router.Route(ProductRootContext, func(productRootRouter Router.Router) {
 		productRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Get(SLASH, productWebHandler.HandleGetProductsV1)
-			versionOneRouter.Route(ById, func(byIdRouter Router.Router) {
+			versionOneRouter.Route(ByID, func(byIdRouter Router.Router) {
 				byIdRouter.Get(SLASH, productWebHandler.HandleGetProductV1)
 			})
 		})

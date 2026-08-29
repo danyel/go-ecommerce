@@ -24,5 +24,5 @@ func main() {
 		OS.Exit(0)
 	}
 	startApplicationContextFactory := Factory.InitializeStartApplicationContextFactory().StartMessageBroker()
-	Router.NewApiRouter(startApplicationContextFactory.ServerConfiguration(), startApplicationContextFactory.WebHandlerContextFactory()).Start()
+	Router.NewAPIRouter(startApplicationContextFactory.ServerConfiguration(), startApplicationContextFactory.WebHandlerContextFactory()).Start()
 }

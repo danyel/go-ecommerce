@@ -44,8 +44,8 @@ func TestProductHandler(unitTest *Testing.T) {
 		productService.On("GetProducts").Return(products, nil)
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
-			NewRequest(Http.MethodGet, SetupWebIntegration.ProductProductsUrl, nil).
-			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsUrl, productHandler.HandleGetProductsV1).
+			NewRequest(Http.MethodGet, SetupWebIntegration.ProductProductsURL, nil).
+			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsURL, productHandler.HandleGetProductsV1).
 			ServeHTTP().
 			Status())
 		productService.AssertCalled(unitTest, "GetProducts")
@@ -59,8 +59,8 @@ func TestProductHandler(unitTest *Testing.T) {
 
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
-			NewRequest(Http.MethodGet, SetupWebIntegration.ProductProductsUrl+ApplicationRouter.SLASH+ID.String(), nil).
-			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsUrl+ApplicationRouter.ById, productHandler.HandleGetProductV1).
+			NewRequest(Http.MethodGet, SetupWebIntegration.ProductProductsURL+ApplicationRouter.SLASH+ID.String(), nil).
+			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsURL+ApplicationRouter.ByID, productHandler.HandleGetProductV1).
 			ServeHTTP().
 			Status())
 		productService.AssertCalled(unitTest, "GetProduct", ID)
