@@ -24,6 +24,7 @@ type shoppingBasketService struct {
 	productMapper                Product.ProductMapper
 	shoppingBasketItemRepository Repository.CrudRepository[ShoppingBasketItemModel]
 	publisher                    Port.EventPublisher
+	shoppingBasketValidator      Validator
 }
 
 func (shoppingBasketService *shoppingBasketService) Create() (ShoppingBasket, error) {
@@ -125,7 +126,7 @@ func calculateTotal(price Types.Float64, quantity int) float64 {
 	return float64(price) * float64(quantity)
 }
 
-func NewService(productService Product.ProductService, productManagementService ProductManagement.ProductManagementService, productMapper Product.ProductMapper, shoppingBasketRepository Repository.CrudRepository[ShoppingBasketModel], shoppingBasketItemRepository Repository.CrudRepository[ShoppingBasketItemModel], publisher Port.EventPublisher) ShoppingBasketService {
+func NewService(productService Product.ProductService, productManagementService ProductManagement.ProductManagementService, productMapper Product.ProductMapper, shoppingBasketRepository Repository.CrudRepository[ShoppingBasketModel], shoppingBasketItemRepository Repository.CrudRepository[ShoppingBasketItemModel], publisher Port.EventPublisher, shoppingBasketValidator Validator) ShoppingBasketService {
 	return &shoppingBasketService{
 		shoppingBasketRepository,
 		productService,
@@ -133,5 +134,6 @@ func NewService(productService Product.ProductService, productManagementService 
 		productMapper,
 		shoppingBasketItemRepository,
 		publisher,
+		shoppingBasketValidator,
 	}
 }

@@ -4,10 +4,18 @@ import (
 	JSON "encoding/json"
 	Http "net/http"
 
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Types "github.com/danyel/ecommerce/internal/common/types"
 	Router "github.com/go-chi/chi/v5"
 	Uuid "github.com/google/uuid"
 )
+
+type APIError struct {
+	Success bool   `json:"success"`
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+	Errors  any    `json:"errors,omitempty"` // For validation-specific details (maps, slices)
+}
 
 func GetID(request *Http.Request) (Types.ID, error) {
 	ID := Router.URLParam(request, "ID")
@@ -47,7 +55,7 @@ func WriteResponse(status int, response Http.ResponseWriter, request *Http.Reque
 	response.WriteHeader(status)
 	encoder := JSON.NewEncoder(response)
 	if err := encoder.Encode(body); err != nil {
-		StatusInternalServerError(response, request)
+		InternalServerError(response, request, "Not Encodable", "Value can not be encoded")
 	}
 }
 
@@ -62,6 +70,7 @@ func StatusNoContent(response Http.ResponseWriter, request *Http.Request) {
 	response.WriteHeader(Http.StatusNoContent)
 }
 
+// Deprecated: use BadRequest(response Http.response, request *Http.Request, message string, details any)
 func StatusBadRequest(response Http.ResponseWriter, request *Http.Request) {
 	setHeaders(response, request)
 	response.WriteHeader(Http.StatusBadRequest)
@@ -69,6 +78,10 @@ func StatusBadRequest(response Http.ResponseWriter, request *Http.Request) {
 
 func StatusCreated(response Http.ResponseWriter, request *Http.Request, body any) {
 	WriteResponse(Http.StatusCreated, response, request, body)
+}
+
+func BadRequest(response Http.ResponseWriter, request *Http.Request, message string, details any) {
+	WriteJSONError(response, request, Http.StatusBadRequest, message, details)
 }
 
 func setHeaders(response Http.ResponseWriter, request *Http.Request) {
@@ -85,7 +98,31 @@ func StatusNotFound(response Http.ResponseWriter, request *Http.Request) {
 	response.WriteHeader(Http.StatusNotFound)
 }
 
+// StatusInternalServerError deprecated
+// Deprecated: use InternalServerError(response Http.ResponseWriter, request *Http.Request, message string, details any)
 func StatusInternalServerError(response Http.ResponseWriter, request *Http.Request) {
 	setHeaders(response, request)
 	response.WriteHeader(Http.StatusInternalServerError)
+}
+
+func InternalServerError(response Http.ResponseWriter, request *Http.Request, message string, details any) {
+	WriteJSONError(response, request, Http.StatusInternalServerError, message, details)
+}
+
+func WriteJSONError(response Http.ResponseWriter, request *Http.Request, statusCode int, message string, details any) {
+	setHeaders(response, request)
+	response.WriteHeader(statusCode)
+
+	resp := APIError{
+		Success: false,
+		Status:  statusCode,
+		Message: message,
+		Errors:  details,
+	}
+
+	err := JSON.NewEncoder(response).Encode(resp)
+	if err != nil {
+		Logger.Log.Fatalf("Error writing response: %v", err)
+		return
+	}
 }
