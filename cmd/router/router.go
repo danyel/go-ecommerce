@@ -37,10 +37,10 @@ const (
 	ByLanguage                   = "/{language}"
 )
 
-// ApiRouter Definition the web layer.
+// APIRouter Definition the web layer.
 // WebHandlerContextFactory will provide instances of web handlers to be used.
 // ServerConfiguration will provide the application port to be used.
-type ApiRouter interface {
+type APIRouter interface {
 	// Start the http server
 	Start()
 	// Router configuration of the loggers and api routing
@@ -51,7 +51,7 @@ type ApiRouter interface {
 func (apiRouter *apiRouter) Router() *Router.Mux {
 	apiRouter.rootRouter = Router.NewRouter()
 	apiRouter.configureLog()
-	apiRouter.configureApiRouting()
+	apiRouter.configureAPIRouting()
 	return apiRouter.rootRouter
 }
 
@@ -65,7 +65,7 @@ func (apiRouter *apiRouter) Start() {
 }
 
 // NewAPIRouter Factory method for the ApiRouter interface
-func NewAPIRouter(serverConfiguration *Configuration.ServerConfiguration, webHandlerContextFactory Factory.WebHandlerContextFactory) ApiRouter {
+func NewAPIRouter(serverConfiguration *Configuration.ServerConfiguration, webHandlerContextFactory Factory.WebHandlerContextFactory) APIRouter {
 	apiRouter := &apiRouter{
 		serverConfiguration:      serverConfiguration,
 		webHandlerContextFactory: webHandlerContextFactory,
@@ -89,8 +89,8 @@ func (apiRouter *apiRouter) configureLog() {
 	//apiRouter.Use(ApplicationMiddleware.JwtAuthMiddleware(apiRouter.ServerConfiguration.JwtSecret))
 }
 
-// configureApiRouting All API routing defined here
-func (apiRouter *apiRouter) configureApiRouting() {
+// configureAPIRouting All API routing defined here
+func (apiRouter *apiRouter) configureAPIRouting() {
 	webHandlerContextFactory := apiRouter.webHandlerContextFactory
 	apiRouter.rootRouter.Route(BaseContextPath, func(router Router.Router) {
 		product(router, webHandlerContextFactory.ProductWebHandler())
