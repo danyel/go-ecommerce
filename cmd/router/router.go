@@ -110,7 +110,7 @@ func shoppingBasket(router Router.Router, shoppingBasketWebHandler ShoppingBaske
 				shoppingBasketsRouter.Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
 				shoppingBasketsRouter.Route(ById, func(byIdRouter Router.Router) {
 					Logger.Log.Debug("Shopping Basket By Id")
-					byIdRouter.Get(SLASH, shoppingBasketWebHandler.HandleGetShoppingBasketByIdV1)
+					byIdRouter.Get(SLASH, shoppingBasketWebHandler.HandleGetShoppingBasketByIDV1)
 					byIdRouter.Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
 				})
 			})

@@ -36,6 +36,7 @@ type applicationContextFactory struct {
 	productMapper            Product.ProductMapper
 	cmsService               CMS.CmsService
 	messageBroker            *MessageBroker.MessageBroker
+	shoppingBasketValidator  ShoppingBasket.Validator
 }
 
 func (applicationContextFactory *applicationContextFactory) ReservationService() Reservation.ReservationService {
@@ -58,7 +59,13 @@ func (applicationContextFactory *applicationContextFactory) ProductService() Pro
 
 func (applicationContextFactory *applicationContextFactory) ShoppingBasketService() ShoppingBasket.ShoppingBasketService {
 	return getInstanceOfType(&applicationContextFactory.shoppingBasketService, func() ShoppingBasket.ShoppingBasketService {
-		return ShoppingBasket.NewService(applicationContextFactory.ProductService(), applicationContextFactory.ProductManagementService(), applicationContextFactory.ProductMapper(), repositoryContextFactoryInstance.ShoppingBasketRepository(), repositoryContextFactoryInstance.ShoppingBasketItemRepository(), messageBrokerContextFactoryInstance.MessageBroker())
+		return ShoppingBasket.NewService(applicationContextFactory.ProductService(), applicationContextFactory.ProductManagementService(), applicationContextFactory.ProductMapper(), repositoryContextFactoryInstance.ShoppingBasketRepository(), repositoryContextFactoryInstance.ShoppingBasketItemRepository(), messageBrokerContextFactoryInstance.MessageBroker(), applicationContextFactory.ShoppingBasketValidator())
+	})
+}
+
+func (applicationContextFactory *applicationContextFactory) ShoppingBasketValidator() ShoppingBasket.Validator {
+	return getInstanceOfType(&applicationContextFactory.shoppingBasketValidator, func() ShoppingBasket.Validator {
+		return ShoppingBasket.NewValidator(repositoryContextFactoryInstance.ProductRepository())
 	})
 }
 

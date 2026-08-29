@@ -52,7 +52,6 @@ func (logger *loggerImpl) Fatal(args ...any) {
 // Fatalf is equivalent to [log.Fatalf] followed by a call to [os.Exit](1).
 func (logger *loggerImpl) Fatalf(format string, args ...any) {
 	logger.getSlogWithCorrelation(context.Background()).Error(Fmt.Sprintf(format, args...))
-	OS.Exit(0)
 }
 
 func (logger *loggerImpl) getSlogWithCorrelation(ctx context.Context) *SLog.Logger {

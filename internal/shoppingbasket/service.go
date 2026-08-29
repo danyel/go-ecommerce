@@ -14,7 +14,7 @@ import (
 type ShoppingBasketService interface {
 	CreateShoppingBasket() (ShoppingBasket, error)
 	UpdateShoppingBasketItem(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItem) (ShoppingBasket, error)
-	GetShoppingBasket(u Uuid.UUID) (ShoppingBasket, error)
+	GetShoppingBasket(ID Uuid.UUID) (ShoppingBasket, error)
 }
 
 type shoppingBasketService struct {
@@ -24,6 +24,7 @@ type shoppingBasketService struct {
 	productMapper                Product.ProductMapper
 	shoppingBasketItemRepository Repository.CrudRepository[ShoppingBasketItemModel]
 	publisher                    Port.EventPublisher
+	shoppingBasketValidator      Validator
 }
 
 func (shoppingBasketService *shoppingBasketService) CreateShoppingBasket() (ShoppingBasket, error) {
@@ -46,6 +47,10 @@ func (shoppingBasketService *shoppingBasketService) CreateShoppingBasket() (Shop
 }
 
 func (shoppingBasketService *shoppingBasketService) UpdateShoppingBasketItem(ID Uuid.UUID, i UpdateShoppingBasketItem) (ShoppingBasket, error) {
+	err := shoppingBasketService.shoppingBasketValidator.ValidateItem(i)
+	if err != nil {
+		return EmptyShoppingBasket(), err
+	}
 	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindById(ID, "Items")
 	var product Product.Product
 	if err != nil {
@@ -122,7 +127,7 @@ func calculateTotal(price Types.Float64, quantity int) float64 {
 	return float64(price) * float64(quantity)
 }
 
-func NewService(productService Product.ProductService, productManagementService ProductManagement.ProductManagementService, productMapper Product.ProductMapper, shoppingBasketRepository Repository.CrudRepository[ShoppingBasketModel], shoppingBasketItemRepository Repository.CrudRepository[ShoppingBasketItemModel], publisher Port.EventPublisher) ShoppingBasketService {
+func NewService(productService Product.ProductService, productManagementService ProductManagement.ProductManagementService, productMapper Product.ProductMapper, shoppingBasketRepository Repository.CrudRepository[ShoppingBasketModel], shoppingBasketItemRepository Repository.CrudRepository[ShoppingBasketItemModel], publisher Port.EventPublisher, shoppingBasketValidator Validator) ShoppingBasketService {
 	return &shoppingBasketService{
 		shoppingBasketRepository,
 		productService,
@@ -130,5 +135,6 @@ func NewService(productService Product.ProductService, productManagementService 
 		productMapper,
 		shoppingBasketItemRepository,
 		publisher,
+		shoppingBasketValidator,
 	}
 }
