@@ -13,7 +13,7 @@ import (
 //goland:noinspection GoNameStartsWithPackageName
 type ShoppingBasketService interface {
 	Create() (ShoppingBasket, error)
-	Update(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItem) error
+	Update(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItemDTO) error
 	FindById(u Uuid.UUID) (ShoppingBasket, error)
 }
 
@@ -39,8 +39,8 @@ func (shoppingBasketService *shoppingBasketService) Create() (ShoppingBasket, er
 	return r, nil
 }
 
-func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateShoppingBasketItem UpdateShoppingBasketItem) error {
-	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindById(ID, "Items")
+func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateShoppingBasketItem UpdateShoppingBasketItemDTO) error {
+	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindByID(ID, "Items")
 	var product Product.Product
 	if err != nil {
 		return err
@@ -105,20 +105,20 @@ func (shoppingBasketService *shoppingBasketService) FindById(ID Uuid.UUID) (Shop
 			calculatedPriceToAdd := calculateTotal(currentProduct.Price.Inclusive, shoppingBasketItemModel.Quantity)
 			totalPrice += calculatedPriceToAdd
 			shoppingBasketItems[index] = ShoppingBasketItem{
-				ID:         Types.NewID(shoppingBasketItemModel.ID),
-				Name:       currentProduct.Name,
-				BasePrice:  Types.NewPrice(shoppingBasketItemModel.Price, "EUR"),
-				TotalPrice: Types.NewPrice(calculatedPriceToAdd, "EUR"),
-				ProductID:  currentProduct.ID,
-				ImageURL:   currentProduct.ImageURL,
-				Quantity:   shoppingBasketItemModel.Quantity,
-				Remaining:  currentProduct.Stock,
+				Product: Product.Product{
+					ID:          currentProduct.ID,
+					Name:        currentProduct.Name,
+					Description: currentProduct.Description,
+					Price:       currentProduct.Price,
+					Category:    currentProduct.Category,
+					Code:        currentProduct.Code,
+					ImageURL:    currentProduct.ImageURL,
+					Stock:       currentProduct.Stock,
+				},
 			}
 		}
 		shoppingBasket.Items = shoppingBasketItems
 	}
-	shoppingBasket.TotalPrice = Types.NewPrice(totalPrice, "EUR")
-
 	return shoppingBasket, nil
 }
 

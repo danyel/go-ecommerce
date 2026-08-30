@@ -24,22 +24,24 @@ func (managementWebHandler *managementWebHandler) HandleGetCategoriesV1(response
 	WebHandler.WriteResponse(Http.StatusOK, response, request, managementWebHandler.categoryService.GetCategories())
 }
 
+// HandleCreateTranslationsV1 still some messages to do here 😔
 func (managementWebHandler *managementWebHandler) HandleCreateTranslationsV1(response Http.ResponseWriter, request *Http.Request) {
 	var createCms CreateCms
 	var err error
 	var cmsID CmsID
-	if err = WebHandler.ValidateRequest(request, &createCms); err != nil {
-		WebHandler.StatusBadRequest(response, request)
+	var details map[string]any
+	if details, err = WebHandler.ValidateRequest(request, &createCms); err != nil {
+		WebHandler.BadRequest(response, request, WebHandler.BadRequestTitle, details)
 		return
 	}
 
 	// we can not create a new translation for the same code and language!
 	if _, err = managementWebHandler.cmsService.GetTranslation(createCms.Code, createCms.Language); err == nil {
-		WebHandler.StatusBadRequest(response, request)
+		WebHandler.BadRequest(response, request, WebHandler.BadRequestTitle, make(map[string]any))
 	}
 
 	if cmsID, err = managementWebHandler.managementService.CreateTranslation(createCms); err != nil {
-		WebHandler.StatusInternalServerError(response, request)
+		WebHandler.InternalServerError(response, request, WebHandler.InternalServerErrorTitle, make(map[string]any))
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusCreated, response, request, cmsID)

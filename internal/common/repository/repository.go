@@ -1,6 +1,8 @@
 package commonRepository
 
 import (
+	Errors "errors"
+
 	Uuid "github.com/google/uuid"
 	Database "gorm.io/gorm"
 )
@@ -8,7 +10,7 @@ import (
 type CrudRepository[T any] interface {
 	FindAll(searchCriteria SearchCriteria) []*T
 	FetchAll() []*T
-	FindById(ID Uuid.UUID, preloads ...string) (*T, error)
+	FindByID(ID Uuid.UUID, preloads ...string) (*T, error)
 	Create(model *T) error
 	Update(model *T) error
 	Delete(ID Uuid.UUID) error
@@ -75,7 +77,7 @@ func (crudRepository *crudRepository[T]) FindAll(searchCriteria SearchCriteria) 
 	query.Find(&results)
 	return results
 }
-func (crudRepository *crudRepository[T]) FindById(ID Uuid.UUID, preloads ...string) (*T, error) {
+func (crudRepository *crudRepository[T]) FindByID(ID Uuid.UUID, preloads ...string) (*T, error) {
 	var model T
 	var result *Database.DB
 	query := crudRepository.databaseConnection.Model(&model)
@@ -83,9 +85,14 @@ func (crudRepository *crudRepository[T]) FindById(ID Uuid.UUID, preloads ...stri
 	for _, preload := range preloads {
 		query = query.Preload(preload)
 	}
+	result = query.First(&model, "id = ?", ID)
 
-	if result = query.First(&model, "id = ?", ID); result.Error != nil {
+	if result.Error != nil {
 		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, Errors.New("not found")
 	}
 
 	return &model, nil

@@ -29,7 +29,7 @@ type webHandlerContextFactory struct {
 
 func (webHandlerContextFactory *webHandlerContextFactory) ShoppingBasketWebHandler() Shoppingbasket.ShoppingBasketWebHandler {
 	return getInstanceOfType(&webHandlerContextFactory.shoppingBasketWebHandler, func() Shoppingbasket.ShoppingBasketWebHandler {
-		return Shoppingbasket.NewWebHandler(applicationContextFactoryInstance.ShoppingBasketService())
+		return Shoppingbasket.NewWebHandler(applicationContextFactoryInstance.ShoppingBasketService(), applicationContextFactoryInstance.ShoppingBasketValidator())
 	})
 }
 

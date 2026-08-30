@@ -25,7 +25,7 @@ func (reservationService *reservationService) FindAll() []Reservation {
 
 func (reservationService *reservationService) Find(reservationID Uuid.UUID) (Reservation, error) {
 	var reservation Reservation
-	reservationModel, err := reservationService.reservationRepository.FindById(reservationID)
+	reservationModel, err := reservationService.reservationRepository.FindByID(reservationID.ID)
 	if err != nil {
 		return reservation, err
 	}

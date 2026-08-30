@@ -1,10 +1,11 @@
 package reservation
 
 import (
+	Fmt "fmt"
 	Http "net/http"
 
 	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
-	Uuid "github.com/google/uuid"
+	Types "github.com/danyel/ecommerce/internal/common/types"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -19,10 +20,11 @@ type reservationHandler struct {
 
 func (reservationHandler *reservationHandler) CreateReservation(response Http.ResponseWriter, request *Http.Request) {
 	var createReservation CreateReservation
-	var ID Uuid.UUID
+	var ID Types.ID
 	var err error
-	if err = WebHandler.ValidateRequest[CreateReservation](request, &createReservation); err != nil {
-		WebHandler.StatusBadRequest(response, request)
+	var details map[string]any
+	if details, err = WebHandler.ValidateRequest[CreateReservation](request, &createReservation); err != nil {
+		WebHandler.BadRequest(response, request, WebHandler.BadRequestTitle, details)
 		return
 	}
 	reservation := Reservation{
@@ -31,18 +33,18 @@ func (reservationHandler *reservationHandler) CreateReservation(response Http.Re
 		Quantity:         createReservation.Quantity,
 	}
 	if ID, err = reservationHandler.reservationService.Create(reservation); err != nil {
-		WebHandler.StatusInternalServerError(response, request)
+		details := make(map[string]any)
+		details["database"] = Fmt.Sprintf("Could not create Reservation: %s", err.Error())
+		WebHandler.InternalServerError(response, request, WebHandler.InternalServerErrorTitle, details)
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusCreated, response, request, ID)
 }
 
 func (reservationHandler *reservationHandler) GetReservations(response Http.ResponseWriter, request *Http.Request) {
-	WebHandler.WriteResponse(Http.StatusOK, response, request, reservationHandler.reservationService.FindAll())
+	WebHandler.WriteResponse(Http.StatusOK, response, request, reservationHandler.reservationService.GetReservations())
 }
 
-// NewHandler adding to router (todo)
-//
 //goland:noinspection GoUnusedExportedFunction
 func NewHandler(reservationService ReservationService) ReservationHandler {
 	handler := &reservationHandler{

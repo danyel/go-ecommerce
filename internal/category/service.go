@@ -2,6 +2,7 @@ package category
 
 import (
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
+	Types "github.com/danyel/ecommerce/internal/common/types"
 	Uuid "github.com/google/uuid"
 )
 
@@ -9,7 +10,7 @@ import (
 type CategoryService interface {
 	GetCategories() []Category
 	GetCategory(ID Uuid.UUID) (Category, error)
-	CreateCategory(createCategory CreateCategory) (CategoryID, error)
+	CreateCategory(createCategory CreateCategory) (Uuid.UUID, error)
 }
 
 type categoryService struct {
@@ -23,22 +24,21 @@ func (categoryService *categoryService) GetCategories() []Category {
 
 func (categoryService *categoryService) GetCategory(ID Uuid.UUID) (Category, error) {
 	var category Category
-	categoryModel, err := categoryService.categoryRepository.FindById(ID)
+	categoryModel, err := categoryService.categoryRepository.FindByID(ID)
 	if err != nil {
 		return category, err
 	}
 	return mapCategory(*categoryModel), err
 }
 
-func (categoryService *categoryService) CreateCategory(createCategory CreateCategory) (CategoryID, error) {
+func (categoryService *categoryService) CreateCategory(createCategory CreateCategory) (Uuid.UUID, error) {
 	var err error
-	var ID CategoryID
 	category := &CategoryModel{
 		Name: createCategory.Name,
 	}
 
 	if err := categoryService.categoryRepository.Create(category); err != nil {
-		return ID, err
+		return Uuid.Nil, err
 	}
 	var children []*CategoryModel
 	if len(createCategory.Children) > 0 {
@@ -52,11 +52,10 @@ func (categoryService *categoryService) CreateCategory(createCategory CreateCate
 
 	if len(children) > 0 {
 		if err = categoryService.categoryRepository.AssocAppend(category, "Children", children); err != nil {
-			return ID, err
+			return category.ID, err
 		}
 	}
-	ID.ID = category.ID
-	return ID, err
+	return category.ID, err
 }
 
 func mapCategories(categoryModels []*CategoryModel) []Category {
@@ -64,7 +63,7 @@ func mapCategories(categoryModels []*CategoryModel) []Category {
 
 	for index, categoryModel := range categoryModels {
 		categories[index] = Category{
-			ID:   categoryModel.ID,
+			ID:   Types.NewID(categoryModel.ID),
 			Name: categoryModel.Name,
 			// Important: children as pointers
 			Children: mapCategories(categoryModel.Children),
@@ -76,7 +75,7 @@ func mapCategories(categoryModels []*CategoryModel) []Category {
 
 func mapCategory(categoryModel CategoryModel) Category {
 	return Category{
-		ID:   categoryModel.ID,
+		ID:   Types.NewID(categoryModel.ID),
 		Name: categoryModel.Name,
 		// Important: children as pointers
 		Children: mapCategories(categoryModel.Children),

@@ -1,19 +1,21 @@
 package category
 
-import Uuid "github.com/google/uuid"
+import (
+	Types "github.com/danyel/ecommerce/internal/common/types"
+)
 
 type CreateCategory struct {
-	Name     string   `json:"name"`
+	Name     string   `json:"name" validate:"required,min=3"`
 	Children []string `json:"children"`
 }
 
 type Category struct {
-	ID       Uuid.UUID  `json:"id"`
+	ID       Types.ID   `json:"id"`
 	Name     string     `json:"name"`
 	Children []Category `json:"children,omitempty"`
 }
 
 //goland:noinspection GoNameStartsWithPackageName
 type CategoryID struct {
-	ID Uuid.UUID `json:"id"`
+	ID Types.ID `json:"id"`
 }

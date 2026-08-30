@@ -53,7 +53,7 @@ func (webIntegration *WebIntegration) WithAuth(ID string, roles []string, hexSec
 	return webIntegration
 }
 
-func (webIntegration *WebIntegration) ProductManagementPostProducts(createProduct *Product.CreateProduct) *WebIntegration {
+func (webIntegration *WebIntegration) ProductManagementPostProducts(createProduct *Product.CreateProductDTO) *WebIntegration {
 	return webIntegration.Post(webIntegration.forURL(ProductManagementProductsURL), createProduct)
 }
 
@@ -77,7 +77,7 @@ func (webIntegration *WebIntegration) ShoppingBasketCreate() *WebIntegration {
 	return webIntegration.Post(webIntegration.forURL(ShoppingBasketShoppingBasketsURL), nil)
 }
 
-func (webIntegration *WebIntegration) ShoppingBasketAddItem(ID string, updateShoppingBasketItem ShoppingBasket.UpdateShoppingBasketItem) *WebIntegration {
+func (webIntegration *WebIntegration) ShoppingBasketAddItem(ID string, updateShoppingBasketItem ShoppingBasket.UpdateShoppingBasketItemDTO) *WebIntegration {
 	return webIntegration.Put(webIntegration.forURL(ShoppingBasketShoppingBasketsURL+ApplicationRouter.SLASH+ID), updateShoppingBasketItem)
 }
 
@@ -130,6 +130,10 @@ func (webIntegration *WebIntegration) IsNotNil(body any) *WebIntegration {
 
 func (webIntegration *WebIntegration) AssertStatusOk() *WebIntegration {
 	return webIntegration.Equal(Http.StatusOK, webIntegration.response.StatusCode)
+}
+
+func (webIntegration *WebIntegration) AssertNotFound() *WebIntegration {
+	return webIntegration.Equal(Http.StatusNotFound, webIntegration.response.StatusCode)
 }
 
 func (webIntegration *WebIntegration) Equal(expected, actual any, arguments ...any) *WebIntegration {

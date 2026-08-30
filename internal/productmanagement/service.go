@@ -11,8 +11,8 @@ type ProductManagementService interface {
 	GetProducts() []Product.Product
 	GetProduct(id Types.ID) (Product.Product, error)
 	DeleteProduct(id Types.ID) error
-	UpdateProduct(id Types.ID, updateProduct Product.UpdateProduct) error
-	CreateProduct(createProduct Product.CreateProduct) (Types.ID, error)
+	UpdateProduct(id Types.ID, updateProduct Product.UpdateProductDTO) error
+	CreateProduct(createProduct Product.CreateProductDTO) (Types.ID, error)
 }
 
 type productManagementService struct {
@@ -46,8 +46,8 @@ func (productManagementService *productManagementService) DeleteProduct(ID Types
 	return productManagementService.productRepository.Delete(ID.ID)
 }
 
-func (productManagementService *productManagementService) UpdateProduct(ID Types.ID, updateProduct Product.UpdateProduct) error {
-	productModel, err := productManagementService.productRepository.FindById(ID.ID)
+func (productManagementService *productManagementService) UpdateProduct(ID Types.ID, updateProduct Product.UpdateProductDTO) error {
+	productModel, err := productManagementService.productRepository.FindByID(ID.ID)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (productManagementService *productManagementService) UpdateProduct(ID Types
 	return productManagementService.productRepository.Update(productModel)
 }
 
-func (productManagementService *productManagementService) CreateProduct(createProduct Product.CreateProduct) (Types.ID, error) {
+func (productManagementService *productManagementService) CreateProduct(createProduct Product.CreateProductDTO) (Types.ID, error) {
 	var productID Types.ID
 	productModel := Product.ProductModel{
 		Code:        createProduct.Code,

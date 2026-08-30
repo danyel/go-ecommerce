@@ -26,7 +26,7 @@ func (productWebHandler *productWebHandler) HandleGetProductV1(response Http.Res
 	var ID Types.ID
 	var err error
 	if ID, err = WebHandler.GetID(request); err != nil {
-		WebHandler.StatusBadRequest(response, request)
+		WebHandler.BadRequest(response, request, WebHandler.BadRequestTitle, make(map[string]any))
 		return
 	}
 

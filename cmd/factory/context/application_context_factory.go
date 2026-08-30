@@ -23,6 +23,7 @@ type ServiceContextFactory interface {
 	ProductManagementService() ProductManagement.ProductManagementService
 	ProductMapper() Product.ProductMapper
 	MessageBroker() *MessageBroker.MessageBroker
+	ShoppingBasketValidator() ShoppingBasket.Validator
 	StartMessageBroker() error
 }
 
@@ -57,15 +58,15 @@ func (serviceContextFactory *serviceContextFactory) ProductService() Product.Pro
 	})
 }
 
-func (serviceContextFactory *serviceContextFactory) ShoppingBasketValidator() ShoppingBasket.Validator {
-	return getInstanceOfType(&serviceContextFactory.shoppingBasketValidator, func() ShoppingBasket.Validator {
-		return ShoppingBasket.NewValidator(repositoryContextFactoryInstance.ProductRepository())
+func (serviceContextFactory *serviceContextFactory) ShoppingBasketService() ShoppingBasket.ShoppingBasketService {
+	return getInstanceOfType(&serviceContextFactory.shoppingBasketService, func() ShoppingBasket.ShoppingBasketService {
+		return ShoppingBasket.NewService(serviceContextFactory.ProductService(), serviceContextFactory.ProductManagementService(), serviceContextFactory.ProductMapper(), repositoryContextFactoryInstance.ShoppingBasketRepository(), repositoryContextFactoryInstance.ShoppingBasketItemRepository(), messageBrokerContextFactoryInstance.MessageBroker(), applicationContextFactory.ShoppingBasketValidator())
 	})
 }
 
-func (serviceContextFactory *serviceContextFactory) ShoppingBasketService() ShoppingBasket.ShoppingBasketService {
-	return getInstanceOfType(&serviceContextFactory.shoppingBasketService, func() ShoppingBasket.ShoppingBasketService {
-		return ShoppingBasket.NewService(serviceContextFactory.ProductService(), serviceContextFactory.ProductManagementService(), serviceContextFactory.ProductMapper(), repositoryContextFactoryInstance.ShoppingBasketRepository(), repositoryContextFactoryInstance.ShoppingBasketItemRepository(), messageBrokerContextFactoryInstance.MessageBroker())
+func (serviceContextFactory *serviceContextFactory) ShoppingBasketValidator() ShoppingBasket.Validator {
+	return getInstanceOfType(&serviceContextFactory.shoppingBasketValidator, func() ShoppingBasket.Validator {
+		return ShoppingBasket.NewValidator(repositoryContextFactoryInstance.ProductRepository(), repositoryContextFactoryInstance.ShoppingBasketRepository(), serviceContextFactory.ProductService())
 	})
 }
 
