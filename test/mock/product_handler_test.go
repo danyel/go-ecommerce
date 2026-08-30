@@ -18,14 +18,14 @@ type MockProductService struct {
 	Mock.Mock
 }
 
-func (productService *MockProductService) GetProducts() []Product.ProductDTO {
+func (productService *MockProductService) GetProducts() []Product.Product {
 	args := productService.Called()
-	return args.Get(0).([]Product.ProductDTO)
+	return args.Get(0).([]Product.Product)
 }
 
-func (productService *MockProductService) GetProduct(ID Uuid.UUID) (Product.ProductDTO, error) {
+func (productService *MockProductService) GetProduct(ID Uuid.UUID) (Product.Product, error) {
 	args := productService.Called(ID)
-	return args.Get(0).(Product.ProductDTO), args.Error(1)
+	return args.Get(0).(Product.Product), args.Error(1)
 }
 
 func TestProductHandler(unitTest *Testing.T) {
@@ -34,11 +34,12 @@ func TestProductHandler(unitTest *Testing.T) {
 	productHandler := Product.NewWebHandler(productService)
 	run := Run(unitTest)
 
+	price := Types.NewPrice(1000, "EUR")
 	unitTest.Run("GetProducts", func(unitTest *Testing.T) {
-		products := []Product.ProductDTO{
+		products := []Product.Product{
 			{
 				Code:  "Code",
-				Price: Types.NewPrice(1000, "EUR"),
+				Price: price,
 			},
 		}
 		productService.On("GetProducts").Return(products, nil)
@@ -54,7 +55,7 @@ func TestProductHandler(unitTest *Testing.T) {
 
 	unitTest.Run("GetProduct", func(unitTest *Testing.T) {
 		ID, _ := Uuid.Parse("aef8f0ce-c33f-456c-bc5c-91f951116cf7")
-		product := Product.ProductDTO{Code: "Code", Price: Types.NewPrice(1000, "EUR")}
+		product := Product.Product{Code: "Code", Price: price}
 		productService.On("GetProduct", ID).Return(product, nil)
 
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
