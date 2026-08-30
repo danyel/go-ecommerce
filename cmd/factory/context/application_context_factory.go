@@ -23,6 +23,7 @@ type ApplicationContextFactory interface {
 	ProductManagementService() ProductManagement.ProductManagementService
 	ProductMapper() Product.ProductMapper
 	MessageBroker() *MessageBroker.MessageBroker
+	ShoppingBasketValidator() ShoppingBasket.Validator
 	StartMessageBroker() error
 }
 
@@ -65,7 +66,7 @@ func (applicationContextFactory *applicationContextFactory) ShoppingBasketServic
 
 func (applicationContextFactory *applicationContextFactory) ShoppingBasketValidator() ShoppingBasket.Validator {
 	return getInstanceOfType(&applicationContextFactory.shoppingBasketValidator, func() ShoppingBasket.Validator {
-		return ShoppingBasket.NewValidator(repositoryContextFactoryInstance.ProductRepository())
+		return ShoppingBasket.NewValidator(repositoryContextFactoryInstance.ProductRepository(), repositoryContextFactoryInstance.ShoppingBasketRepository(), applicationContextFactoryInstance.ProductService())
 	})
 }
 

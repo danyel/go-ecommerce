@@ -24,7 +24,7 @@ func (productService *productService) GetProducts() []Product {
 
 func (productService *productService) GetProduct(ID Uuid.UUID) (Product, error) {
 	var product Product
-	productModel, err := productService.productRepository.FindById(ID)
+	productModel, err := productService.productRepository.FindByID(ID)
 	if err != nil {
 		return product, err
 	}

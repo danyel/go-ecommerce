@@ -13,7 +13,7 @@ import (
 //goland:noinspection GoNameStartsWithPackageName
 type ShoppingBasketService interface {
 	CreateShoppingBasket() (ShoppingBasket, error)
-	UpdateShoppingBasketItem(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItem) (ShoppingBasket, error)
+	UpdateShoppingBasketItem(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItemDTO) (ShoppingBasket, error)
 	GetShoppingBasket(ID Uuid.UUID) (ShoppingBasket, error)
 }
 
@@ -46,12 +46,8 @@ func (shoppingBasketService *shoppingBasketService) CreateShoppingBasket() (Shop
 	return r, nil
 }
 
-func (shoppingBasketService *shoppingBasketService) UpdateShoppingBasketItem(ID Uuid.UUID, i UpdateShoppingBasketItem) (ShoppingBasket, error) {
-	err := shoppingBasketService.shoppingBasketValidator.ValidateItem(i)
-	if err != nil {
-		return EmptyShoppingBasket(), err
-	}
-	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindById(ID, "Items")
+func (shoppingBasketService *shoppingBasketService) UpdateShoppingBasketItem(ID Uuid.UUID, i UpdateShoppingBasketItemDTO) (ShoppingBasket, error) {
+	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindByID(ID, "Items")
 	var product Product.Product
 	if err != nil {
 		return EmptyShoppingBasket(), err
@@ -91,7 +87,7 @@ func (shoppingBasketService *shoppingBasketService) UpdateShoppingBasketItem(ID 
 }
 
 func (shoppingBasketService *shoppingBasketService) GetShoppingBasket(ID Uuid.UUID) (ShoppingBasket, error) {
-	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindById(ID, "Items")
+	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindByID(ID, "Items")
 	Logger.Log.Debug("Shopping Basket By Id: %v", shoppingBasketModel)
 	totalPrice := float64(0)
 	if err != nil {
@@ -107,19 +103,20 @@ func (shoppingBasketService *shoppingBasketService) GetShoppingBasket(ID Uuid.UU
 			calculatedPriceToAdd := calculateTotal(currentProduct.Price.Inclusive, shoppingBasketItemModel.Quantity)
 			totalPrice += calculatedPriceToAdd
 			shoppingBasketItems[index] = ShoppingBasketItem{
-				ID:         Types.NewID(shoppingBasketItemModel.ID),
-				Name:       currentProduct.Name,
-				BasePrice:  Types.NewPrice(shoppingBasketItemModel.Price, "EUR"),
-				TotalPrice: Types.NewPrice(calculatedPriceToAdd, "EUR"),
-				ProductID:  currentProduct.ID,
-				ImageURL:   currentProduct.ImageURL,
-				Quantity:   shoppingBasketItemModel.Quantity,
+				Product: Product.Product{
+					ID:          currentProduct.ID,
+					Name:        currentProduct.Name,
+					Description: currentProduct.Description,
+					Price:       currentProduct.Price,
+					Category:    currentProduct.Category,
+					Code:        currentProduct.Code,
+					ImageURL:    currentProduct.ImageURL,
+					Stock:       currentProduct.Stock,
+				},
 			}
 		}
 		shoppingBasket.Items = shoppingBasketItems
 	}
-	shoppingBasket.TotalPrice = Types.NewPrice(totalPrice, "EUR")
-
 	return shoppingBasket, nil
 }
 

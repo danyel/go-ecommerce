@@ -36,7 +36,7 @@ func (productManagementWebHandler *productManagementWebHandler) HandleDeleteProd
 	var err error
 	productIDToParse := Router.URLParam(request, "productID")
 	if productID, err = Uuid.Parse(productIDToParse); err != nil {
-		WebHandler.StatusBadRequest(response, request)
+		WebHandler.BadRequest(response, request, WebHandler.BadRequestTitle, make(map[string]any))
 		return
 	}
 
@@ -52,9 +52,10 @@ func (productManagementWebHandler *productManagementWebHandler) HandleUpdateProd
 	if err != nil {
 		WebHandler.StatusNotFound(response, request)
 	}
-	var updateProduct Product.UpdateProduct
-	if err = WebHandler.ValidateRequest(request, &updateProduct); err != nil {
-		WebHandler.StatusBadRequest(response, request)
+	var updateProduct Product.UpdateProductDTO
+	var details map[string]any
+	if details, err = WebHandler.ValidateRequest(request, &updateProduct); err != nil {
+		WebHandler.BadRequest(response, request, WebHandler.BadRequestTitle, details)
 		return
 	}
 	if err = productManagementWebHandler.productManagementService.UpdateProduct(productID, updateProduct); err != nil {
@@ -64,16 +65,17 @@ func (productManagementWebHandler *productManagementWebHandler) HandleUpdateProd
 }
 
 func (productManagementWebHandler *productManagementWebHandler) HandleCreateProductV1(response Http.ResponseWriter, request *Http.Request) {
-	var createProduct Product.CreateProduct
+	var createProduct Product.CreateProductDTO
 	var ID Types.ID
 	var err error
+	var details map[string]any
 
-	if err = WebHandler.ValidateRequest(request, &createProduct); err != nil {
-		WebHandler.StatusBadRequest(response, request)
+	if details, err = WebHandler.ValidateRequest(request, &createProduct); err != nil {
+		WebHandler.BadRequest(response, request, WebHandler.BadRequestTitle, details)
 	}
 
 	if ID, err = productManagementWebHandler.productManagementService.CreateProduct(createProduct); err != nil {
-		WebHandler.StatusInternalServerError(response, request)
+		WebHandler.InternalServerError(response, request, WebHandler.InternalServerErrorTitle, make(map[string]any))
 		return
 	}
 	WebHandler.WriteResponse(Http.StatusCreated, response, request, ID)
@@ -85,7 +87,7 @@ func (productManagementWebHandler *productManagementWebHandler) HandleGetProduct
 	var product Product.Product
 	ID, err = WebHandler.GetID(request)
 	if err != nil {
-		WebHandler.StatusBadRequest(response, request)
+		WebHandler.BadRequest(response, request, WebHandler.BadRequestTitle, make(map[string]any))
 		return
 	}
 
@@ -93,7 +95,21 @@ func (productManagementWebHandler *productManagementWebHandler) HandleGetProduct
 		WebHandler.StatusNotFound(response, request)
 		return
 	}
-	WebHandler.WriteResponse(Http.StatusOK, response, request, product)
+	WebHandler.WriteResponse(Http.StatusOK, response, request, dto(product))
+}
+
+func dto(product Product.Product) Product.ProductDTO {
+	return Product.ProductDTO{
+		ID:          product.ID,
+		Brand:       product.Brand,
+		Name:        product.Name,
+		Description: product.Description,
+		Code:        product.Code,
+		Price:       product.Price.DTO(),
+		Category:    product.Category,
+		ImageURL:    product.ImageURL,
+		Stock:       product.Stock,
+	}
 }
 
 func NewWebHandler(categoryService Category.CategoryService, cmsService CMS.CmsService, productManagementService ProductManagementService) ProductManagementWebHandler {

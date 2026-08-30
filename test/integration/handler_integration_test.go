@@ -1,11 +1,13 @@
 package integration
 
 import (
+	Fmt "fmt"
 	Testing "testing"
 
 	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
+	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Types "github.com/danyel/ecommerce/internal/common/types"
 	Management "github.com/danyel/ecommerce/internal/management"
@@ -13,6 +15,7 @@ import (
 	Shoppingbasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 	Initializers "github.com/danyel/ecommerce/test/integration/initializer"
 	TestUtils "github.com/danyel/ecommerce/test/testutils"
+	Uuid "github.com/google/uuid"
 )
 
 func TestWebHandler(unitTest *Testing.T) {
@@ -46,6 +49,7 @@ func TestWebHandler(unitTest *Testing.T) {
 		Language: "nl_FR",
 	})
 	productModel := &Product.ProductModel{
+		Stock:       5,
 		Brand:       "ASUS",
 		Name:        "90YV0L71_M0NA00_NAME",
 		Description: "90YV0L71_M0NA00_DESCRIPTION",
@@ -58,7 +62,7 @@ func TestWebHandler(unitTest *Testing.T) {
 
 	unitTest.Run("Product h", func(unitTest *Testing.T) {
 		unitTest.Run("CreateProduct", func(unitTest *Testing.T) {
-			createProduct := &Product.CreateProduct{
+			createProduct := &Product.CreateProductDTO{
 				Brand:       "ASUS",
 				Name:        "90YV0L71_M0NA00_NAME",
 				Description: "90YV0L71_M0NA00_DESCRIPTION",
@@ -154,7 +158,7 @@ func TestWebHandler(unitTest *Testing.T) {
 
 	unitTest.Run("Product Management h", func(unitTest *Testing.T) {
 		unitTest.Run("Product Management Get Product", func(unitTest *Testing.T) {
-			var product Product.Product
+			var product Product.ProductDTO
 			webIntegration.ProductManagementGetProductByID(productModel.ID.String()).
 				GetResponseBody(&product).
 				AssertStatusOk().
@@ -169,7 +173,7 @@ func TestWebHandler(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Product Management Get Products", func(unitTest *Testing.T) {
-			var products []Product.Product
+			var products []Product.ProductDTO
 			webIntegration.ProductManagementGetProducts().
 				GetResponseBody(&products).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", products[0].Name).
@@ -184,7 +188,7 @@ func TestWebHandler(unitTest *Testing.T) {
 		})
 	})
 
-	unitTest.Run("Shopping Basket h", func(unitTest *Testing.T) {
+	unitTest.Run("Shopping Basket handler", func(unitTest *Testing.T) {
 		var ID Types.ID
 
 		unitTest.Run("Create Shopping Basket", func(unitTest *Testing.T) {
@@ -195,15 +199,77 @@ func TestWebHandler(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Add Item To Shopping Basket", func(unitTest *Testing.T) {
-			updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItem{
+			updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItemDTO{
 				ProductID: Types.NewID(productModel.ID),
 			}
 			webIntegration.ShoppingBasketAddItem(ID.ID.String(), updateShoppingBasketItem).
 				AssertStatusOk()
 		})
 
+		unitTest.Run("Add Item To Shopping Basket Error handling", func(unitTest *Testing.T) {
+			unitTest.Run("Shopping Basket Not Found", func(unitTest *Testing.T) {
+				var problemDetail WebHandler.ProblemDetail
+				updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItemDTO{
+					ProductID: Types.NewID(productModel.ID),
+				}
+				expected := make(map[string]any)
+				unknownId := Uuid.NewString()
+				expected["id"] = Fmt.Sprintf("Shopping basket not found: '%s'", unknownId)
+				webIntegration.ShoppingBasketAddItem(unknownId, updateShoppingBasketItem).
+					AssertNotFound().
+					GetResponseBody(&problemDetail).
+					Equal(expected, problemDetail.Errors)
+			})
+
+			unitTest.Run("Product Not Found", func(unitTest *Testing.T) {
+				var problemDetail WebHandler.ProblemDetail
+				unknownId := Uuid.New()
+				updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItemDTO{
+					ProductID: Types.NewID(unknownId),
+				}
+				expected := make(map[string]any)
+				expected["product_id"] = Fmt.Sprintf("Product not found: '%s'", unknownId.String())
+				webIntegration.ShoppingBasketAddItem(ID.ID.String(), updateShoppingBasketItem).
+					AssertNotFound().
+					GetResponseBody(&problemDetail).
+					Equal(expected, problemDetail.Errors)
+			})
+
+			unitTest.Run("Product Out Of Stock", func(unitTest *Testing.T) {
+				var problemDetail WebHandler.ProblemDetail
+				productModel.Stock = 0
+				_ = productRepository.repository.Update(productModel)
+				expected := make(map[string]any)
+				expected["product_stock"] = "'90YV0L71_M0NA00_NAME' is out of stock"
+				updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItemDTO{
+					ProductID: Types.NewID(productModel.ID),
+					Quantity:  100,
+				}
+				webIntegration.ShoppingBasketAddItem(ID.ID.String(), updateShoppingBasketItem).
+					AssertBadRequest().
+					GetResponseBody(&problemDetail).
+					Equal(expected, problemDetail.Errors)
+			})
+
+			unitTest.Run("Product Not All Items Can Be Reserved", func(unitTest *Testing.T) {
+				var problemDetail WebHandler.ProblemDetail
+				productModel.Stock = 10
+				_ = productRepository.repository.Update(productModel)
+				expected := make(map[string]any)
+				expected["product_stock"] = Fmt.Sprintf("'90YV0L71_M0NA00_NAME' can not reserve all items: %d/%d", 10, 100)
+				updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItemDTO{
+					ProductID: Types.NewID(productModel.ID),
+					Quantity:  100,
+				}
+				webIntegration.ShoppingBasketAddItem(ID.ID.String(), updateShoppingBasketItem).
+					AssertBadRequest().
+					GetResponseBody(&problemDetail).
+					Equal(expected, problemDetail.Errors)
+			})
+		})
+
 		unitTest.Run("Get Shopping Basket", func(unitTest *Testing.T) {
-			var shoppingBasket Shoppingbasket.ShoppingBasket
+			var shoppingBasket Shoppingbasket.ShoppingBasketDTO
 			webIntegration.GetShoppingBasket(ID.ID.String()).
 				GetResponseBody(&shoppingBasket).
 				AssertStatusOk().

@@ -11,20 +11,20 @@ type ProductManagementService interface {
 	GetProducts() []Product.Product
 	GetProduct(id Types.ID) (Product.Product, error)
 	DeleteProduct(id Types.ID) error
-	UpdateProduct(id Types.ID, updateProduct Product.UpdateProduct) error
-	CreateProduct(createProduct Product.CreateProduct) (Types.ID, error)
+	UpdateProduct(id Types.ID, updateProduct Product.UpdateProductDTO) error
+	CreateProduct(createProduct Product.CreateProductDTO) (Types.ID, error)
 }
 
-type productMangementService struct {
+type productManagementService struct {
 	productRepository Repository.CrudRepository[Product.ProductModel]
 	productService    Product.ProductService
 }
 
-func (productManagementService *productMangementService) GetProducts() []Product.Product {
+func (productManagementService *productManagementService) GetProducts() []Product.Product {
 	return productManagementService.productService.GetProducts()
 }
 
-func (productManagementService *productMangementService) GetProduct(ID Types.ID) (Product.Product, error) {
+func (productManagementService *productManagementService) GetProduct(ID Types.ID) (Product.Product, error) {
 	product, err := productManagementService.productService.GetProduct(ID.ID)
 	if err != nil {
 		return product, err
@@ -42,12 +42,12 @@ func (productManagementService *productMangementService) GetProduct(ID Types.ID)
 	}, nil
 }
 
-func (productManagementService *productMangementService) DeleteProduct(ID Types.ID) error {
+func (productManagementService *productManagementService) DeleteProduct(ID Types.ID) error {
 	return productManagementService.productRepository.Delete(ID.ID)
 }
 
-func (productManagementService *productMangementService) UpdateProduct(ID Types.ID, updateProduct Product.UpdateProduct) error {
-	productModel, err := productManagementService.productRepository.FindById(ID.ID)
+func (productManagementService *productManagementService) UpdateProduct(ID Types.ID, updateProduct Product.UpdateProductDTO) error {
+	productModel, err := productManagementService.productRepository.FindByID(ID.ID)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (productManagementService *productMangementService) UpdateProduct(ID Types.
 	return productManagementService.productRepository.Update(productModel)
 }
 
-func (productManagementService *productMangementService) CreateProduct(createProduct Product.CreateProduct) (Types.ID, error) {
+func (productManagementService *productManagementService) CreateProduct(createProduct Product.CreateProductDTO) (Types.ID, error) {
 	var productID Types.ID
 	productModel := Product.ProductModel{
 		Code:        createProduct.Code,
@@ -80,7 +80,7 @@ func (productManagementService *productMangementService) CreateProduct(createPro
 }
 
 func NewService(productRepository Repository.CrudRepository[Product.ProductModel], productService Product.ProductService) ProductManagementService {
-	return &productMangementService{
+	return &productManagementService{
 		productRepository,
 		productService,
 	}

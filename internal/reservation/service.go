@@ -23,7 +23,7 @@ func (s *reservationService) GetReservations() []Reservation {
 
 func (s *reservationService) GetReservation(reservationID Types.ID) (Reservation, error) {
 	var reservation Reservation
-	reservationModel, err := s.reservationRepository.FindById(reservationID.ID)
+	reservationModel, err := s.reservationRepository.FindByID(reservationID.ID)
 	if err != nil {
 		return reservation, err
 	}

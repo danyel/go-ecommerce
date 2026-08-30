@@ -5,19 +5,19 @@ import (
 	Types "github.com/danyel/ecommerce/internal/common/types"
 )
 
-type Product struct {
+type ProductDTO struct {
 	ID          Types.ID          `json:"id"`
 	Brand       string            `json:"brand"`
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
 	Code        string            `json:"code"`
-	Price       Types.Price       `json:"price"`
+	Price       Types.PriceDTO    `json:"price"`
 	Category    Category.Category `json:"category"`
 	ImageURL    string            `json:"image_url"`
 	Stock       int               `json:"stock"`
 }
 
-type UpdateProduct struct {
+type UpdateProductDTO struct {
 	Brand       string   `json:"brand"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
@@ -27,7 +27,7 @@ type UpdateProduct struct {
 	Stock       int      `json:"stock"`
 }
 
-type CreateProduct struct {
+type CreateProductDTO struct {
 	Brand         string   `json:"brand"`
 	Name          string   `json:"name"`
 	Description   string   `json:"description"`
