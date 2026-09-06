@@ -1,9 +1,7 @@
 export interface ShoppingBasket {
-    id: ShoppingBasketId;
+    id: string;
     items: ShoppingBasketItem[];
-    total_price_inclusive: number;
-    tax: number;
-    total_price_exclusive: number;
+    total_price: Price;
 }
 
 export interface ShoppingBasketItem {
@@ -22,4 +20,10 @@ export interface ShoppingBasketId {
 export interface UpdateShoppingBasketItem {
     product_id: string;
     quantity: number;
+}
+
+export interface Price {
+    inclusive: number;
+    tax: number;
+    exclusive: number;
 }

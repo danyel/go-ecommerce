@@ -15,8 +15,8 @@ const App = () => {
     useEffect(() => {
         const shoppingBasketIdCookie = Cookies.get("shopping_basket_id");
         if (shoppingBasketIdCookie && !globalStateType.shoppingBasket.id) {
-           ServiceFactoryFactory.SHOPPING_BASKET_SERVICE_FACTORY.newService()
-               .findById({id: shoppingBasketIdCookie})
+            ServiceFactoryFactory.SHOPPING_BASKET_SERVICE_FACTORY.newService()
+                .findById(shoppingBasketIdCookie)
                 .then((shoppingBasket: ShoppingBasket) => {
                     globalStateType.setShoppingBasket(shoppingBasket);
                 });

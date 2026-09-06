@@ -3,45 +3,77 @@ package reservation
 import (
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Types "github.com/danyel/ecommerce/internal/common/types"
+	Uuid "github.com/google/uuid"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ReservationService interface {
-	GetReservations() []Reservation
-	GetReservation(reservationID Types.ID) (Reservation, error)
-	CreateReservation(createReservation CreateReservation) (Types.ID, error)
+	FindAll() []Reservation
+	Find(reservationID Uuid.UUID) (Reservation, error)
+	Create(reservation Reservation) (Uuid.UUID, error)
+	Update(shoppingBasketID Uuid.UUID, productID Uuid.UUID, quantity int) error
 }
 
 type reservationService struct {
 	reservationRepository Repository.CrudRepository[ReservationModel]
 }
 
-func (s *reservationService) GetReservations() []Reservation {
-	reservationModels := s.reservationRepository.FindAll(Repository.SearchCriteria{Preloads: []string{"Children"}})
+func (reservationService *reservationService) FindAll() []Reservation {
+	reservationModels := reservationService.reservationRepository.FindAll(Repository.SearchCriteria{Preloads: []string{"Children"}})
 	return mapReservations(reservationModels)
 }
 
-func (s *reservationService) GetReservation(reservationID Types.ID) (Reservation, error) {
+func (reservationService *reservationService) Find(reservationID Uuid.UUID) (Reservation, error) {
 	var reservation Reservation
-	reservationModel, err := s.reservationRepository.FindById(reservationID.ID)
+	reservationModel, err := reservationService.reservationRepository.FindById(reservationID)
 	if err != nil {
 		return reservation, err
 	}
 	return mapReservation(reservationModel), err
 }
 
-func (s *reservationService) CreateReservation(createReservation CreateReservation) (Types.ID, error) {
+func (reservationService *reservationService) Create(reservation Reservation) (Uuid.UUID, error) {
 	var err error
-	reservation := &ReservationModel{
-		ShoppingBasketID: createReservation.ShoppingBasketID.ID,
-		ProductID:        createReservation.ProductID.ID,
-		Quantity:         createReservation.Quantity,
+	reservationModel := &ReservationModel{
+		ShoppingBasketID: reservation.ShoppingBasketID.ID,
+		ProductID:        reservation.ProductID.ID,
+		Quantity:         reservation.Quantity,
 	}
 
-	if err := s.reservationRepository.Create(reservation); err != nil {
-		return Types.NewID(reservation.ShoppingBasketID), err
+	if err := reservationService.reservationRepository.Create(reservationModel); err != nil {
+		return reservationModel.ShoppingBasketID, err
 	}
-	return Types.NewID(reservation.ShoppingBasketID), err
+	return reservationModel.ShoppingBasketID, err
+}
+
+func (reservationService *reservationService) Update(shoppingBasketID Uuid.UUID, productID Uuid.UUID, quantity int) error {
+	clause := make([]any, 2)
+	clause[0] = shoppingBasketID.String()
+	clause[0] = productID.String()
+	reservations := reservationService.reservationRepository.FindAll(Repository.SearchCriteria{
+		WhereClause: Repository.WhereClause{
+			Query:  "shopping_basket_id = ? AND product_id = ?",
+			Params: clause,
+		},
+	})
+
+	var reservation = &ReservationModel{
+		ShoppingBasketID: shoppingBasketID,
+		ProductID:        productID,
+		Quantity:         quantity,
+	}
+
+	if len(reservations) == 0 {
+		err := reservationService.reservationRepository.Create(reservation)
+		if err != nil {
+			return err
+		}
+	} else {
+		reservation = reservations[0]
+		reservation.Quantity = quantity
+	}
+
+	return reservationService.reservationRepository.Update(reservation)
 }
 
 func mapReservations(models []*ReservationModel) []Reservation {

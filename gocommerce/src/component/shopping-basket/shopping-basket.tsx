@@ -124,11 +124,11 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
                                     <div className="border-t  p-6">
                                         <div className="flex justify-between mb-4">
                                             <span
-                                                className="text-lg font-semibold">{shoppingBasket.total_price_exclusive.toFixed(2)} €</span>
+                                                className="text-lg font-semibold">{shoppingBasket.total_price.exclusive} €</span>
                                             <span
-                                                className="text-lg font-semibold">{shoppingBasket.tax.toFixed(2)} €</span>
+                                                className="text-lg font-semibold">{shoppingBasket.total_price.tax} €</span>
                                             <span
-                                                className="text-lg font-semibold">{shoppingBasket.total_price_inclusive.toFixed(2)} €</span>
+                                                className="text-lg font-semibold">{shoppingBasket.total_price.inclusive} €</span>
                                         </div>
                                         {/* todo checkout action */}
                                         <button

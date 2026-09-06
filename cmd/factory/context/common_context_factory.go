@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	applicationContextFactoryInstance   ApplicationContextFactory
+	applicationContextFactoryInstance   ServiceContextFactory
 	repositoryContextFactoryInstance    RepositoryContextFactory
 	messageBrokerContextFactoryInstance MessageBrokerContextFactory
 	webHandlerContextFactoryInstance    WebHandlerContextFactory

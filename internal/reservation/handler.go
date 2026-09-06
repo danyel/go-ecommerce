@@ -4,7 +4,7 @@ import (
 	Http "net/http"
 
 	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
-	Types "github.com/danyel/ecommerce/internal/common/types"
+	Uuid "github.com/google/uuid"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
@@ -19,13 +19,18 @@ type reservationHandler struct {
 
 func (reservationHandler *reservationHandler) CreateReservation(response Http.ResponseWriter, request *Http.Request) {
 	var createReservation CreateReservation
-	var ID Types.ID
+	var ID Uuid.UUID
 	var err error
 	if err = WebHandler.ValidateRequest[CreateReservation](request, &createReservation); err != nil {
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if ID, err = reservationHandler.reservationService.CreateReservation(createReservation); err != nil {
+	reservation := Reservation{
+		ShoppingBasketID: createReservation.ShoppingBasketID,
+		ProductID:        createReservation.ProductID,
+		Quantity:         createReservation.Quantity,
+	}
+	if ID, err = reservationHandler.reservationService.Create(reservation); err != nil {
 		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
@@ -33,7 +38,7 @@ func (reservationHandler *reservationHandler) CreateReservation(response Http.Re
 }
 
 func (reservationHandler *reservationHandler) GetReservations(response Http.ResponseWriter, request *Http.Request) {
-	WebHandler.WriteResponse(Http.StatusOK, response, request, reservationHandler.reservationService.GetReservations())
+	WebHandler.WriteResponse(Http.StatusOK, response, request, reservationHandler.reservationService.FindAll())
 }
 
 // NewHandler adding to router (todo)

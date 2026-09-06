@@ -1,12 +1,12 @@
-import type {ShoppingBasket, ShoppingBasketId, UpdateShoppingBasketItem} from "./model.tsx";
+import type {ShoppingBasket, UpdateShoppingBasketItem} from "./model.tsx";
 import type {ServiceFactory} from "../common/factory.tsx";
 
 export interface ShoppingBasketService {
-    create(): Promise<ShoppingBasketId>;
+    create(): Promise<ShoppingBasket>;
 
-    findById(shoppingBasketId: ShoppingBasketId): Promise<ShoppingBasket>;
+    findById(shoppingBasketId: string): Promise<ShoppingBasket>;
 
-    update(shoppingBasketId: ShoppingBasketId, updateShoppingBasketItem: UpdateShoppingBasketItem): Promise<ShoppingBasket>;
+    update(shoppingBasketId: string, updateShoppingBasketItem: UpdateShoppingBasketItem): Promise<ShoppingBasket>;
 }
 
 export class ShoppingBasketServiceFactory implements ServiceFactory<ShoppingBasketService> {
@@ -25,9 +25,9 @@ export class ShoppingBasketServiceFactory implements ServiceFactory<ShoppingBask
 }
 
 class InternalShoppingBasketService implements ShoppingBasketService {
-    async update(shoppingBasketId: ShoppingBasketId, updateShoppingBasketItem: UpdateShoppingBasketItem): Promise<ShoppingBasket> {
-        return fetch(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId.id}`, {
-            method: "POST",
+    async update(shoppingBasketId: string, updateShoppingBasketItem: UpdateShoppingBasketItem): Promise<ShoppingBasket> {
+        return fetch(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId}`, {
+            method: "PUT",
             body: JSON.stringify(updateShoppingBasketItem),
             headers: {
                 'Accept-Language': 'en',
@@ -43,7 +43,7 @@ class InternalShoppingBasketService implements ShoppingBasketService {
             })
     }
 
-    async create(): Promise<ShoppingBasketId> {
+    async create(): Promise<ShoppingBasket> {
         return fetch('/api/shopping-basket/v1/shopping-baskets', {
             method: "POST",
             headers: {
@@ -60,8 +60,8 @@ class InternalShoppingBasketService implements ShoppingBasketService {
             })
     }
 
-    async findById(shoppingBasketId: ShoppingBasketId): Promise<ShoppingBasket> {
-        return fetch(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId.id}`, {
+    async findById(shoppingBasketId: string): Promise<ShoppingBasket> {
+        return fetch(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId}`, {
             method: "GET",
             headers: {
                 'Accept-Language': 'en',

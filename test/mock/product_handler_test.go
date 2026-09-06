@@ -18,14 +18,24 @@ type MockProductService struct {
 	Mock.Mock
 }
 
-func (productService *MockProductService) GetProducts() []Product.Product {
+func (productService *MockProductService) FindAll() []Product.Product {
 	args := productService.Called()
 	return args.Get(0).([]Product.Product)
 }
 
-func (productService *MockProductService) GetProduct(ID Uuid.UUID) (Product.Product, error) {
+func (productService *MockProductService) FindById(ID Uuid.UUID) (Product.Product, error) {
 	args := productService.Called(ID)
 	return args.Get(0).(Product.Product), args.Error(1)
+}
+
+func (productService *MockProductService) Update(product Product.Product) error {
+	args := productService.Called(product)
+	return args.Get(0).(error)
+}
+
+func (productService *MockProductService) UpdateStock(ID Uuid.UUID, shoppingBasketId Uuid.UUID, stock int) error {
+	args := productService.Called(ID, shoppingBasketId, stock)
+	return args.Get(0).(error)
 }
 
 func TestProductHandler(unitTest *Testing.T) {
@@ -34,28 +44,28 @@ func TestProductHandler(unitTest *Testing.T) {
 	productHandler := Product.NewWebHandler(productService)
 	run := Run(unitTest)
 
-	unitTest.Run("GetProducts", func(unitTest *Testing.T) {
+	unitTest.Run("FindAll", func(unitTest *Testing.T) {
 		products := []Product.Product{
 			{
 				Code:  "Code",
 				Price: Types.NewPrice(1000, "EUR"),
 			},
 		}
-		productService.On("GetProducts").Return(products, nil)
+		productService.On("FindAll").Return(products, nil)
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
 			NewRequest(Http.MethodGet, SetupWebIntegration.ProductProductsUrl, nil).
 			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsUrl, productHandler.HandleGetProductsV1).
 			ServeHTTP().
 			Status())
-		productService.AssertCalled(unitTest, "GetProducts")
+		productService.AssertCalled(unitTest, "FindAll")
 		productService.AssertExpectations(unitTest)
 	})
 
-	unitTest.Run("GetProduct", func(unitTest *Testing.T) {
+	unitTest.Run("FindById", func(unitTest *Testing.T) {
 		ID, _ := Uuid.Parse("aef8f0ce-c33f-456c-bc5c-91f951116cf7")
 		product := Product.Product{Code: "Code", Price: Types.NewPrice(1000, "EUR")}
-		productService.On("GetProduct", ID).Return(product, nil)
+		productService.On("FindById", ID).Return(product, nil)
 
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
@@ -63,7 +73,7 @@ func TestProductHandler(unitTest *Testing.T) {
 			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsUrl+ApplicationRouter.ById, productHandler.HandleGetProductV1).
 			ServeHTTP().
 			Status())
-		productService.AssertCalled(unitTest, "GetProduct", ID)
+		productService.AssertCalled(unitTest, "FindById", ID)
 		productService.AssertExpectations(unitTest)
 	})
 }

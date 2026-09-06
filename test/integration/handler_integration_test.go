@@ -185,29 +185,29 @@ func TestWebHandler(unitTest *Testing.T) {
 	})
 
 	unitTest.Run("Shopping Basket h", func(unitTest *Testing.T) {
-		var ID Types.ID
+		var ShoppingBasket Shoppingbasket.ShoppingBasket
 
 		unitTest.Run("Create Shopping Basket", func(unitTest *Testing.T) {
 			webIntegration.ShoppingBasketCreate().
-				GetResponseBody(&ID).
+				GetResponseBody(&ShoppingBasket).
 				AssertStatusCreated().
-				IsNotNil(ID)
+				IsNotNil(ShoppingBasket)
 		})
 
 		unitTest.Run("Add Item To Shopping Basket", func(unitTest *Testing.T) {
 			updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItem{
 				ProductID: Types.NewID(productModel.ID),
 			}
-			webIntegration.ShoppingBasketAddItem(ID.ID.String(), updateShoppingBasketItem).
+			webIntegration.ShoppingBasketAddItem(ShoppingBasket.ID.ID.String(), updateShoppingBasketItem).
 				AssertStatusOk()
 		})
 
 		unitTest.Run("Get Shopping Basket", func(unitTest *Testing.T) {
 			var shoppingBasket Shoppingbasket.ShoppingBasket
-			webIntegration.GetShoppingBasket(ID.ID.String()).
+			webIntegration.GetShoppingBasket(ShoppingBasket.ID.ID.String()).
 				GetResponseBody(&shoppingBasket).
 				AssertStatusOk().
-				Equal(ID, shoppingBasket.ID).
+				Equal(ShoppingBasket.ID, shoppingBasket.ID).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", shoppingBasket.Items[0].Name).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", shoppingBasket.Items[0].ImageURL).
 				Equal(Types.Float64(669.0), shoppingBasket.Items[0].BasePrice.Inclusive)

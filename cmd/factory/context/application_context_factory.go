@@ -13,7 +13,7 @@ import (
 	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
 )
 
-type ApplicationContextFactory interface {
+type ServiceContextFactory interface {
 	ReservationService() Reservation.ReservationService
 	ProductService() Product.ProductService
 	CategoryService() Category.CategoryService
@@ -26,7 +26,7 @@ type ApplicationContextFactory interface {
 	StartMessageBroker() error
 }
 
-type applicationContextFactory struct {
+type serviceContextFactory struct {
 	reservationService       Reservation.ReservationService
 	productService           Product.ProductService
 	categoryService          Category.CategoryService
@@ -38,68 +38,68 @@ type applicationContextFactory struct {
 	messageBroker            *MessageBroker.MessageBroker
 }
 
-func (applicationContextFactory *applicationContextFactory) ReservationService() Reservation.ReservationService {
-	return getInstanceOfType(&applicationContextFactory.reservationService, func() Reservation.ReservationService {
+func (serviceContextFactory *serviceContextFactory) ReservationService() Reservation.ReservationService {
+	return getInstanceOfType(&serviceContextFactory.reservationService, func() Reservation.ReservationService {
 		return Reservation.NewService(repositoryContextFactoryInstance.ReservationRepository())
 	})
 }
 
-func (applicationContextFactory *applicationContextFactory) CategoryService() Category.CategoryService {
-	return getInstanceOfType(&applicationContextFactory.categoryService, func() Category.CategoryService {
+func (serviceContextFactory *serviceContextFactory) CategoryService() Category.CategoryService {
+	return getInstanceOfType(&serviceContextFactory.categoryService, func() Category.CategoryService {
 		return Category.NewService(repositoryContextFactoryInstance.CategoryRepository())
 	})
 }
 
-func (applicationContextFactory *applicationContextFactory) ProductService() Product.ProductService {
-	return getInstanceOfType(&applicationContextFactory.productService, func() Product.ProductService {
-		return Product.NewService(repositoryContextFactoryInstance.ProductRepository(), applicationContextFactory.ProductMapper())
+func (serviceContextFactory *serviceContextFactory) ProductService() Product.ProductService {
+	return getInstanceOfType(&serviceContextFactory.productService, func() Product.ProductService {
+		return Product.NewService(repositoryContextFactoryInstance.ProductRepository(), serviceContextFactory.ProductMapper(), applicationContextFactoryInstance.MessageBroker())
 	})
 }
 
-func (applicationContextFactory *applicationContextFactory) ShoppingBasketService() ShoppingBasket.ShoppingBasketService {
-	return getInstanceOfType(&applicationContextFactory.shoppingBasketService, func() ShoppingBasket.ShoppingBasketService {
-		return ShoppingBasket.NewService(applicationContextFactory.ProductService(), applicationContextFactory.ProductManagementService(), applicationContextFactory.ProductMapper(), repositoryContextFactoryInstance.ShoppingBasketRepository(), repositoryContextFactoryInstance.ShoppingBasketItemRepository(), messageBrokerContextFactoryInstance.MessageBroker())
+func (serviceContextFactory *serviceContextFactory) ShoppingBasketService() ShoppingBasket.ShoppingBasketService {
+	return getInstanceOfType(&serviceContextFactory.shoppingBasketService, func() ShoppingBasket.ShoppingBasketService {
+		return ShoppingBasket.NewService(serviceContextFactory.ProductService(), serviceContextFactory.ProductManagementService(), serviceContextFactory.ProductMapper(), repositoryContextFactoryInstance.ShoppingBasketRepository(), repositoryContextFactoryInstance.ShoppingBasketItemRepository(), messageBrokerContextFactoryInstance.MessageBroker())
 	})
 }
 
-func (applicationContextFactory *applicationContextFactory) CmsService() CMS.CmsService {
-	return getInstanceOfType(&applicationContextFactory.cmsService, func() CMS.CmsService {
+func (serviceContextFactory *serviceContextFactory) CmsService() CMS.CmsService {
+	return getInstanceOfType(&serviceContextFactory.cmsService, func() CMS.CmsService {
 		return CMS.NewService(repositoryContextFactoryInstance.CmsRepository())
 	})
 }
 
-func (applicationContextFactory *applicationContextFactory) ManagementService() Management.ManagementService {
-	return getInstanceOfType(&applicationContextFactory.managementService, func() Management.ManagementService {
+func (serviceContextFactory *serviceContextFactory) ManagementService() Management.ManagementService {
+	return getInstanceOfType(&serviceContextFactory.managementService, func() Management.ManagementService {
 		return Management.NewService(repositoryContextFactoryInstance.CmsRepository())
 	})
 }
 
-func (applicationContextFactory *applicationContextFactory) ProductManagementService() ProductManagement.ProductManagementService {
-	return getInstanceOfType(&applicationContextFactory.productManagementService, func() ProductManagement.ProductManagementService {
-		return ProductManagement.NewService(repositoryContextFactoryInstance.ProductRepository(), applicationContextFactory.ProductService())
+func (serviceContextFactory *serviceContextFactory) ProductManagementService() ProductManagement.ProductManagementService {
+	return getInstanceOfType(&serviceContextFactory.productManagementService, func() ProductManagement.ProductManagementService {
+		return ProductManagement.NewService(repositoryContextFactoryInstance.ProductRepository(), serviceContextFactory.ProductService())
 	})
 }
 
-func (applicationContextFactory *applicationContextFactory) ProductMapper() Product.ProductMapper {
-	return getInstanceOfType(&applicationContextFactory.productMapper, func() Product.ProductMapper {
-		return Product.NewProductMapper(applicationContextFactory.CategoryService(), applicationContextFactory.CmsService())
+func (serviceContextFactory *serviceContextFactory) ProductMapper() Product.ProductMapper {
+	return getInstanceOfType(&serviceContextFactory.productMapper, func() Product.ProductMapper {
+		return Product.NewProductMapper(serviceContextFactory.CategoryService(), serviceContextFactory.CmsService())
 	})
 }
 
-func (applicationContextFactory *applicationContextFactory) MessageBroker() *MessageBroker.MessageBroker {
-	return applicationContextFactory.messageBroker
+func (serviceContextFactory *serviceContextFactory) MessageBroker() *MessageBroker.MessageBroker {
+	return serviceContextFactory.messageBroker
 }
 
-func (applicationContextFactory *applicationContextFactory) StartMessageBroker() error {
-	if applicationContextFactory.messageBroker != nil {
-		return applicationContextFactory.messageBroker.Start()
+func (serviceContextFactory *serviceContextFactory) StartMessageBroker() error {
+	if serviceContextFactory.messageBroker != nil {
+		return serviceContextFactory.messageBroker.Start()
 	}
 	return errors.New("message broker is nil")
 }
 
-func BuildApplicationContextFactory() ApplicationContextFactory {
+func BuildServiceContextFactory() ServiceContextFactory {
 	applicationContextFactoryOnce.Do(func() {
-		applicationContextFactoryInstance = &applicationContextFactory{
+		applicationContextFactoryInstance = &serviceContextFactory{
 			messageBroker: messageBrokerContextFactoryInstance.MessageBroker(),
 		}
 	})

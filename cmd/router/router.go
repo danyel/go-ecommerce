@@ -165,9 +165,9 @@ func cms(router Router.Router, cmsWebHandler CMS.CmsWebHandler) Router.Router {
 func product(router Router.Router, productWebHandler Product.ProductWebHandler) Router.Router {
 	return router.Route(ProductRootContext, func(productRootRouter Router.Router) {
 		productRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
-			versionOneRouter.Get(SLASH, productWebHandler.HandleGetProductsV1)
-			versionOneRouter.Route(ById, func(byIdRouter Router.Router) {
-				byIdRouter.Get(SLASH, productWebHandler.HandleGetProductV1)
+			versionOneRouter.Route(ProductsRootContext, func(byIdRouter Router.Router) {
+				byIdRouter.Get(SLASH, productWebHandler.HandleGetProductsV1)
+				byIdRouter.Get(ById, productWebHandler.HandleGetProductV1)
 			})
 		})
 	})

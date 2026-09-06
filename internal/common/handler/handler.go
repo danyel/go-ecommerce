@@ -67,6 +67,10 @@ func StatusBadRequest(response Http.ResponseWriter, request *Http.Request) {
 	response.WriteHeader(Http.StatusBadRequest)
 }
 
+func StatusCreated(response Http.ResponseWriter, request *Http.Request, body any) {
+	WriteResponse(Http.StatusCreated, response, request, body)
+}
+
 func setHeaders(response Http.ResponseWriter, request *Http.Request) {
 	header := GetHeader(request, "X-Correlation-Id")
 	if header == "" {

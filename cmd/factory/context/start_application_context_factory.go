@@ -5,8 +5,7 @@ import (
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
 	Logger "github.com/danyel/ecommerce/cmd/logger"
-	Reservation "github.com/danyel/ecommerce/internal/reservation"
-	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
+	Reservation "github.com/danyel/ecommerce/internal/product"
 )
 
 type StartApplicationContextFactory interface {
@@ -16,14 +15,13 @@ type StartApplicationContextFactory interface {
 }
 
 type startApplicationContextFactory struct {
-	startMessageBrokerFunc    func() error
-	webHandlerContextFactory  WebHandlerContextFactory
-	applicationContextFactory ApplicationContextFactory
+	startMessageBrokerFunc   func() error
+	webHandlerContextFactory WebHandlerContextFactory
+	serviceContextFactory    ServiceContextFactory
 }
 
 func (startApplicationContextFactory *startApplicationContextFactory) registerEvents() {
-	ShoppingBasket.RegisterShoppingBasketEvents(startApplicationContextFactory.applicationContextFactory.ShoppingBasketService(), startApplicationContextFactory.applicationContextFactory.MessageBroker())
-	Reservation.RegisterReservationEvents(startApplicationContextFactory.applicationContextFactory.ReservationService(), startApplicationContextFactory.applicationContextFactory.ProductService(), startApplicationContextFactory.applicationContextFactory.MessageBroker())
+	Reservation.RegisterConsumer(startApplicationContextFactory.serviceContextFactory.ProductService(), startApplicationContextFactory.serviceContextFactory.MessageBroker())
 }
 
 func (startApplicationContextFactory *startApplicationContextFactory) StartMessageBroker() StartApplicationContextFactory {
@@ -46,11 +44,11 @@ func InitializeStartApplicationContextFactory() StartApplicationContextFactory {
 	Logger.Log.Info("Application Initialization started")
 	InitializeDatabaseContextFactory()
 	InitializeMessageBrokerContextFactory()
-	BuildApplicationContextFactory()
+	BuildServiceContextFactory()
 	webHandlerContextFactory := BuildAWebHandlerContextFactory()
 	var startApplicationContextFactoryInstance = &startApplicationContextFactory{
-		webHandlerContextFactory:  webHandlerContextFactory,
-		applicationContextFactory: applicationContextFactoryInstance,
+		webHandlerContextFactory: webHandlerContextFactory,
+		serviceContextFactory:    applicationContextFactoryInstance,
 		startMessageBrokerFunc: func() error {
 			err := applicationContextFactoryInstance.StartMessageBroker()
 			return err
