@@ -49,23 +49,35 @@ func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateS
 	}
 
 	shoppingBasketItemModel := ShoppingBasketItemModel{ID: Uuid.Nil, ShoppingBasketID: shoppingBasketModel.ID, ProductID: product.ID.ID, Price: float64(product.Price.Inclusive), Quantity: updateShoppingBasketItem.Quantity}
-	for _, currentItem := range shoppingBasketModel.Items {
-		if currentItem.ProductID == shoppingBasketItemModel.ProductID {
-			if updateShoppingBasketItem.Quantity != currentItem.Quantity {
-				Logger.Log.Debug("Going to publish %s for product id %s with quantity: %d", Product.UpdateProductStock.Queue, currentItem.ProductID, -(currentItem.Quantity - updateShoppingBasketItem.Quantity))
-				e := shoppingBasketService.publisher.Publish(Product.UpdateProductStock.Queue, Product.UpdateProductStockCommand{
-					ProductID:        currentItem.ProductID,
-					Quantity:         -(currentItem.Quantity - updateShoppingBasketItem.Quantity),
-					ShoppingBasketId: shoppingBasketModel.ID,
-				})
-				if e != nil {
-					return EmptyShoppingBasket(), e
+	if shoppingBasketModel.Items != nil && len(shoppingBasketModel.Items) > 0 {
+		for _, currentItem := range shoppingBasketModel.Items {
+			if currentItem.ProductID == shoppingBasketItemModel.ProductID {
+				Logger.Log.Debug("Quantity: %d item %d == current %d", -(currentItem.Quantity - updateShoppingBasketItem.Quantity), updateShoppingBasketItem.Quantity, currentItem.Quantity)
+				if updateShoppingBasketItem.Quantity != currentItem.Quantity {
+					e := shoppingBasketService.publisher.Publish(Product.UpdateProductStock.Queue, Product.UpdateProductStockCommand{
+						ProductID:        currentItem.ProductID,
+						Quantity:         -(currentItem.Quantity - updateShoppingBasketItem.Quantity),
+						ShoppingBasketId: shoppingBasketModel.ID,
+					})
+					if e != nil {
+						return EmptyShoppingBasket(), e
+					}
 				}
+				shoppingBasketItemModel.ID = currentItem.ID
+				shoppingBasketItemModel.Quantity = updateShoppingBasketItem.Quantity
 			}
-			shoppingBasketItemModel.ID = currentItem.ID
-			shoppingBasketItemModel.Quantity = updateShoppingBasketItem.Quantity
+		}
+	} else {
+		e := shoppingBasketService.publisher.Publish(Product.UpdateProductStock.Queue, Product.UpdateProductStockCommand{
+			ProductID:        updateShoppingBasketItem.ProductID.ID,
+			Quantity:         updateShoppingBasketItem.Quantity,
+			ShoppingBasketId: shoppingBasketModel.ID,
+		})
+		if e != nil {
+			return EmptyShoppingBasket(), e
 		}
 	}
+
 	if shoppingBasketItemModel.ID == Uuid.Nil {
 		err = shoppingBasketService.shoppingBasketItemRepository.Create(&shoppingBasketItemModel)
 	} else {

@@ -19,7 +19,6 @@ type shoppingBasketWebHandler struct {
 }
 
 func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleCreateShoppingBasketV1(response Http.ResponseWriter, request *Http.Request) {
-	Logger.Log.Debug("HandleCreateShoppingBasketV1")
 	shoppingBasket, err := shoppingBasketWebHandler.shoppingBasketService.Create()
 	if err != nil {
 		WebHandler.StatusInternalServerError(response, request)
@@ -30,7 +29,6 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleCreateShoppingBa
 
 // HandleUpdateShoppingBasketItemV1 web handler function that will update the shopping basket
 func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleUpdateShoppingBasketItemV1(response Http.ResponseWriter, request *Http.Request) {
-	Logger.Log.Debug("HandleUpdateShoppingBasketItemV1")
 	var updateShoppingBasketItem UpdateShoppingBasketItem
 	var err error
 	var shoppingBasket ShoppingBasket
@@ -52,7 +50,6 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleUpdateShoppingBa
 }
 
 func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleGetShoppingBasketByIdV1(response Http.ResponseWriter, request *Http.Request) {
-	Logger.Log.DebugCtx(request.Context(), "HandleGetShoppingBasketByIdV1")
 	var err error
 	var shoppingBasket ShoppingBasket
 	ID, err := WebHandler.GetID(request)

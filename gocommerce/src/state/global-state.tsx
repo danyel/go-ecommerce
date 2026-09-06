@@ -1,6 +1,6 @@
-import * as React from "react";
-import {type Context, createContext, type ReactNode, useContext, useState} from "react";
-import type {ShoppingBasket} from "../domain/shopping-basket/model.tsx";
+import * as React from 'react';
+import {type Context, createContext, type ReactNode, useContext, useState} from 'react';
+import type {ShoppingBasket} from '../domain/shopping-basket/model.tsx';
 
 interface GlobalStateType {
     shoppingBasket: ShoppingBasket
@@ -27,7 +27,7 @@ export const GlobalStateProvider: React.FC<{ children: React.ReactNode }> = ({ch
 export const useGlobalState: () => GlobalStateType = (): GlobalStateType => {
     const context: GlobalStateType | undefined = useContext(GlobalStateContext);
     if (!context) {
-        throw new Error("useGlobalState must be used within a GlobalStateProvider");
+        throw new Error('useGlobalState must be used within a GlobalStateProvider');
     }
     return context;
 };
