@@ -1,3 +1,4 @@
+// Package types: base package for the types models
 package types
 
 type PriceDTO struct {

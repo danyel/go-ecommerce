@@ -60,7 +60,7 @@ func (serviceContextFactory *serviceContextFactory) ProductService() Product.Pro
 
 func (serviceContextFactory *serviceContextFactory) ShoppingBasketService() ShoppingBasket.ShoppingBasketService {
 	return getInstanceOfType(&serviceContextFactory.shoppingBasketService, func() ShoppingBasket.ShoppingBasketService {
-		return ShoppingBasket.NewService(serviceContextFactory.ProductService(), serviceContextFactory.ProductManagementService(), serviceContextFactory.ProductMapper(), repositoryContextFactoryInstance.ShoppingBasketRepository(), repositoryContextFactoryInstance.ShoppingBasketItemRepository(), messageBrokerContextFactoryInstance.MessageBroker(), applicationContextFactory.ShoppingBasketValidator())
+		return ShoppingBasket.NewService(serviceContextFactory.ProductService(), serviceContextFactory.ProductManagementService(), serviceContextFactory.ProductMapper(), repositoryContextFactoryInstance.ShoppingBasketRepository(), repositoryContextFactoryInstance.ShoppingBasketItemRepository(), messageBrokerContextFactoryInstance.MessageBroker(), serviceContextFactory.ShoppingBasketValidator())
 	})
 }
 
@@ -69,7 +69,6 @@ func (serviceContextFactory *serviceContextFactory) ShoppingBasketValidator() Sh
 		return ShoppingBasket.NewValidator(repositoryContextFactoryInstance.ProductRepository(), repositoryContextFactoryInstance.ShoppingBasketRepository(), serviceContextFactory.ProductService())
 	})
 }
-
 
 func (serviceContextFactory *serviceContextFactory) CmsService() CMS.CmsService {
 	return getInstanceOfType(&serviceContextFactory.cmsService, func() CMS.CmsService {

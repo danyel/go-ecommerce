@@ -25,7 +25,7 @@ func (productManagementService *productManagementService) GetProducts() []Produc
 }
 
 func (productManagementService *productManagementService) GetProduct(ID Types.ID) (Product.Product, error) {
-	product, err := productManagementService.productService.FindById(ID.ID)
+	product, err := productManagementService.productService.FindByID(ID.ID)
 	if err != nil {
 		return product, err
 	}

@@ -189,20 +189,20 @@ func TestWebHandler(unitTest *Testing.T) {
 	})
 
 	unitTest.Run("Shopping Basket handler", func(unitTest *Testing.T) {
-		var ShoppingBasket Shoppingbasket.ShoppingBasket
+		var shoppingBasket Shoppingbasket.ShoppingBasketDTO
 
 		unitTest.Run("Create Shopping Basket", func(unitTest *Testing.T) {
 			webIntegration.ShoppingBasketCreate().
-				GetResponseBody(&ShoppingBasket).
+				GetResponseBody(&shoppingBasket).
 				AssertStatusCreated().
-				IsNotNil(ShoppingBasket)
+				IsNotNil(shoppingBasket)
 		})
 
 		unitTest.Run("Add Item To Shopping Basket", func(unitTest *Testing.T) {
 			updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItemDTO{
 				ProductID: Types.NewID(productModel.ID),
 			}
-			webIntegration.ShoppingBasketAddItem(ShoppingBasket.ID.ID.String(), updateShoppingBasketItem).
+			webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
 				AssertStatusOk()
 		})
 
@@ -229,7 +229,7 @@ func TestWebHandler(unitTest *Testing.T) {
 				}
 				expected := make(map[string]any)
 				expected["product_id"] = Fmt.Sprintf("Product not found: '%s'", unknownId.String())
-				webIntegration.ShoppingBasketAddItem(ID.ID.String(), updateShoppingBasketItem).
+				webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
 					AssertNotFound().
 					GetResponseBody(&problemDetail).
 					Equal(expected, problemDetail.Errors)
@@ -245,7 +245,7 @@ func TestWebHandler(unitTest *Testing.T) {
 					ProductID: Types.NewID(productModel.ID),
 					Quantity:  100,
 				}
-				webIntegration.ShoppingBasketAddItem(ID.ID.String(), updateShoppingBasketItem).
+				webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
 					AssertBadRequest().
 					GetResponseBody(&problemDetail).
 					Equal(expected, problemDetail.Errors)
@@ -261,7 +261,7 @@ func TestWebHandler(unitTest *Testing.T) {
 					ProductID: Types.NewID(productModel.ID),
 					Quantity:  100,
 				}
-				webIntegration.ShoppingBasketAddItem(ID.ID.String(), updateShoppingBasketItem).
+				webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
 					AssertBadRequest().
 					GetResponseBody(&problemDetail).
 					Equal(expected, problemDetail.Errors)
@@ -269,11 +269,10 @@ func TestWebHandler(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Get Shopping Basket", func(unitTest *Testing.T) {
-			var shoppingBasket Shoppingbasket.ShoppingBasketDTO
-			webIntegration.GetShoppingBasket(ID.ID.String()).
+			webIntegration.GetShoppingBasket(shoppingBasket.ID.ID.String()).
 				GetResponseBody(&shoppingBasket).
 				AssertStatusOk().
-				Equal(ShoppingBasket.ID, shoppingBasket.ID).
+				Equal(shoppingBasket.ID, shoppingBasket.ID).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", shoppingBasket.Items[0].Name).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", shoppingBasket.Items[0].ImageURL).
 				Equal(Types.Float64(669.0), shoppingBasket.Items[0].BasePrice.Inclusive)

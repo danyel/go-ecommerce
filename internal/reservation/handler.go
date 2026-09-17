@@ -5,22 +5,22 @@ import (
 	Http "net/http"
 
 	WebHandler "github.com/danyel/ecommerce/internal/common/handler"
-	Types "github.com/danyel/ecommerce/internal/common/types"
+	Uuid "github.com/google/uuid"
 )
 
 //goland:noinspection GoNameStartsWithPackageName
 type ReservationHandler interface {
-	CreateReservation(response Http.ResponseWriter, request *Http.Request)
-	GetReservations(response Http.ResponseWriter, request *Http.Request)
+	Create(response Http.ResponseWriter, request *Http.Request)
+	FindAll(response Http.ResponseWriter, request *Http.Request)
 }
 
 type reservationHandler struct {
 	reservationService ReservationService
 }
 
-func (reservationHandler *reservationHandler) CreateReservation(response Http.ResponseWriter, request *Http.Request) {
+func (reservationHandler *reservationHandler) Create(response Http.ResponseWriter, request *Http.Request) {
 	var createReservation CreateReservation
-	var ID Types.ID
+	var ID Uuid.UUID
 	var err error
 	var details map[string]any
 	if details, err = WebHandler.ValidateRequest[CreateReservation](request, &createReservation); err != nil {
@@ -41,8 +41,8 @@ func (reservationHandler *reservationHandler) CreateReservation(response Http.Re
 	WebHandler.WriteResponse(Http.StatusCreated, response, request, ID)
 }
 
-func (reservationHandler *reservationHandler) GetReservations(response Http.ResponseWriter, request *Http.Request) {
-	WebHandler.WriteResponse(Http.StatusOK, response, request, reservationHandler.reservationService.GetReservations())
+func (reservationHandler *reservationHandler) FindAll(response Http.ResponseWriter, request *Http.Request) {
+	WebHandler.WriteResponse(Http.StatusOK, response, request, reservationHandler.reservationService.FindAll())
 }
 
 //goland:noinspection GoUnusedExportedFunction

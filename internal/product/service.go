@@ -10,7 +10,7 @@ import (
 //goland:noinspection GoNameStartsWithPackageName
 type ProductService interface {
 	FindAll() []Product
-	FindById(uuid Uuid.UUID) (Product, error)
+	FindByID(uuid Uuid.UUID) (Product, error)
 	Update(product Product) error
 	UpdateStock(ID Uuid.UUID, shoppingBasketId Uuid.UUID, stock int) error
 }
@@ -27,7 +27,7 @@ func (productService *productService) FindAll() []Product {
 	return productService.productMapper.MapProducts(products)
 }
 
-func (productService *productService) FindById(ID Uuid.UUID) (Product, error) {
+func (productService *productService) FindByID(ID Uuid.UUID) (Product, error) {
 	var product Product
 	productModel, err := productService.productRepository.FindByID(ID)
 	if err != nil {
@@ -39,7 +39,7 @@ func (productService *productService) FindById(ID Uuid.UUID) (Product, error) {
 }
 
 func (productService *productService) UpdateStock(ID Uuid.UUID, shoppingBasketId Uuid.UUID, stock int) error {
-	product, err := productService.productRepository.FindById(ID)
+	product, err := productService.productRepository.FindByID(ID)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (productService *productService) UpdateStock(ID Uuid.UUID, shoppingBasketId
 }
 
 func (productService *productService) Update(product Product) error {
-	productModel, err := productService.productRepository.FindById(product.ID.ID)
+	productModel, err := productService.productRepository.FindByID(product.ID.ID)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func updateFields(source Product, target *ProductModel) {
 	target.Description = source.Description
 	target.Code = source.Code
 	target.Price = float64(source.Price.Inclusive)
-	target.CategoryID = source.Category.ID
+	target.CategoryID = source.Category.ID.ID
 	target.ImageURL = source.ImageURL
 	target.Stock = source.Stock
 }

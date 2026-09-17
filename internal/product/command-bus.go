@@ -28,7 +28,7 @@ func (commandHandler *commandHandler) handleUpdateStock(body []byte) error {
 		return err
 	}
 	Logger.Log.Debug("Entering: %s with product id: %s", AddReservationQueue, event.ProductID)
-	product, err := commandHandler.productService.FindById(event.ProductID)
+	product, err := commandHandler.productService.FindByID(event.ProductID)
 	if err != nil {
 		return err
 	}

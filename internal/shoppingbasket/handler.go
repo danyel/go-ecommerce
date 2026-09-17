@@ -64,7 +64,7 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleUpdateShoppingBa
 	if !shoppingBasket.ProblemDetail.IsError() {
 		var d ShoppingBasket
 		if //goland:noinspection GoDfaErrorMayBeNotNil
-		d, err = shoppingBasketWebHandler.shoppingBasketService.UpdateShoppingBasketItem(ID.ID, updateShoppingBasketItem); err != nil {
+		err = shoppingBasketWebHandler.shoppingBasketService.Update(ID.ID, updateShoppingBasketItem); err != nil {
 			shoppingBasket.ProblemDetail.Status = Http.StatusInternalServerError
 			shoppingBasket.ProblemDetail.Errors = d.ProblemDetail.Errors
 		}
@@ -102,6 +102,7 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleGetShoppingBaske
 	var err error
 	var shoppingBasket ShoppingBasket
 	ID, err := WebHandler.GetID(request)
+	Logger.Log.DebugCtx(request.Context(), "HandleGetShoppingBasketByIdV1: %s %v", ID, err)
 	if err != nil {
 		WebHandler.BadRequest(response, request, WebHandler.IdNotFoundTitle, make(map[string]any))
 		return
@@ -111,7 +112,7 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleGetShoppingBaske
 	if shoppingBasket.ProblemDetail.IsError() {
 		WebHandler.ProblemDetailResponse(response, request, shoppingBasket.ProblemDetail)
 	}
-	if shoppingBasket, err = shoppingBasketWebHandler.shoppingBasketService.FindById(ID.ID); err != nil {
+	if shoppingBasket, err = shoppingBasketWebHandler.shoppingBasketService.FindByID(ID.ID); err != nil {
 		Logger.Log.DebugCtx(request.Context(), "%s", err.Error())
 		details := make(map[string]any)
 		details["id"] = Fmt.Sprintf("Could not find shopping basket with id '%s'", ID.ID.String())

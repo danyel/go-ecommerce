@@ -18,17 +18,17 @@ type MockProductService struct {
 	Mock.Mock
 }
 
-func (productService *MockProductService) FindAll() []Product.ProductDTO {
+func (productService *MockProductService) FindAll() []Product.Product {
 	args := productService.Called()
-	return args.Get(0).([]Product.ProductDTO)
+	return args.Get(0).([]Product.Product)
 }
 
-func (productService *MockProductService) FindById(ID Uuid.UUID) (Product.ProductDTO, error) {
+func (productService *MockProductService) FindByID(ID Uuid.UUID) (Product.Product, error) {
 	args := productService.Called(ID)
-	return args.Get(0).(Product.ProductDTO), args.Error(1)
+	return args.Get(0).(Product.Product), args.Error(1)
 }
 
-func (productService *MockProductService) Update(product Product.ProductDTO) error {
+func (productService *MockProductService) Update(product Product.Product) error {
 	args := productService.Called(product)
 	return args.Get(0).(error)
 }
@@ -45,7 +45,7 @@ func TestProductHandler(unitTest *Testing.T) {
 	run := Run(unitTest)
 
 	unitTest.Run("FindAll", func(unitTest *Testing.T) {
-		products := []Product.ProductDTO{
+		products := []Product.Product{
 			{
 				Code:  "Code",
 				Price: Types.NewPrice(1000, "EUR"),
@@ -62,10 +62,10 @@ func TestProductHandler(unitTest *Testing.T) {
 		productService.AssertExpectations(unitTest)
 	})
 
-	unitTest.Run("FindById", func(unitTest *Testing.T) {
+	unitTest.Run("FindByID", func(unitTest *Testing.T) {
 		ID, _ := Uuid.Parse("aef8f0ce-c33f-456c-bc5c-91f951116cf7")
-		product := Product.ProductDTO{Code: "Code", Price: Types.NewPrice(1000, "EUR")}
-		productService.On("FindById", ID).Return(product, nil)
+		product := Product.Product{Code: "Code", Price: Types.NewPrice(1000, "EUR")}
+		productService.On("FindByID", ID).Return(product, nil)
 
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
@@ -73,7 +73,7 @@ func TestProductHandler(unitTest *Testing.T) {
 			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsURL+ApplicationRouter.ByID, productHandler.HandleGetProductV1).
 			ServeHTTP().
 			Status())
-		productService.AssertCalled(unitTest, "FindById", ID)
+		productService.AssertCalled(unitTest, "FindByID", ID)
 		productService.AssertExpectations(unitTest)
 	})
 }

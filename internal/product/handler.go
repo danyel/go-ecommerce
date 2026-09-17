@@ -30,7 +30,7 @@ func (productWebHandler *productWebHandler) HandleGetProductV1(response Http.Res
 		return
 	}
 
-	if product, err = productWebHandler.productService.FindById(ID.ID); err != nil {
+	if product, err = productWebHandler.productService.FindByID(ID.ID); err != nil {
 		WebHandler.StatusNotFound(response, request)
 		return
 	}

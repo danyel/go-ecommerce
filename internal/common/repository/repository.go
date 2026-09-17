@@ -1,4 +1,5 @@
-package commonRepository
+// Package repository: common repository stuff
+package repository
 
 import (
 	Errors "errors"

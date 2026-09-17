@@ -47,7 +47,7 @@ func (validator *validator) Validate(ID Types.ID) ShoppingBasket {
 	shoppingBasket.ID = Types.NewID(shoppingBasketModel.ID)
 	shoppingBasket.Items = make([]ShoppingBasketItem, len(shoppingBasketModel.Items))
 	for i, item := range shoppingBasketModel.Items {
-		product, err := validator.productService.GetProduct(item.ProductID)
+		product, err := validator.productService.FindByID(item.ProductID)
 		if err != nil {
 			details := make(map[string]any, 1)
 			details["product_id"] = Fmt.Sprintf("Product not found: '%s'", item.ProductID.String())

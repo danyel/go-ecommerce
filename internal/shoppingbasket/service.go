@@ -14,7 +14,7 @@ import (
 type ShoppingBasketService interface {
 	Create() (ShoppingBasket, error)
 	Update(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItemDTO) error
-	FindById(u Uuid.UUID) (ShoppingBasket, error)
+	FindByID(u Uuid.UUID) (ShoppingBasket, error)
 }
 
 type shoppingBasketService struct {
@@ -45,7 +45,7 @@ func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateS
 	if err != nil {
 		return err
 	}
-	if product, err = shoppingBasketService.productService.FindById(updateShoppingBasketItem.ProductID.ID); err != nil {
+	if product, err = shoppingBasketService.productService.FindByID(updateShoppingBasketItem.ProductID.ID); err != nil {
 		return err
 	}
 
@@ -85,8 +85,8 @@ func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateS
 	return nil
 }
 
-func (shoppingBasketService *shoppingBasketService) FindById(ID Uuid.UUID) (ShoppingBasket, error) {
-	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindById(ID, "Items")
+func (shoppingBasketService *shoppingBasketService) FindByID(ID Uuid.UUID) (ShoppingBasket, error) {
+	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindByID(ID, "Items")
 	Logger.Log.Debug("Shopping Basket By Id: %v", shoppingBasketModel)
 	totalPrice := float64(0)
 	if err != nil {
@@ -98,7 +98,7 @@ func (shoppingBasketService *shoppingBasketService) FindById(ID Uuid.UUID) (Shop
 	if len(shoppingBasketModel.Items) > 0 {
 		shoppingBasketItems := make([]ShoppingBasketItem, len(shoppingBasketModel.Items))
 		for index, shoppingBasketItemModel := range shoppingBasketModel.Items {
-			currentProduct, err := shoppingBasketService.productService.FindById(shoppingBasketItemModel.ProductID)
+			currentProduct, err := shoppingBasketService.productService.FindByID(shoppingBasketItemModel.ProductID)
 			if err != nil {
 				return EmptyShoppingBasket(), err
 			}

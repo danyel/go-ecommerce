@@ -208,3 +208,7 @@ func WriteJSONError(response Http.ResponseWriter, request *Http.Request, statusC
 		return
 	}
 }
+
+func StatusCreated(response Http.ResponseWriter, request *Http.Request, body any) {
+	WriteResponse(Http.StatusCreated, response, request, body)
+}
