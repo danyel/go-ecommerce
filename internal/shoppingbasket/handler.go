@@ -42,10 +42,16 @@ func (shoppingBasketWebHandler *shoppingBasketWebHandler) HandleUpdateShoppingBa
 		WebHandler.StatusBadRequest(response, request)
 		return
 	}
-	if shoppingBasket, err = shoppingBasketWebHandler.shoppingBasketService.Update(ID.ID, updateShoppingBasketItem); err != nil {
+	if err = shoppingBasketWebHandler.shoppingBasketService.Update(ID.ID, updateShoppingBasketItem); err != nil {
 		WebHandler.StatusInternalServerError(response, request)
 		return
 	}
+	if shoppingBasket, err = shoppingBasketWebHandler.shoppingBasketService.FindById(ID.ID); err != nil {
+		Logger.Log.DebugCtx(request.Context(), "%s", err.Error())
+		WebHandler.StatusInternalServerError(response, request)
+		return
+	}
+	Logger.Log.DebugCtx(request.Context(), "Shopping Basket updated: %v", shoppingBasket)
 	WebHandler.WriteResponse(Http.StatusOK, response, request, shoppingBasket)
 }
 

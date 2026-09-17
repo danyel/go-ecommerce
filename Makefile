@@ -1,33 +1,65 @@
-build:
-	go build -o bin/main cmd/main.go
-
-env_up:
+du:
 	docker compose up -d
 
-env_down:
+docker_up:
+	docker compose up -d
+
+dd:
 	docker compose down
 
-run:
+docker_down:
+	docker compose down
+
+bbe:
+	go build -o bin/main cmd/main.go
+
+build_backend:
+	go build -o bin/main cmd/main.go
+
+be:
 	air
+
+run_backend:
+	air
+
+bui:
+	cd gocommerce && npm install --force
+
+build_ui:
+	make bui
 
 ui:
 	cd gocommerce && npm run dev
 
-uui:
-	cd gocommerce && npm install
+run_ui:
+	make ui
 
-migrate:
+dm:
 	goose up
 
-full:
-	go build -v ./.. & go test -v ./...
+database_migration:
+	make dm
 
-tools:
-	go install github.com/pressly/goose/v3/cmd/goose@latest && \
-	go install github.com/air-verse/air@latest
+ft:
+	go build -v ./.. & go test github.com/danyel/ecommerce/test/integration && go test github.com/danyel/ecommerce/test/mock
 
-integration_test:
+full_tests:
+	make ft
+
+inst:
+	go install github.com/pressly/goose/v3/cmd/goose@latest && go install github.com/air-verse/air@latest
+
+install_tools:
+	make inst
+
+it:
 	go test github.com/danyel/ecommerce/test/integration
 
-mock_tests:
+integration_tests:
+	make it
+
+mt:
 	go test github.com/danyel/ecommerce/test/mock
+
+mock_tests:
+	make mt

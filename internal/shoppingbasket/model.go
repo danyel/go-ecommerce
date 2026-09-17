@@ -21,6 +21,7 @@ type ShoppingBasketItem struct {
 	ProductID  Types.ID    `json:"product_id"`
 	ImageURL   string      `json:"image_url"`
 	Quantity   int         `json:"quantity"`
+	Remaining  int         `json:"remaining"`
 }
 
 type Promo struct {

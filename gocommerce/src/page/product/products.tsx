@@ -2,7 +2,11 @@ import {useEffect, useState} from 'react';
 import type {Product, ProductDTO} from '../../domain/product/model.tsx';
 import {ChevronDown} from 'lucide-react';
 import {useGlobalState} from '../../state/global-state.tsx';
-import type {ShoppingBasket, UpdateShoppingBasketItem} from '../../domain/shopping-basket/model.tsx';
+import type {
+    ShoppingBasket,
+    ShoppingBasketItem,
+    UpdateShoppingBasketItem
+} from '../../domain/shopping-basket/model.tsx';
 import Cookies from 'js-cookie';
 import ApiClient from "../../domain/common/api-client.tsx";
 import ProductMapper from "../../domain/product/mapper.tsx";
@@ -14,16 +18,18 @@ const ProductsPage = () => {
     const addToCart = async (product: Product) => {
         const updateShoppingBasketItem: UpdateShoppingBasketItem = {product_id: product.id, quantity: 1};
         let shoppingBasketId = globalStateType.shoppingBasket.id;
-        if (!shoppingBasketId) {
-            const newShoppingBasket = await ApiClient.POST<ShoppingBasket, ShoppingBasket>('/api/shopping-basket/v1/shopping-baskets', undefined);
-            shoppingBasketId = newShoppingBasket.id;
-        } else {
+        if (shoppingBasketId) {
             const found = globalStateType.shoppingBasket.items?.find(e => e.product_id == product.id);
             if (found) {
-                updateShoppingBasketItem.quantity += found.quantity;
+                updateShoppingBasketItem.quantity = found.quantity + 1;
             }
+        } else {
+            const newShoppingBasket = await ApiClient.POST<ShoppingBasket, ShoppingBasket>('/api/shopping-basket/v1/shopping-baskets', undefined);
+            shoppingBasketId = newShoppingBasket.id;
         }
+        console.log('Current shopping basket:', globalStateType.shoppingBasket);
         const updatedShoppingBasket = await ApiClient.PUT<ShoppingBasket, UpdateShoppingBasketItem>(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId}`, updateShoppingBasketItem);
+        console.log('updatedShoppingBasket', updatedShoppingBasket);
         Cookies.set('shopping_basket_id', shoppingBasketId);
         globalStateType.setShoppingBasket(updatedShoppingBasket);
         const freshProductData = await ApiClient.GET<Product>(`/api/product/v1/products/${product.id}`);
@@ -41,6 +47,22 @@ const ProductsPage = () => {
                 });
         }
     }, [products, singleFetch]);
+    useEffect(() => {
+        globalStateType.shoppingBasket?.items?.forEach((shoppingBasketItem: ShoppingBasketItem) =>
+            setProducts((prevState: Product[]) =>
+                prevState.map((product: Product) => {
+                    if (product.id === shoppingBasketItem.id) {
+                        return {
+                            ...product,
+                            stock: shoppingBasketItem.remaining
+                        };
+                    }
+                    return product;
+                })
+            )
+        );
+    }, [globalStateType.shoppingBasket]);
+
     return (
         <main className='flex-1'>
             <div
@@ -68,7 +90,8 @@ const ProductsPage = () => {
                                 className='w-full h-48 object-cover'
                             />
                             {product.stock === 0 && (
-                                <div className='absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded'>
+                                <div
+                                    className='absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded'>
                                     Out of Stock
                                 </div>
                             )}

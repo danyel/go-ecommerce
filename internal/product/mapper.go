@@ -1,6 +1,9 @@
 package product
 
 import (
+	Fmt "fmt"
+	Strings "strings"
+
 	Category "github.com/danyel/ecommerce/internal/category"
 	CMS "github.com/danyel/ecommerce/internal/cms"
 	Types "github.com/danyel/ecommerce/internal/common/types"
@@ -26,11 +29,12 @@ func (productMapper *productMapper) MapProducts(productModels []*ProductModel) [
 }
 
 func (productMapper *productMapper) MapProduct(productModel *ProductModel) Product {
+	prefix := Strings.Replace(productModel.Code, "-", "_", 1)
 	categoryModel, _ := productMapper.categoryService.GetCategory(productModel.CategoryID)
 	// TODO fetch that information from the header
-	description, _ := productMapper.cmsService.GetTranslation(productModel.Description, "nl_BE")
+	description, _ := productMapper.cmsService.GetTranslation(Fmt.Sprintf("%s_DESCRIPTION", prefix), "nl_BE")
 	// TODO fetch that information from the header
-	name, _ := productMapper.cmsService.GetTranslation(productModel.Name, "nl_BE")
+	name, _ := productMapper.cmsService.GetTranslation(Fmt.Sprintf("%s_NAME", prefix), "nl_BE")
 	return Product{
 		Code:        productModel.Code,
 		Price:       Types.NewPrice(productModel.Price, "EUR"),

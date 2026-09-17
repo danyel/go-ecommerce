@@ -10,6 +10,7 @@ export interface ShoppingBasketItem {
     price: number;
     image_url: string;
     quantity: number;
+    remaining: number;
     product_id: string;
 }
 

@@ -1,6 +1,7 @@
 package product
 
 import (
+	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Port "github.com/danyel/ecommerce/internal/common/port"
 	Repository "github.com/danyel/ecommerce/internal/common/repository"
 	Uuid "github.com/google/uuid"
@@ -32,6 +33,7 @@ func (productService *productService) FindById(ID Uuid.UUID) (Product, error) {
 	if err != nil {
 		return product, err
 	}
+	Logger.Log.Debug("Getting model: %v", productModel)
 
 	return productService.productMapper.MapProduct(productModel), nil
 }
@@ -62,15 +64,15 @@ func (productService *productService) Update(product Product) error {
 	return productService.productRepository.Update(productModel)
 }
 
-func updateFields(product Product, productModel *ProductModel) {
-	productModel.Brand = product.Brand
-	productModel.Name = product.Name
-	productModel.Description = product.Description
-	productModel.Code = product.Code
-	productModel.Price = float64(product.Price.Inclusive)
-	productModel.CategoryID = product.Category.ID
-	productModel.ImageURL = product.ImageURL
-	productModel.Stock = product.Stock
+func updateFields(source Product, target *ProductModel) {
+	target.Brand = source.Brand
+	target.Name = source.Name
+	target.Description = source.Description
+	target.Code = source.Code
+	target.Price = float64(source.Price.Inclusive)
+	target.CategoryID = source.Category.ID
+	target.ImageURL = source.ImageURL
+	target.Stock = source.Stock
 }
 
 func NewService(productRepository Repository.CrudRepository[ProductModel], productMapper ProductMapper, publisher Port.EventPublisher) ProductService {

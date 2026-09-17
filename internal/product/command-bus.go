@@ -32,11 +32,13 @@ func (commandHandler *commandHandler) handleUpdateStock(body []byte) error {
 	if err != nil {
 		return err
 	}
+	Logger.Log.Debug("Stock initial", product.Stock)
 	if event.Quantity > 0 {
 		product.Stock -= event.Quantity
 	} else if event.Quantity < 0 {
 		product.Stock += -event.Quantity
 	}
+	Logger.Log.Debug("Stock updated", product.Stock)
 	return commandHandler.productService.Update(product)
 }
 

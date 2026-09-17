@@ -32,7 +32,7 @@ const (
 	CategoryRootContext          = "/category"
 	CategoriesRootContext        = "/categories"
 	TranslationsRootContext      = "/translations"
-	ById                         = "/{ID}"
+	ByID                         = "/{ID}"
 	ByCode                       = "/{code}"
 	ByLanguage                   = "/{language}"
 )
@@ -64,8 +64,8 @@ func (apiRouter *apiRouter) Start() {
 	}
 }
 
-// NewApiRouter Factory method for the ApiRouter interface
-func NewApiRouter(serverConfiguration *Configuration.ServerConfiguration, webHandlerContextFactory Factory.WebHandlerContextFactory) ApiRouter {
+// NewAPIRouter Factory method for the ApiRouter interface
+func NewAPIRouter(serverConfiguration *Configuration.ServerConfiguration, webHandlerContextFactory Factory.WebHandlerContextFactory) ApiRouter {
 	apiRouter := &apiRouter{
 		serverConfiguration:      serverConfiguration,
 		webHandlerContextFactory: webHandlerContextFactory,
@@ -108,7 +108,7 @@ func shoppingBasket(router Router.Router, shoppingBasketWebHandler ShoppingBaske
 		shoppingBasketRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ShoppingBasketsRootContext, func(shoppingBasketsRouter Router.Router) {
 				shoppingBasketsRouter.Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
-				shoppingBasketsRouter.Route(ById, func(byIdRouter Router.Router) {
+				shoppingBasketsRouter.Route(ByID, func(byIdRouter Router.Router) {
 					Logger.Log.Debug("Shopping Basket By Id")
 					byIdRouter.Get(SLASH, shoppingBasketWebHandler.HandleGetShoppingBasketByIdV1)
 					byIdRouter.Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
@@ -125,7 +125,7 @@ func productManagement(router Router.Router, productManagementWebHandler Product
 			versionOneRouter.Route(ProductsRootContext, func(productsRootRouter Router.Router) {
 				productsRootRouter.Get(SLASH, productManagementWebHandler.HandleGetProductsV1)
 				productsRootRouter.Post(SLASH, productManagementWebHandler.HandleCreateProductV1)
-				productsRootRouter.Route(ById, func(byIdRouter Router.Router) {
+				productsRootRouter.Route(ByID, func(byIdRouter Router.Router) {
 					byIdRouter.Get(SLASH, productManagementWebHandler.HandleGetProductV1)
 					byIdRouter.Delete(SLASH, productManagementWebHandler.HandleDeleteProductV1)
 					byIdRouter.Put(SLASH, productManagementWebHandler.HandleUpdateProductV1)
@@ -167,7 +167,7 @@ func product(router Router.Router, productWebHandler Product.ProductWebHandler) 
 		productRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ProductsRootContext, func(byIdRouter Router.Router) {
 				byIdRouter.Get(SLASH, productWebHandler.HandleGetProductsV1)
-				byIdRouter.Get(ById, productWebHandler.HandleGetProductV1)
+				byIdRouter.Get(ByID, productWebHandler.HandleGetProductV1)
 			})
 		})
 	})

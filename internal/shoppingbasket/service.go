@@ -13,7 +13,7 @@ import (
 //goland:noinspection GoNameStartsWithPackageName
 type ShoppingBasketService interface {
 	Create() (ShoppingBasket, error)
-	Update(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItem) (ShoppingBasket, error)
+	Update(ID Uuid.UUID, UpdateShoppingBasketItem UpdateShoppingBasketItem) error
 	FindById(u Uuid.UUID) (ShoppingBasket, error)
 }
 
@@ -38,14 +38,14 @@ func (shoppingBasketService *shoppingBasketService) Create() (ShoppingBasket, er
 	return r, nil
 }
 
-func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateShoppingBasketItem UpdateShoppingBasketItem) (ShoppingBasket, error) {
+func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateShoppingBasketItem UpdateShoppingBasketItem) error {
 	shoppingBasketModel, err := shoppingBasketService.shoppingBasketRepository.FindById(ID, "Items")
 	var product Product.Product
 	if err != nil {
-		return EmptyShoppingBasket(), err
+		return err
 	}
 	if product, err = shoppingBasketService.productService.FindById(updateShoppingBasketItem.ProductID.ID); err != nil {
-		return EmptyShoppingBasket(), err
+		return err
 	}
 
 	shoppingBasketItemModel := ShoppingBasketItemModel{ID: Uuid.Nil, ShoppingBasketID: shoppingBasketModel.ID, ProductID: product.ID.ID, Price: float64(product.Price.Inclusive), Quantity: updateShoppingBasketItem.Quantity}
@@ -54,28 +54,19 @@ func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateS
 			if currentItem.ProductID == shoppingBasketItemModel.ProductID {
 				Logger.Log.Debug("Quantity: %d item %d == current %d", -(currentItem.Quantity - updateShoppingBasketItem.Quantity), updateShoppingBasketItem.Quantity, currentItem.Quantity)
 				if updateShoppingBasketItem.Quantity != currentItem.Quantity {
-					e := shoppingBasketService.publisher.Publish(Product.UpdateProductStock.Queue, Product.UpdateProductStockCommand{
-						ProductID:        currentItem.ProductID,
-						Quantity:         -(currentItem.Quantity - updateShoppingBasketItem.Quantity),
-						ShoppingBasketId: shoppingBasketModel.ID,
-					})
-					if e != nil {
-						return EmptyShoppingBasket(), e
-					}
+					product.Stock = -(product.Stock - updateShoppingBasketItem.Quantity)
+
 				}
 				shoppingBasketItemModel.ID = currentItem.ID
 				shoppingBasketItemModel.Quantity = updateShoppingBasketItem.Quantity
 			}
 		}
 	} else {
-		e := shoppingBasketService.publisher.Publish(Product.UpdateProductStock.Queue, Product.UpdateProductStockCommand{
-			ProductID:        updateShoppingBasketItem.ProductID.ID,
-			Quantity:         updateShoppingBasketItem.Quantity,
-			ShoppingBasketId: shoppingBasketModel.ID,
-		})
-		if e != nil {
-			return EmptyShoppingBasket(), e
-		}
+		product.Stock = -(product.Stock - updateShoppingBasketItem.Quantity)
+	}
+
+	if err := shoppingBasketService.productService.Update(product); err != nil {
+		return err
 	}
 
 	if shoppingBasketItemModel.ID == Uuid.Nil {
@@ -88,9 +79,9 @@ func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, updateS
 		}
 	}
 	if err != nil {
-		return EmptyShoppingBasket(), err
+		return err
 	}
-	return shoppingBasketService.FindById(ID)
+	return nil
 }
 
 func (shoppingBasketService *shoppingBasketService) FindById(ID Uuid.UUID) (ShoppingBasket, error) {
@@ -106,7 +97,10 @@ func (shoppingBasketService *shoppingBasketService) FindById(ID Uuid.UUID) (Shop
 	if len(shoppingBasketModel.Items) > 0 {
 		shoppingBasketItems := make([]ShoppingBasketItem, len(shoppingBasketModel.Items))
 		for index, shoppingBasketItemModel := range shoppingBasketModel.Items {
-			currentProduct, _ := shoppingBasketService.productManagementService.GetProduct(Types.NewID(shoppingBasketItemModel.ProductID))
+			currentProduct, err := shoppingBasketService.productService.FindById(shoppingBasketItemModel.ProductID)
+			if err != nil {
+				return EmptyShoppingBasket(), err
+			}
 			calculatedPriceToAdd := calculateTotal(currentProduct.Price.Inclusive, shoppingBasketItemModel.Quantity)
 			totalPrice += calculatedPriceToAdd
 			shoppingBasketItems[index] = ShoppingBasketItem{
@@ -117,6 +111,7 @@ func (shoppingBasketService *shoppingBasketService) FindById(ID Uuid.UUID) (Shop
 				ProductID:  currentProduct.ID,
 				ImageURL:   currentProduct.ImageURL,
 				Quantity:   shoppingBasketItemModel.Quantity,
+				Remaining:  currentProduct.Stock,
 			}
 		}
 		shoppingBasket.Items = shoppingBasketItems
