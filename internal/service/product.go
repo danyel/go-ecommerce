@@ -2,7 +2,6 @@
 package service
 
 import (
-	Logger "github.com/danyel/ecommerce/cmd/logger"
 	Domain "github.com/danyel/ecommerce/internal/domain"
 	Mapper "github.com/danyel/ecommerce/internal/mapper"
 	Persistence "github.com/danyel/ecommerce/internal/persistence"
@@ -13,9 +12,27 @@ import (
 //goland:noinspection GoNameStartsWithPackageName
 type IProductService interface {
 	FindAll() []Domain.Product
+	FindPage(page int, pageSize int) ([]Domain.Product, int64)
 	FindByID(uuid Uuid.UUID) (Domain.Product, error)
 	Update(product Domain.Product) error
 	UpdateStock(ID Uuid.UUID, shoppingBasketID Uuid.UUID, stock int) error
+}
+
+func (productService *productService) FindPage(page int, pageSize int) ([]Domain.Product, int64) {
+	orderBy := "created_at asc"
+	offset := (page - 1) * pageSize
+	models, total := productService.productRepository.Paginate(Persistence.SearchCriteria{
+		Limit: &pageSize, Offset: &offset, OrderBy: &orderBy,
+	})
+	return productService.productMapper.MapProducts(modelsToPointers(models)), total
+}
+
+func modelsToPointers(models []Persistence.ProductModel) []*Persistence.ProductModel {
+	result := make([]*Persistence.ProductModel, len(models))
+	for i := range models {
+		result[i] = &models[i]
+	}
+	return result
 }
 
 type productService struct {
@@ -36,8 +53,6 @@ func (productService *productService) FindByID(ID Uuid.UUID) (Domain.Product, er
 	if err != nil {
 		return product, err
 	}
-	Logger.Log.Debug("Getting model: %v", productModel)
-
 	return productService.productMapper.MapProduct(productModel), nil
 }
 

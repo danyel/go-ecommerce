@@ -3,6 +3,7 @@ package handler
 import (
 	Http "net/http"
 
+	Domain "github.com/danyel/ecommerce/internal/domain"
 	Model "github.com/danyel/ecommerce/internal/model"
 	Category "github.com/danyel/ecommerce/internal/service"
 )
@@ -17,10 +18,20 @@ type managementWebHandler struct {
 	categoryService   Category.ICategoryService
 	managementService Category.IManagementService
 	cmsService        Category.ICmsService
+	maxPageSize       int
 }
 
 func (managementWebHandler *managementWebHandler) HandleGetCategoriesV1(response Http.ResponseWriter, request *Http.Request) {
-	WriteResponse(Http.StatusOK, response, request, managementWebHandler.categoryService.GetCategories())
+	page, pageSize, err := ParsePagination(request, managementWebHandler.maxPageSize)
+	if err != nil {
+		BadRequest(response, request, InvalidRequestTitle, map[string]any{"pagination": err.Error()})
+		return
+	}
+	categories, total := managementWebHandler.categoryService.GetCategoriesPage(page, pageSize)
+	WriteResponse(Http.StatusOK, response, request, Model.Page[Domain.Category]{
+		Items: categories, Page: page, PageSize: pageSize, Total: int(total),
+		HasNextPage: page*pageSize < int(total),
+	})
 }
 
 // HandleCreateTranslationsV1 still some messages to do here 😔
@@ -46,10 +57,15 @@ func (managementWebHandler *managementWebHandler) HandleCreateTranslationsV1(res
 	WriteResponse(Http.StatusCreated, response, request, cmsID)
 }
 
-func NewManagementWebHandler(categoryService Category.ICategoryService, managementService Category.IManagementService, cmsService Category.ICmsService) ManagementWebHandler {
+func NewManagementWebHandler(categoryService Category.ICategoryService, managementService Category.IManagementService, cmsService Category.ICmsService, maxPageSize ...int) ManagementWebHandler {
+	maximum := 50
+	if len(maxPageSize) > 0 && maxPageSize[0] > 0 {
+		maximum = maxPageSize[0]
+	}
 	return &managementWebHandler{
 		categoryService:   categoryService,
 		managementService: managementService,
 		cmsService:        cmsService,
+		maxPageSize:       maximum,
 	}
 }

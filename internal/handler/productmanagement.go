@@ -25,11 +25,20 @@ type productManagementWebHandler struct {
 	productManagementService Service.IProductManagementService
 	productMapper            Mapper.ProductMapper
 	categoryMapper           Mapper.ICategoryMapper
+	maxPageSize              int
 }
 
 func (productManagementWebHandler *productManagementWebHandler) HandleGetProductsV1(response Http.ResponseWriter, request *Http.Request) {
-	products := productManagementWebHandler.productManagementService.GetProducts()
-	WriteResponse(Http.StatusOK, response, request, products)
+	page, pageSize, err := ParsePagination(request, productManagementWebHandler.maxPageSize)
+	if err != nil {
+		BadRequest(response, request, InvalidRequestTitle, map[string]any{"pagination": err.Error()})
+		return
+	}
+	products, total := productManagementWebHandler.productManagementService.GetProductsPage(page, pageSize)
+	WriteResponse(Http.StatusOK, response, request, Model.Page[Domain.Product]{
+		Items: products, Page: page, PageSize: pageSize, Total: int(total),
+		HasNextPage: page*pageSize < int(total),
+	})
 }
 
 func (productManagementWebHandler *productManagementWebHandler) HandleDeleteProductV1(response Http.ResponseWriter, request *Http.Request) {
@@ -113,10 +122,15 @@ func (productManagementWebHandler *productManagementWebHandler) productDTO(produ
 	}
 }
 
-func NewProductManagementWebHandler(categoryService Service.ICategoryService, cmsService Service.ICmsService, productManagementService Service.IProductManagementService, productMapper Mapper.ProductMapper, categoryMapper Mapper.ICategoryMapper) ProductManagementWebHandler {
+func NewProductManagementWebHandler(categoryService Service.ICategoryService, cmsService Service.ICmsService, productManagementService Service.IProductManagementService, productMapper Mapper.ProductMapper, categoryMapper Mapper.ICategoryMapper, maxPageSize ...int) ProductManagementWebHandler {
+	maximum := 50
+	if len(maxPageSize) > 0 && maxPageSize[0] > 0 {
+		maximum = maxPageSize[0]
+	}
 	return &productManagementWebHandler{
 		productManagementService: productManagementService,
 		productMapper:            productMapper,
 		categoryMapper:           categoryMapper,
+		maxPageSize:              maximum,
 	}
 }

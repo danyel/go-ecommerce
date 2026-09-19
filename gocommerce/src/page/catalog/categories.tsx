@@ -2,11 +2,12 @@ import {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import ApiClient from '../../domain/common/api-client.tsx';
 import type {Category} from '../../domain/product/model.tsx';
+import type {Page} from "../../domain/common/page.tsx";
 
 const CategoriesPage = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     useEffect(() => {
-        ApiClient.GET<Category[]>('/api/management/v1/categories').then(setCategories).catch(() => setCategories([]));
+        ApiClient.GET<Page<Category>>('/api/management/v1/categories?page=1&page_size=50').then(data => setCategories(data.items)).catch(() => setCategories([]));
     }, []);
     return <main className='flex-1 bg-white rounded-lg shadow-sm p-6'>
         <h2 className='text-2xl font-semibold mb-4'>Categories</h2>

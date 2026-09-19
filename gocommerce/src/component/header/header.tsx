@@ -5,6 +5,7 @@ import {useAuth} from '../../state/use-auth.ts';
 import {useEffect, useState} from 'react';
 import ApiClient from '../../domain/common/api-client.tsx';
 import type {Category} from '../../domain/product/model.tsx';
+import type {Page} from "../../domain/common/page.tsx";
 
 export interface HeaderComponentProperties {
     showShoppingCart: boolean;
@@ -16,7 +17,7 @@ const HeaderComponent = (props: HeaderComponentProperties) => {
     const auth = useAuth();
     const [categories, setCategories] = useState<Category[]>([]);
     useEffect(() => {
-        ApiClient.GET<Category[]>('/api/management/v1/categories').then(setCategories).catch(() => setCategories([]));
+        ApiClient.GET<Page<Category>>('/api/management/v1/categories?page=1&page_size=50').then(data => setCategories(data.items)).catch(() => setCategories([]));
     }, []);
     return (
         <header className='bg-white shadow-sm sticky top-0 z-50'>

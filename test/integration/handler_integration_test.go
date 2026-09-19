@@ -169,17 +169,17 @@ func TestWebHandler(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Product Management Get Products", func(unitTest *Testing.T) {
-			var products []Model.ProductDTO
+			var products Model.Page[Model.ProductDTO]
 			webIntegration.ProductManagementGetProducts().
 				GetResponseBody(&products).
-				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", products[0].Name).
-				Equal("De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.", products[0].Description).
-				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", products[0].ImageURL).
-				Equal("GPU", products[0].Category.Name).
-				Equal(Types.Float64(669), products[0].Price.Inclusive).
-				Equal("90YV0L71-M0NA00", products[0].Code).
-				Equal("ASUS", products[0].Brand).
-				Equal(productModel.ID, products[0].ID.ID).
+				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", products.Items[0].Name).
+				Equal("De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.", products.Items[0].Description).
+				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", products.Items[0].ImageURL).
+				Equal("GPU", products.Items[0].Category.Name).
+				Equal(Types.Float64(669), products.Items[0].Price.Inclusive).
+				Equal("90YV0L71-M0NA00", products.Items[0].Code).
+				Equal("ASUS", products.Items[0].Brand).
+				Equal(productModel.ID, products.Items[0].ID.ID).
 				AssertStatusOk()
 		})
 	})

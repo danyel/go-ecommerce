@@ -30,6 +30,11 @@ func (productService *MockProductService) FindAll() []Domain.Product {
 	return args.Get(0).([]Domain.Product)
 }
 
+func (productService *MockProductService) FindPage(page int, pageSize int) ([]Domain.Product, int64) {
+	args := productService.Called(page, pageSize)
+	return args.Get(0).([]Domain.Product), args.Get(1).(int64)
+}
+
 func (productService *MockProductService) FindByID(ID Uuid.UUID) (Domain.Product, error) {
 	args := productService.Called(ID)
 	return args.Get(0).(Domain.Product), args.Error(1)
@@ -69,14 +74,14 @@ func TestProductHandler(unitTest *Testing.T) {
 				Price: Types.NewPrice(1000, "EUR"),
 			},
 		}
-		productService.On("FindAll").Return(products, nil)
+		productService.On("FindPage", 1, 50).Return(products, int64(len(products)))
 		Assert.Equal(unitTest, Http.StatusOK, run.New().
 			NewRecoder().
 			NewRequest(Http.MethodGet, SetupWebIntegration.ProductProductsURL, nil).
 			NewRouter(Http.MethodGet, SetupWebIntegration.ProductProductsURL, productHandler.HandleGetProductsV1).
 			ServeHTTP().
 			Status())
-		productService.AssertCalled(unitTest, "FindAll")
+		productService.AssertCalled(unitTest, "FindPage", 1, 50)
 		productService.AssertExpectations(unitTest)
 	})
 

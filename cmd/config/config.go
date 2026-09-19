@@ -3,27 +3,34 @@ package config
 import (
 	Fmt "fmt"
 	OS "os"
+	Strconv "strconv"
+	Strings "strings"
 	Sync "sync"
+	Time "time"
 
 	Logger "github.com/danyel/ecommerce/cmd/logger"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 )
 
 const (
-	dbHost          = "DB_HOST"
-	dbPort          = "DB_PORT"
-	dbUsername      = "DB_USERNAME"
-	dbPassword      = "DB_PASSWORD"
-	dbDatabase      = "DB_DATABASE"
-	dbSchema        = "DB_SCHEMA"
-	jwtSecret       = "JWT_SECRET"
-	googleClientID  = "GOOGLE_CLIENT_ID"
-	brokerProtocol  = "BROKER_PROTOCOL"
-	brokerAddress   = "BROKER_ADDRESS"
-	brokerPort      = "BROKER_PORT"
-	brokerUsername  = "BROKER_USERNAME"
-	brokerPassword  = "BROKER_PASSWORD"
-	applicationPort = "APP_PORT"
+	dbHost            = "DB_HOST"
+	dbPort            = "DB_PORT"
+	dbUsername        = "DB_USERNAME"
+	dbPassword        = "DB_PASSWORD"
+	dbDatabase        = "DB_DATABASE"
+	dbSchema          = "DB_SCHEMA"
+	jwtSecret         = "JWT_SECRET"
+	googleClientID    = "GOOGLE_CLIENT_ID"
+	brokerProtocol    = "BROKER_PROTOCOL"
+	brokerAddress     = "BROKER_ADDRESS"
+	brokerPort        = "BROKER_PORT"
+	brokerUsername    = "BROKER_USERNAME"
+	brokerPassword    = "BROKER_PASSWORD"
+	applicationPort   = "APP_PORT"
+	rateLimitRequests = "API_RATE_LIMIT_REQUESTS"
+	rateLimitWindow   = "API_RATE_LIMIT_WINDOW"
+	maxPageSize       = "API_MAX_PAGE_SIZE"
+	allowedOrigins    = "CORS_ALLOWED_ORIGINS"
 )
 
 var (
@@ -36,9 +43,13 @@ var (
 )
 
 type ServerConfiguration struct {
-	Addr           string
-	JwtSecret      string
-	GoogleClientID string
+	Addr              string
+	JwtSecret         string
+	GoogleClientID    string
+	RateLimitRequests int
+	RateLimitWindow   Time.Duration
+	MaxPageSize       int
+	AllowedOrigins    []string
 }
 
 type DatabaseConfiguration struct {
@@ -102,11 +113,42 @@ func NewServerConfiguration() *ServerConfiguration {
 			secret = generated
 		}
 		serverConfigurationInstance = ServerConfiguration{
-			Addr:           OS.Getenv(applicationPort),
-			JwtSecret:      secret,
-			GoogleClientID: OS.Getenv(googleClientID),
+			Addr:              OS.Getenv(applicationPort),
+			JwtSecret:         secret,
+			GoogleClientID:    OS.Getenv(googleClientID),
+			RateLimitRequests: envInt(rateLimitRequests, 60),
+			RateLimitWindow:   envDuration(rateLimitWindow, Time.Minute),
+			MaxPageSize:       envInt(maxPageSize, 50),
+			AllowedOrigins:    envList(allowedOrigins),
 		}
 	})
 
 	return &serverConfigurationInstance
+}
+
+func envInt(key string, fallback int) int {
+	value, err := Strconv.Atoi(OS.Getenv(key))
+	if err != nil || value < 1 {
+		return fallback
+	}
+	return value
+}
+
+func envDuration(key string, fallback Time.Duration) Time.Duration {
+	value, err := Time.ParseDuration(OS.Getenv(key))
+	if err != nil || value <= 0 {
+		return fallback
+	}
+	return value
+}
+
+func envList(key string) []string {
+	values := Strings.Split(OS.Getenv(key), ",")
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if value = Strings.TrimSpace(value); value != "" {
+			result = append(result, value)
+		}
+	}
+	return result
 }

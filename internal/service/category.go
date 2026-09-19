@@ -11,8 +11,21 @@ import (
 //goland:noinspection GoNameStartsWithPackageName
 type ICategoryService interface {
 	GetCategories() []Domain.Category
+	GetCategoriesPage(page int, pageSize int) ([]Domain.Category, int64)
 	GetCategory(ID Uuid.UUID) (Domain.Category, error)
 	CreateCategory(createCategory Model.CreateCategory) (Uuid.UUID, error)
+}
+
+func (categoryService *categoryService) GetCategoriesPage(page int, pageSize int) ([]Domain.Category, int64) {
+	offset := (page - 1) * pageSize
+	models, total := categoryService.categoryRepository.Paginate(Persistence.SearchCriteria{
+		Limit: &pageSize, Offset: &offset, Preloads: []string{"Children"},
+	})
+	pointers := make([]*Persistence.CategoryModel, len(models))
+	for i := range models {
+		pointers[i] = &models[i]
+	}
+	return mapCategories(pointers), total
 }
 
 type categoryService struct {

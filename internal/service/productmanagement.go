@@ -10,6 +10,7 @@ import (
 //goland:noinspection GoNameStartsWithPackageName
 type IProductManagementService interface {
 	GetProducts() []Domain.Product
+	GetProductsPage(page int, pageSize int) ([]Domain.Product, int64)
 	GetProduct(id Types.ID) (Domain.Product, error)
 	DeleteProduct(id Types.ID) error
 	// UpdateProduct should be Domain.Product
@@ -24,6 +25,10 @@ type productManagementService struct {
 
 func (productManagementService *productManagementService) GetProducts() []Domain.Product {
 	return productManagementService.productService.FindAll()
+}
+
+func (productManagementService *productManagementService) GetProductsPage(page int, pageSize int) ([]Domain.Product, int64) {
+	return productManagementService.productService.FindPage(page, pageSize)
 }
 
 func (productManagementService *productManagementService) GetProduct(ID Types.ID) (Domain.Product, error) {

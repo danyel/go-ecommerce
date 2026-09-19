@@ -85,6 +85,8 @@ func (apiRouter *apiRouter) configureLog() {
 	apiRouter.rootRouter.Use(Middleware.Logger)
 	apiRouter.rootRouter.Use(Middleware.Recoverer)
 	apiRouter.rootRouter.Use(ApplicationMiddleware.CorrelationIDMiddleware)
+	apiRouter.rootRouter.Use(ApplicationMiddleware.SecurityHeaders(apiRouter.serverConfiguration.AllowedOrigins))
+	apiRouter.rootRouter.Use(ApplicationMiddleware.NewRateLimiter(apiRouter.serverConfiguration.RateLimitRequests, apiRouter.serverConfiguration.RateLimitWindow).Middleware)
 	apiRouter.sessionIssuer = Security.NewEncryptedSessionIssuer(apiRouter.serverConfiguration.JwtSecret)
 	apiRouter.securityRegistry = Security.NewProviderRegistry(Security.NewGoogleProvider(apiRouter.serverConfiguration.GoogleClientID))
 	apiRouter.authWebHandler = Category.NewAuthWebHandler(apiRouter.securityRegistry, Security.NewMemoryUserLinker(), apiRouter.sessionIssuer)
@@ -93,6 +95,12 @@ func (apiRouter *apiRouter) configureLog() {
 // configureAPIRouting All API routing defined here
 func (apiRouter *apiRouter) configureAPIRouting() {
 	webHandlerContextFactory := apiRouter.webHandlerContextFactory
+	apiRouter.rootRouter.Get("/robots.txt", func(response Http.ResponseWriter, request *Http.Request) {
+		response.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		response.Header().Set("Cache-Control", "public, max-age=3600")
+		response.WriteHeader(Http.StatusOK)
+		_, _ = response.Write([]byte("User-agent: *\nDisallow: /api/\n"))
+	})
 	apiRouter.rootRouter.Route(BaseContextPath, func(router Router.Router) {
 		product(router, webHandlerContextFactory.ProductWebHandler())
 		category(router, webHandlerContextFactory.CategoryWebHandler())

@@ -13,11 +13,13 @@ import ApiClient from "../../domain/common/api-client.tsx";
 import ProductMapper from "../../domain/product/mapper.tsx";
 import type {Category} from '../../domain/product/model.tsx';
 import {ApiError} from '../../domain/common/api-client.tsx';
+import type {Page} from "../../domain/common/page.tsx";
 
 const ProductsPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [singleFetch, setSingleFetch] = useState<boolean>(false);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [page] = useState(1);
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedCategory = searchParams.get('category') ?? '';
     const globalStateType = useGlobalState();
@@ -57,16 +59,16 @@ const ProductsPage = () => {
         } : p));
     };
     useEffect(() => {
-        if (products.length == 0 && !singleFetch) {
-            ApiClient.GET<ProductDTO[]>('/api/product/v1/products')
+        if (!singleFetch) {
+            ApiClient.GET<Page<ProductDTO>>(`/api/product/v1/products?page=${page}&page_size=24`)
                 .then(data => {
-                    setProducts(data.map(v => ProductMapper.map(v)));
+                    setProducts(data.items.map(v => ProductMapper.map(v)));
                     setSingleFetch(true);
                 });
         }
-    }, [products, singleFetch]);
+    }, [page, singleFetch]);
     useEffect(() => {
-        ApiClient.GET<Category[]>('/api/management/v1/categories').then(setCategories).catch(() => setCategories([]));
+        ApiClient.GET<Page<Category>>('/api/management/v1/categories?page=1&page_size=50').then(data => setCategories(data.items)).catch(() => setCategories([]));
     }, []);
     useEffect(() => {
         globalStateType.shoppingBasket?.items?.forEach((shoppingBasketItem: ShoppingBasketItem) =>
@@ -124,7 +126,8 @@ const ProductsPage = () => {
                         </div>
                         <div className='p-4'>
                             <p className='text-xs text-gray-500 mb-1'>{product.category.name}</p>
-                            <h3 className='font-semibold mb-2'>{product.name}</h3>
+                            <h3 className='font-semibold mb-2'>{product.brand}</h3>
+                            <div className='flex items-center justify-between'>{product.description}</div>
                             <div className='flex items-center justify-between'>
                                 <p className='text-2xl font-bold text-blue-600'>
                                     {product.price.inclusive} €

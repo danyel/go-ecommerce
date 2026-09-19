@@ -1,6 +1,7 @@
 package contextfactory
 
 import (
+	Configuration "github.com/danyel/ecommerce/cmd/config"
 	WebHandler "github.com/danyel/ecommerce/internal/handler"
 )
 
@@ -30,13 +31,13 @@ func (webHandlerContextFactory *webHandlerContextFactory) ShoppingBasketWebHandl
 
 func (webHandlerContextFactory *webHandlerContextFactory) ProductManagementWebHandler() WebHandler.ProductManagementWebHandler {
 	return getInstanceOfType(&webHandlerContextFactory.productManagementWebHandler, func() WebHandler.ProductManagementWebHandler {
-		return WebHandler.NewProductManagementWebHandler(applicationContextFactoryInstance.CategoryService(), applicationContextFactoryInstance.CmsService(), applicationContextFactoryInstance.ProductManagementService(), applicationContextFactoryInstance.ProductMapper(), applicationContextFactoryInstance.CategoryMapper())
+		return WebHandler.NewProductManagementWebHandler(applicationContextFactoryInstance.CategoryService(), applicationContextFactoryInstance.CmsService(), applicationContextFactoryInstance.ProductManagementService(), applicationContextFactoryInstance.ProductMapper(), applicationContextFactoryInstance.CategoryMapper(), Configuration.NewServerConfiguration().MaxPageSize)
 	})
 }
 
 func (webHandlerContextFactory *webHandlerContextFactory) ProductWebHandler() WebHandler.IProductWebHandler {
 	return getInstanceOfType(&webHandlerContextFactory.productWebHandler, func() WebHandler.IProductWebHandler {
-		return WebHandler.ProductWebHandler(applicationContextFactoryInstance.ProductService(), applicationContextFactoryInstance.ProductMapper(), applicationContextFactoryInstance.CategoryMapper())
+		return WebHandler.ProductWebHandler(applicationContextFactoryInstance.ProductService(), applicationContextFactoryInstance.ProductMapper(), applicationContextFactoryInstance.CategoryMapper(), Configuration.NewServerConfiguration().MaxPageSize)
 	})
 }
 
@@ -54,7 +55,7 @@ func (webHandlerContextFactory *webHandlerContextFactory) CmsWebHandler() WebHan
 
 func (webHandlerContextFactory *webHandlerContextFactory) ManagementWebHandler() WebHandler.ManagementWebHandler {
 	return getInstanceOfType(&webHandlerContextFactory.managementWebHandler, func() WebHandler.ManagementWebHandler {
-		return WebHandler.NewManagementWebHandler(applicationContextFactoryInstance.CategoryService(), applicationContextFactoryInstance.ManagementService(), applicationContextFactoryInstance.CmsService())
+		return WebHandler.NewManagementWebHandler(applicationContextFactoryInstance.CategoryService(), applicationContextFactoryInstance.ManagementService(), applicationContextFactoryInstance.CmsService(), Configuration.NewServerConfiguration().MaxPageSize)
 	})
 }
 

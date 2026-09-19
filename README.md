@@ -156,7 +156,34 @@ Public product, category, translation-read, and basket-read endpoints remain ava
 
 The React app uses the same bearer token for API mutations, provides category links and filtering, and protects checkout. `gocommerce/src/state/event-bus.ts` is an extensible in-process event bus for updating interested components; no SSE/WebSocket transport is enabled because the current backend has no compatible event stream. The development account linker is intentionally in-memory and must be replaced with a persistent `UserLinker` implementation before using multiple application instances or relying on account links across restarts.
 
+### Public API anti-scraping controls
+
+Public catalog responses are paginated (`page` and `page_size`) and the server caps
+`page_size` at `API_MAX_PAGE_SIZE` (default `50`). The React catalog requests 24
+products at a time. Requests are rate-limited per source IP and bearer-token
+fingerprint using `API_RATE_LIMIT_REQUESTS` (default `60`) over
+`API_RATE_LIMIT_WINDOW` (default `1m`). Configure browser origins explicitly with
+`CORS_ALLOWED_ORIGINS` as a comma-separated list; no wildcard origin is enabled.
+`robots.txt` asks compliant crawlers not to crawl `/api/`, but this is advisory.
+
+These controls reduce bulk automated collection and backend load; they cannot make
+data rendered to a browser impossible to copy. Public content should therefore
+never be treated as secret, and stronger protection requires authenticated access,
+business controls, and operational monitoring.
+
 ### Run the test
+
+### Demo catalog
+
+The script `data/catalog_seed.sql` adds an original demonstration catalog with
+a computer-store category hierarchy and 31 products. It uses placeholder
+images and does not copy product content from a third-party retailer. Apply
+the migrations first, then load the optional demo data with:
+
+```shell
+make migration
+psql "$DATABASE_URL" -f data/catalog_seed.sql
+```
 
 ###### Integration tests
 
