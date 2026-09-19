@@ -3,6 +3,8 @@ package initializer
 import (
 	Context "context"
 	SQL "database/sql"
+	Error "errors"
+	Fmt "fmt"
 	OS "os"
 	Testing "testing"
 
@@ -74,22 +76,24 @@ func (backendInitializer *BackendInitializer) initializeRabbitMqTestContainer() 
 }
 
 func (backendInitializer *BackendInitializer) initializePostgresTestContainer() error {
-	postgresContainer, err := Postgres.Run(*backendInitializer.context,
+	postgresContainer, err := Postgres.Run(
+		*backendInitializer.context,
 		"postgres:18-alpine",
 		Postgres.WithDatabase(Configuration.Database().Database),
 		Postgres.WithUsername(Configuration.Database().Username),
 		Postgres.WithPassword(Configuration.Database().Password),
 		Postgres.BasicWaitStrategies(),
 	)
+	if err != nil {
+		return err
+	}
 
 	if postgresContainer == nil {
-		Logger.Log.Fatalf("failed to start container")
-		OS.Exit(0)
+		return Error.New("could not create postgress container")
 	}
 	port, err := postgresContainer.MappedPort(*backendInitializer.context, "5432/tcp")
-
 	if err != nil {
-		Logger.Log.Fatalf("failed to fetch port: %v", err)
+		return Fmt.Errorf("failed to fetch port: %v", err)
 	}
 
 	Configuration.Database().Port = port.Port()

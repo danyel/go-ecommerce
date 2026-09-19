@@ -2,7 +2,7 @@ package integration
 
 import (
 	Logger "github.com/danyel/ecommerce/cmd/logger"
-	Repository "github.com/danyel/ecommerce/internal/common/repository"
+	Repository "github.com/danyel/ecommerce/internal/persistence"
 )
 
 type Fixture[T any] struct {

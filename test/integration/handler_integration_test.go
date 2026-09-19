@@ -1,51 +1,51 @@
 package integration
 
 import (
+	Fmt "fmt"
 	Testing "testing"
 
 	Logger "github.com/danyel/ecommerce/cmd/logger"
-	Category "github.com/danyel/ecommerce/internal/category"
-	CMS "github.com/danyel/ecommerce/internal/cms"
-	Repository "github.com/danyel/ecommerce/internal/common/repository"
-	Types "github.com/danyel/ecommerce/internal/common/types"
-	Management "github.com/danyel/ecommerce/internal/management"
-	Product "github.com/danyel/ecommerce/internal/product"
-	Shoppingbasket "github.com/danyel/ecommerce/internal/shoppingbasket"
+	WebHandler "github.com/danyel/ecommerce/internal/handler"
+	Model "github.com/danyel/ecommerce/internal/model"
+	Category "github.com/danyel/ecommerce/internal/persistence"
+	Types "github.com/danyel/ecommerce/internal/types"
 	Initializers "github.com/danyel/ecommerce/test/integration/initializer"
 	TestUtils "github.com/danyel/ecommerce/test/testutils"
+	Uuid "github.com/google/uuid"
 )
 
 func TestWebHandler(unitTest *Testing.T) {
 	TestUtils.PreInitTest()
 	Logger.Log.Info("Starting Web Handler Test Cases")
 	webIntegration := Initializers.SetupWebIntegration(unitTest)
-	categoryRepository := Database(Repository.NewCrudRepository[Category.CategoryModel](webIntegration.DatabaseConnection()))
-	cmsRepository := Database(Repository.NewCrudRepository[CMS.CmsModel](webIntegration.DatabaseConnection()))
-	productRepository := Database(Repository.NewCrudRepository[Product.ProductModel](webIntegration.DatabaseConnection()))
+	categoryRepository := Database(Category.NewCrudRepository[Category.CategoryModel](webIntegration.DatabaseConnection()))
+	cmsRepository := Database(Category.NewCrudRepository[Category.CmsModel](webIntegration.DatabaseConnection()))
+	productRepository := Database(Category.NewCrudRepository[Category.ProductModel](webIntegration.DatabaseConnection()))
 
 	categoryModel := &Category.CategoryModel{Name: "GPU", Children: []*Category.CategoryModel{}}
 	categoryRepository.Insert(categoryModel)
-	cmsRepository.Insert(&CMS.CmsModel{
+	cmsRepository.Insert(&Category.CmsModel{
 		Code:     "90YV0L71_M0NA00_NAME",
 		Value:    "MSI Prime Radeon RX 9070 XT 16GB OC Videokaart",
 		Language: "nl_BE",
 	})
-	cmsRepository.Insert(&CMS.CmsModel{
+	cmsRepository.Insert(&Category.CmsModel{
 		Code:     "90YV0L71_M0NA00_DESCRIPTION",
 		Value:    "De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.",
 		Language: "nl_BE",
 	})
-	cmsRepository.Insert(&CMS.CmsModel{
+	cmsRepository.Insert(&Category.CmsModel{
 		Code:     "90YV0L71_M0NA00_NAME_FR",
 		Value:    "MSI Prime Radeon RX 9070 XT 16GB OC Videokaart_FR",
 		Language: "nl_FR",
 	})
-	cmsRepository.Insert(&CMS.CmsModel{
+	cmsRepository.Insert(&Category.CmsModel{
 		Code:     "90YV0L71_M0NA00_DESCRIPTION_FR",
 		Value:    "De ASUS Prime Radeon RX 9070 XT Gaming OC 16GB Videokaart is een krachtige AMD-kaart die is uitgerust met 16 GB GDDR6-videogeheugen en een GPU-kloksnelheid van tot wel 3030 MHz. Met 4096 stream processors biedt deze videokaart uitstekende prestaties voor zowel gaming als professionele toepassingen. De ASUS Prime-serie is ontworpen voor gamers en enthousiastelingen die op zoek zijn naar een betrouwbare en geavanceerde grafische oplossing.FR",
 		Language: "nl_FR",
 	})
-	productModel := &Product.ProductModel{
+	productModel := &Category.ProductModel{
+		Stock:       5,
 		Brand:       "ASUS",
 		Name:        "90YV0L71_M0NA00_NAME",
 		Description: "90YV0L71_M0NA00_DESCRIPTION",
@@ -58,7 +58,7 @@ func TestWebHandler(unitTest *Testing.T) {
 
 	unitTest.Run("Product h", func(unitTest *Testing.T) {
 		unitTest.Run("CreateProduct", func(unitTest *Testing.T) {
-			createProduct := &Product.CreateProduct{
+			createProduct := &Model.CreateProductDTO{
 				Brand:       "ASUS",
 				Name:        "90YV0L71_M0NA00_NAME",
 				Description: "90YV0L71_M0NA00_DESCRIPTION",
@@ -78,7 +78,7 @@ func TestWebHandler(unitTest *Testing.T) {
 	unitTest.Run("CMS h", func(unitTest *Testing.T) {
 		unitTest.Run("TestCmsHandler", func(unitTest *Testing.T) {
 			unitTest.Run("CmsHandler retrieve dutch", func(unitTest *Testing.T) {
-				var translations []CMS.Translation
+				var translations []Model.Translation
 				webIntegration.GetTranslations("nl_BE").
 					GetResponseBody(&translations).
 					AssertStatusOk().
@@ -90,7 +90,7 @@ func TestWebHandler(unitTest *Testing.T) {
 			})
 
 			unitTest.Run("CmsHandler retrieve french", func(unitTest *Testing.T) {
-				var translations []CMS.Translation
+				var translations []Model.Translation
 				webIntegration.GetTranslations("nl_FR").
 					GetResponseBody(&translations).
 					AssertStatusOk().
@@ -102,7 +102,7 @@ func TestWebHandler(unitTest *Testing.T) {
 			})
 
 			unitTest.Run("CmsHandler retrieve all", func(unitTest *Testing.T) {
-				var translations []CMS.Translation
+				var translations []Model.Translation
 				webIntegration.GetTranslations("").
 					GetResponseBody(&translations).
 					AssertStatusOk().
@@ -118,7 +118,7 @@ func TestWebHandler(unitTest *Testing.T) {
 			})
 
 			unitTest.Run("CmsHandler retrieve none because of invalid language", func(unitTest *Testing.T) {
-				var translations []CMS.Translation
+				var translations []Model.Translation
 				webIntegration.GetTranslations("nl_de").
 					GetResponseBody(&translations).
 					AssertStatusOk().
@@ -129,7 +129,7 @@ func TestWebHandler(unitTest *Testing.T) {
 
 	unitTest.Run("Management h", func(unitTest *Testing.T) {
 		unitTest.Run("ManagementHandler: Create a new translation but it already exist so return 400", func(unitTest *Testing.T) {
-			createCms := &Management.CreateCms{
+			createCms := &Model.CreateCms{
 				Code:     "90YV0L71_M0NA00_NAME",
 				Value:    "MSI Prime Radeon RX 9070 XT 16GB OC Videokaart",
 				Language: "nl_BE",
@@ -139,12 +139,12 @@ func TestWebHandler(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("ManagementHandler: Create a new translation and 201 is return", func(unitTest *Testing.T) {
-			createCms := &Management.CreateCms{
+			createCms := &Model.CreateCms{
 				Code:     "unknown",
 				Language: "nl_fr",
 				Value:    "Value_fr",
 			}
-			var i Management.CmsID
+			var i Model.CmsID
 			webIntegration.ManagementPostTranslations(createCms).
 				GetResponseBody(&i).
 				IsNotNil(i.ID).
@@ -154,7 +154,7 @@ func TestWebHandler(unitTest *Testing.T) {
 
 	unitTest.Run("Product Management h", func(unitTest *Testing.T) {
 		unitTest.Run("Product Management Get Product", func(unitTest *Testing.T) {
-			var product Product.Product
+			var product Model.ProductDTO
 			webIntegration.ProductManagementGetProductByID(productModel.ID.String()).
 				GetResponseBody(&product).
 				AssertStatusOk().
@@ -169,7 +169,7 @@ func TestWebHandler(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Product Management Get Products", func(unitTest *Testing.T) {
-			var products []Product.Product
+			var products []Model.ProductDTO
 			webIntegration.ProductManagementGetProducts().
 				GetResponseBody(&products).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", products[0].Name).
@@ -184,30 +184,91 @@ func TestWebHandler(unitTest *Testing.T) {
 		})
 	})
 
-	unitTest.Run("Shopping Basket h", func(unitTest *Testing.T) {
-		var ShoppingBasket Shoppingbasket.ShoppingBasket
+	unitTest.Run("Shopping Basket handler", func(unitTest *Testing.T) {
+		var shoppingBasket Model.ShoppingBasketDTO
 
 		unitTest.Run("Create Shopping Basket", func(unitTest *Testing.T) {
 			webIntegration.ShoppingBasketCreate().
-				GetResponseBody(&ShoppingBasket).
+				GetResponseBody(&shoppingBasket).
 				AssertStatusCreated().
-				IsNotNil(ShoppingBasket)
+				IsNotNil(shoppingBasket)
 		})
 
 		unitTest.Run("Add Item To Shopping Basket", func(unitTest *Testing.T) {
-			updateShoppingBasketItem := Shoppingbasket.UpdateShoppingBasketItem{
+			updateShoppingBasketItem := Model.UpdateShoppingBasketItemDTO{
 				ProductID: Types.NewID(productModel.ID),
 			}
-			webIntegration.ShoppingBasketAddItem(ShoppingBasket.ID.ID.String(), updateShoppingBasketItem).
+			webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
 				AssertStatusOk()
 		})
 
+		unitTest.Run("Add Item To Shopping Basket Error handling", func(unitTest *Testing.T) {
+			unitTest.Run("Shopping Basket Not Found", func(unitTest *Testing.T) {
+				var problemDetail WebHandler.ProblemDetail
+				updateShoppingBasketItem := Model.UpdateShoppingBasketItemDTO{
+					ProductID: Types.NewID(productModel.ID),
+				}
+				expected := make(map[string]any)
+				unknownId := Uuid.NewString()
+				expected["id"] = Fmt.Sprintf("Shopping basket not found: '%s'", unknownId)
+				webIntegration.ShoppingBasketAddItem(unknownId, updateShoppingBasketItem).
+					AssertNotFound().
+					GetResponseBody(&problemDetail).
+					Equal(expected, problemDetail.Errors)
+			})
+
+			unitTest.Run("Product Not Found", func(unitTest *Testing.T) {
+				var problemDetail WebHandler.ProblemDetail
+				unknownId := Uuid.New()
+				updateShoppingBasketItem := Model.UpdateShoppingBasketItemDTO{
+					ProductID: Types.NewID(unknownId),
+				}
+				expected := make(map[string]any)
+				expected["product_id"] = Fmt.Sprintf("Product not found: '%s'", unknownId.String())
+				webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
+					AssertNotFound().
+					GetResponseBody(&problemDetail).
+					Equal(expected, problemDetail.Errors)
+			})
+
+			unitTest.Run("Product Out Of Stock", func(unitTest *Testing.T) {
+				var problemDetail WebHandler.ProblemDetail
+				productModel.Stock = 0
+				_ = productRepository.repository.Update(productModel)
+				expected := make(map[string]any)
+				expected["product_stock"] = "'90YV0L71_M0NA00_NAME' is out of stock"
+				updateShoppingBasketItem := Model.UpdateShoppingBasketItemDTO{
+					ProductID: Types.NewID(productModel.ID),
+					Quantity:  100,
+				}
+				webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
+					AssertBadRequest().
+					GetResponseBody(&problemDetail).
+					Equal(expected, problemDetail.Errors)
+			})
+
+			unitTest.Run("Product Not All Items Can Be Reserved", func(unitTest *Testing.T) {
+				var problemDetail WebHandler.ProblemDetail
+				productModel.Stock = 10
+				_ = productRepository.repository.Update(productModel)
+				expected := make(map[string]any)
+				expected["product_stock"] = Fmt.Sprintf("'90YV0L71_M0NA00_NAME' can not reserve all items: %d/%d", 10, 100)
+				updateShoppingBasketItem := Model.UpdateShoppingBasketItemDTO{
+					ProductID: Types.NewID(productModel.ID),
+					Quantity:  100,
+				}
+				webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
+					AssertBadRequest().
+					GetResponseBody(&problemDetail).
+					Equal(expected, problemDetail.Errors)
+			})
+		})
+
 		unitTest.Run("Get Shopping Basket", func(unitTest *Testing.T) {
-			var shoppingBasket Shoppingbasket.ShoppingBasket
-			webIntegration.GetShoppingBasket(ShoppingBasket.ID.ID.String()).
+			webIntegration.GetShoppingBasket(shoppingBasket.ID.ID.String()).
 				GetResponseBody(&shoppingBasket).
 				AssertStatusOk().
-				Equal(ShoppingBasket.ID, shoppingBasket.ID).
+				Equal(shoppingBasket.ID, shoppingBasket.ID).
 				Equal("MSI Prime Radeon RX 9070 XT 16GB OC Videokaart", shoppingBasket.Items[0].Name).
 				Equal("https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg", shoppingBasket.Items[0].ImageURL).
 				Equal(Types.Float64(669.0), shoppingBasket.Items[0].BasePrice.Inclusive)

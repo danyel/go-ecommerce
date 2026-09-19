@@ -23,7 +23,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
         if (!globalStateType.shoppingBasket.id) {
             setShoppingBasket(globalStateType.shoppingBasket);
         }
-    }, [globalStateType.shoppingBasket, globalStateType.shoppingBasket.id]);
+    }, [globalStateType.shoppingBasket]);
 
     const addItem = (shoppingBasketItem: ShoppingBasketItem) => {
         updateShoppingBasketItem({
@@ -33,11 +33,10 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
     };
 
     function updateShoppingBasketItem(updateShoppingBasketItem: UpdateShoppingBasketItem) {
-        console.log(globalStateType.shoppingBasket);
+        console.log('Updating the shopping basket', globalStateType.shoppingBasket);
         ApiClient.PUT<ShoppingBasket, UpdateShoppingBasketItem>(`/api/shopping-basket/v1/shopping-baskets/${globalStateType.shoppingBasket.id}`, updateShoppingBasketItem)
-            .then((data: ShoppingBasket) => {
-                globalStateType.setShoppingBasket(data);
-                setShoppingBasket(data);
+            .then((shoppingBasket: ShoppingBasket) => {
+                globalStateType.setShoppingBasket(shoppingBasket);
             });
     }
 
@@ -110,7 +109,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
                                                                    const newValue = Number((e.target as HTMLInputElement).value);
                                                                    onQuantityChange(shoppingBasketItem, newValue);
                                                                }}/>
-                                                        <button className='text-red-500 hover:text-red-700'>
+                                                        <button className='text-red-500 hover:text-red-700' disabled={shoppingBasketItem.remaining === 0}>
                                                             <Plus onClick={() => addItem(shoppingBasketItem)}/>
                                                         </button>
                                                     </div>

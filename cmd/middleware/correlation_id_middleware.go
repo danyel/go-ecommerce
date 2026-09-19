@@ -20,6 +20,8 @@ func CorrelationIDMiddleware(next Http.Handler) Http.Handler {
 			ID = Uuid.New().String()
 		}
 
+		request.Header.Set("X-Correlation-ID", ID)
+
 		response.Header().Set("X-Correlation-ID", ID)
 
 		ctx := Context.WithValue(request.Context(), Logger.CorrelationIDKey, ID)
