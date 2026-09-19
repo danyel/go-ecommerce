@@ -5,8 +5,11 @@ import (
 	Testing "testing"
 
 	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
-	Types "github.com/danyel/ecommerce/internal/common/types"
-	Product "github.com/danyel/ecommerce/internal/product"
+	Domain "github.com/danyel/ecommerce/internal/domain"
+	Handler "github.com/danyel/ecommerce/internal/handler"
+	Mapper "github.com/danyel/ecommerce/internal/mapper"
+	Persistence "github.com/danyel/ecommerce/internal/persistence"
+	Types "github.com/danyel/ecommerce/internal/types"
 	SetupWebIntegration "github.com/danyel/ecommerce/test/integration/initializer"
 	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	Uuid "github.com/google/uuid"
@@ -18,17 +21,21 @@ type MockProductService struct {
 	Mock.Mock
 }
 
-func (productService *MockProductService) FindAll() []Product.Product {
+type MockProductMapper struct {
+	Mock.Mock
+}
+
+func (productService *MockProductService) FindAll() []Domain.Product {
 	args := productService.Called()
-	return args.Get(0).([]Product.Product)
+	return args.Get(0).([]Domain.Product)
 }
 
-func (productService *MockProductService) FindByID(ID Uuid.UUID) (Product.Product, error) {
+func (productService *MockProductService) FindByID(ID Uuid.UUID) (Domain.Product, error) {
 	args := productService.Called(ID)
-	return args.Get(0).(Product.Product), args.Error(1)
+	return args.Get(0).(Domain.Product), args.Error(1)
 }
 
-func (productService *MockProductService) Update(product Product.Product) error {
+func (productService *MockProductService) Update(product Domain.Product) error {
 	args := productService.Called(product)
 	return args.Get(0).(error)
 }
@@ -38,14 +45,25 @@ func (productService *MockProductService) UpdateStock(ID Uuid.UUID, shoppingBask
 	return args.Get(0).(error)
 }
 
+func (productMapper *MockProductMapper) MapProducts(models []*Persistence.ProductModel) []Domain.Product {
+	args := productMapper.Called(models)
+	return args.Get(0).([]Domain.Product)
+}
+
+func (productMapper *MockProductMapper) MapProduct(model *Persistence.ProductModel) Domain.Product {
+	args := productMapper.Called(model)
+	return args.Get(0).(Domain.Product)
+}
+
 func TestProductHandler(unitTest *Testing.T) {
 	TestUtils.PreInitTest()
 	productService := new(MockProductService)
-	productHandler := Product.NewWebHandler(productService)
+	productMapper := new(MockProductMapper)
+	productHandler := Handler.ProductWebHandler(productService, productMapper, Mapper.CategoryMapper())
 	run := Run(unitTest)
 
 	unitTest.Run("FindAll", func(unitTest *Testing.T) {
-		products := []Product.Product{
+		products := []Domain.Product{
 			{
 				Code:  "Code",
 				Price: Types.NewPrice(1000, "EUR"),
@@ -64,7 +82,7 @@ func TestProductHandler(unitTest *Testing.T) {
 
 	unitTest.Run("FindByID", func(unitTest *Testing.T) {
 		ID, _ := Uuid.Parse("aef8f0ce-c33f-456c-bc5c-91f951116cf7")
-		product := Product.Product{Code: "Code", Price: Types.NewPrice(1000, "EUR")}
+		product := Domain.Product{Code: "Code", Price: Types.NewPrice(1000, "EUR")}
 		productService.On("FindByID", ID).Return(product, nil)
 
 		Assert.Equal(unitTest, Http.StatusOK, run.New().

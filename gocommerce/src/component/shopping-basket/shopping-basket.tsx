@@ -33,7 +33,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
     };
 
     function updateShoppingBasketItem(updateShoppingBasketItem: UpdateShoppingBasketItem) {
-        console.log(globalStateType.shoppingBasket);
+        console.log('Updating the shopping basket', globalStateType.shoppingBasket);
         ApiClient.PUT<ShoppingBasket, UpdateShoppingBasketItem>(`/api/shopping-basket/v1/shopping-baskets/${globalStateType.shoppingBasket.id}`, updateShoppingBasketItem)
             .then((shoppingBasket: ShoppingBasket) => {
                 globalStateType.setShoppingBasket(shoppingBasket);

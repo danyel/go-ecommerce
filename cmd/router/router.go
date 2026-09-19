@@ -8,12 +8,7 @@ import (
 	Factory "github.com/danyel/ecommerce/cmd/factory/context"
 	Logger "github.com/danyel/ecommerce/cmd/logger"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
-	Category "github.com/danyel/ecommerce/internal/category"
-	CMS "github.com/danyel/ecommerce/internal/cms"
-	Management "github.com/danyel/ecommerce/internal/management"
-	Product "github.com/danyel/ecommerce/internal/product"
-	ProductManagement "github.com/danyel/ecommerce/internal/productmanagement"
-	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
+	Category "github.com/danyel/ecommerce/internal/handler"
 	Router "github.com/go-chi/chi/v5"
 	Middleware "github.com/go-chi/chi/v5/middleware"
 )
@@ -103,7 +98,7 @@ func (apiRouter *apiRouter) configureAPIRouting() {
 }
 
 // shoppingBasket Shopping Basket api /api/shopping-basket
-func shoppingBasket(router Router.Router, shoppingBasketWebHandler ShoppingBasket.ShoppingBasketWebHandler) Router.Router {
+func shoppingBasket(router Router.Router, shoppingBasketWebHandler Category.ShoppingBasketWebHandler) Router.Router {
 	return router.Route(ShoppingBasketRootContext, func(shoppingBasketRouter Router.Router) {
 		shoppingBasketRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ShoppingBasketsRootContext, func(shoppingBasketsRouter Router.Router) {
@@ -119,7 +114,7 @@ func shoppingBasket(router Router.Router, shoppingBasketWebHandler ShoppingBaske
 }
 
 // productManagement Product Management api /api/product-management
-func productManagement(router Router.Router, productManagementWebHandler ProductManagement.ProductManagementWebHandler) Router.Router {
+func productManagement(router Router.Router, productManagementWebHandler Category.ProductManagementWebHandler) Router.Router {
 	return router.Route(ProductManagementRootContext, func(productManagementRootRouter Router.Router) {
 		productManagementRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ProductsRootContext, func(productsRootRouter Router.Router) {
@@ -148,7 +143,7 @@ func category(router Router.Router, categoryWebHandler Category.CategoryWebHandl
 }
 
 // cms api /api/cms
-func cms(router Router.Router, cmsWebHandler CMS.CmsWebHandler) Router.Router {
+func cms(router Router.Router, cmsWebHandler Category.CmsWebHandler) Router.Router {
 	return router.Route(CmsRootContext, func(cmsRootRouter Router.Router) {
 		cmsRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(TranslationsRootContext, func(translationsRootRouter Router.Router) {
@@ -162,7 +157,7 @@ func cms(router Router.Router, cmsWebHandler CMS.CmsWebHandler) Router.Router {
 }
 
 // product api /api/product
-func product(router Router.Router, productWebHandler Product.ProductWebHandler) Router.Router {
+func product(router Router.Router, productWebHandler Category.IProductWebHandler) Router.Router {
 	return router.Route(ProductRootContext, func(productRootRouter Router.Router) {
 		productRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ProductsRootContext, func(byIdRouter Router.Router) {
@@ -174,7 +169,7 @@ func product(router Router.Router, productWebHandler Product.ProductWebHandler) 
 }
 
 // management api /api/management
-func management(router Router.Router, managementWebHandler Management.ManagementWebHandler) Router.Router {
+func management(router Router.Router, managementWebHandler Category.ManagementWebHandler) Router.Router {
 	return router.Route(ManagementRootContext, func(managementRootRouter Router.Router) {
 		managementRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(CategoriesRootContext, func(categoriesRootRouter Router.Router) {

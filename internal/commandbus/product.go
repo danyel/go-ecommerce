@@ -1,0 +1,54 @@
+package commandbus
+
+import (
+	JSON "encoding/json"
+
+	Broker "github.com/danyel/ecommerce/cmd/broker"
+	Logger "github.com/danyel/ecommerce/cmd/logger"
+	Command "github.com/danyel/ecommerce/internal/command"
+	Service "github.com/danyel/ecommerce/internal/service"
+)
+
+const (
+	ExchangeReservation = "product.topic"
+	AddReservationQueue = "products.update_stock"
+)
+
+type CommandHandler interface {
+	handleReservationCreate(body []byte) error
+}
+
+//goland:noinspection GoUnusedGlobalVariable,GoNameStartsWithPackageName
+var UpdateProductStock = Broker.QueueConfig{
+	Topic: ExchangeReservation,
+	Queue: AddReservationQueue,
+}
+
+func (commandHandler *commandHandler) handleUpdateStock(body []byte) error {
+	var event Command.UpdateProductStockCommand
+	if err := JSON.Unmarshal(body, &event); err != nil {
+		return err
+	}
+	Logger.Log.Debug("Entering: %s with product id: %s", AddReservationQueue, event.ProductID)
+	product, err := commandHandler.productService.FindByID(event.ProductID)
+	if err != nil {
+		return err
+	}
+	Logger.Log.Debug("Stock initial: %d", product.Stock)
+	if event.Quantity > 0 {
+		product.Stock -= event.Quantity
+	} else if event.Quantity < 0 {
+		product.Stock += -event.Quantity
+	}
+	Logger.Log.Debug("Stock updated: %d", product.Stock)
+	return commandHandler.productService.Update(product)
+}
+
+type commandHandler struct {
+	productService Service.IProductService
+}
+
+func RegisterConsumer(productService Service.IProductService, messageBroker *Broker.MessageBroker) {
+	commandHandlerInstance := &commandHandler{productService}
+	messageBroker.RegisterConsumer(UpdateProductStock, commandHandlerInstance.handleUpdateStock)
+}

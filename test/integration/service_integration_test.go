@@ -4,10 +4,8 @@ import (
 	Testing "testing"
 
 	Logger "github.com/danyel/ecommerce/cmd/logger"
-	Category "github.com/danyel/ecommerce/internal/category"
-	CMS "github.com/danyel/ecommerce/internal/cms"
-	Repository "github.com/danyel/ecommerce/internal/common/repository"
-	Product "github.com/danyel/ecommerce/internal/product"
+	Category "github.com/danyel/ecommerce/internal/persistence"
+	CMS "github.com/danyel/ecommerce/internal/service"
 	Initializers "github.com/danyel/ecommerce/test/integration/initializer"
 	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	_ "github.com/lib/pq" // ← REQUIRED for Goose + sql.Open("postgres")
@@ -22,10 +20,10 @@ func TestServiceIntegration(unitTest *Testing.T) {
 	backendInitializer.Run()
 
 	unitTest.Run("Category Testing", func(unitTest *Testing.T) {
-		categoryRepository := Repository.NewCrudRepository[Category.CategoryModel](backendInitializer.DatabaseConnection())
+		categoryRepository := Category.NewCrudRepository[Category.CategoryModel](backendInitializer.DatabaseConnection())
 
 		unitTest.Run("Get Categories Before Creation", func(unitTest *Testing.T) {
-			categories := categoryRepository.FindAll(Repository.SearchCriteria{})
+			categories := categoryRepository.FindAll(Category.SearchCriteria{})
 			Assert.Equal(unitTest, 0, len(categories))
 		})
 
@@ -36,25 +34,25 @@ func TestServiceIntegration(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Get Categories After Creation", func(unitTest *Testing.T) {
-			categories := categoryRepository.FindAll(Repository.SearchCriteria{})
+			categories := categoryRepository.FindAll(Category.SearchCriteria{})
 			Assert.Equal(unitTest, 1, len(categories))
 		})
 	})
 
 	unitTest.Run("Cms Testing", func(unitTest *Testing.T) {
-		cmsRepository := Repository.NewCrudRepository[CMS.CmsModel](backendInitializer.DatabaseConnection())
+		cmsRepository := Category.NewCrudRepository[Category.CmsModel](backendInitializer.DatabaseConnection())
 		database := Database(cmsRepository)
-		cmsService := CMS.NewService(cmsRepository)
+		cmsService := CMS.CmsService(cmsRepository)
 
 		unitTest.Run("Create translation", func(unitTest *Testing.T) {
-			cms := cmsRepository.Create(&CMS.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"})
+			cms := cmsRepository.Create(&Category.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"})
 			Assert.Nil(unitTest, cms)
-			cms = cmsRepository.Create(&CMS.CmsModel{Code: "code", Language: "nl_fr", Value: "Value_fr"})
+			cms = cmsRepository.Create(&Category.CmsModel{Code: "code", Language: "nl_fr", Value: "Value_fr"})
 			Assert.Nil(unitTest, cms)
 		})
 
 		unitTest.Run("Delete translation", func(unitTest *Testing.T) {
-			cms := &CMS.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"}
+			cms := &Category.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"}
 			err := cmsRepository.Create(cms)
 			Assert.Nil(unitTest, err)
 			err = cmsRepository.Delete(cms.ID)
@@ -62,10 +60,10 @@ func TestServiceIntegration(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Get translations", func(unitTest *Testing.T) {
-			database.Insert(&CMS.CmsModel{Code: "another_code", Language: "nl_be", Value: "AnotherValue_nl"})
-			database.Insert(&CMS.CmsModel{Code: "another_code", Language: "nl_fr", Value: "AnotherValue_fr"})
-			database.Insert(&CMS.CmsModel{Code: "yet_another_code", Language: "nl_be", Value: "YetAnotherValue_nl"})
-			database.Insert(&CMS.CmsModel{Code: "yet_another_code", Language: "nl_fr", Value: "YetAnotherValue_fr"})
+			database.Insert(&Category.CmsModel{Code: "another_code", Language: "nl_be", Value: "AnotherValue_nl"})
+			database.Insert(&Category.CmsModel{Code: "another_code", Language: "nl_fr", Value: "AnotherValue_fr"})
+			database.Insert(&Category.CmsModel{Code: "yet_another_code", Language: "nl_be", Value: "YetAnotherValue_nl"})
+			database.Insert(&Category.CmsModel{Code: "yet_another_code", Language: "nl_fr", Value: "YetAnotherValue_fr"})
 
 			unitTest.Run("Given 3 codes in 2 languages When retrieving for dutch Then 3 codes have been returned", func(unitTest *Testing.T) {
 				translations := cmsService.GetTranslations("nl_be")
@@ -109,14 +107,14 @@ func TestServiceIntegration(unitTest *Testing.T) {
 	})
 
 	unitTest.Run("Product Testing", func(unitTest *Testing.T) {
-		productRepository := Repository.NewCrudRepository[Product.ProductModel](backendInitializer.DatabaseConnection())
-		categoryRepository := Repository.NewCrudRepository[Category.CategoryModel](backendInitializer.DatabaseConnection())
+		productRepository := Category.NewCrudRepository[Category.ProductModel](backendInitializer.DatabaseConnection())
+		categoryRepository := Category.NewCrudRepository[Category.CategoryModel](backendInitializer.DatabaseConnection())
 
 		unitTest.Run("Create Product ", func(unitTest *Testing.T) {
 			categoryModel := Category.CategoryModel{Name: "test", Children: []*Category.CategoryModel{}}
 			err := categoryRepository.Create(&categoryModel)
 			Assert.Nil(unitTest, err)
-			product := Product.ProductModel{
+			product := Category.ProductModel{
 				Brand:       "Brand",
 				Name:        "Name",
 				Description: "Description",

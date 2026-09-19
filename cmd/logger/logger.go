@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"context"
+	Context "context"
 	Fmt "fmt"
 	SLog "log/slog"
 	OS "os"
@@ -25,7 +25,7 @@ func GetLevel() SLog.Leveler {
 
 type Logger interface {
 	Debug(format string, args ...any)
-	DebugCtx(ctx context.Context, format string, args ...any)
+	DebugCtx(ctx Context.Context, format string, args ...any)
 	Info(format string, args ...any)
 	Fatal(args ...any)
 	Fatalf(format string, args ...any)
@@ -35,14 +35,14 @@ type loggerImpl struct {
 }
 
 func (logger *loggerImpl) Debug(format string, args ...any) {
-	logger.getSlogWithCorrelation(context.Background()).Debug(Fmt.Sprintf(format, args...))
+	logger.getSlogWithCorrelation(Context.Background()).Debug(Fmt.Sprintf(format, args...))
 }
-func (logger *loggerImpl) DebugCtx(ctx context.Context, format string, args ...any) {
+func (logger *loggerImpl) DebugCtx(ctx Context.Context, format string, args ...any) {
 	logger.getSlogWithCorrelation(ctx).Debug(Fmt.Sprintf(format, args...))
 }
 
 func (logger *loggerImpl) Info(format string, args ...any) {
-	logger.getSlogWithCorrelation(context.Background()).Info(Fmt.Sprintf(format, args...))
+	logger.getSlogWithCorrelation(Context.Background()).Info(Fmt.Sprintf(format, args...))
 }
 
 func (logger *loggerImpl) Fatal(args ...any) {
@@ -51,10 +51,10 @@ func (logger *loggerImpl) Fatal(args ...any) {
 
 // Fatalf is equivalent to [log.Fatalf] followed by a call to [os.Exit](1).
 func (logger *loggerImpl) Fatalf(format string, args ...any) {
-	logger.getSlogWithCorrelation(context.Background()).Error(Fmt.Sprintf(format, args...))
+	logger.getSlogWithCorrelation(Context.Background()).Error(Fmt.Sprintf(format, args...))
 }
 
-func (logger *loggerImpl) getSlogWithCorrelation(ctx context.Context) *SLog.Logger {
+func (logger *loggerImpl) getSlogWithCorrelation(ctx Context.Context) *SLog.Logger {
 	if ctx != nil {
 		if id, ok := ctx.Value(CorrelationIDKey).(string); ok && id != "" {
 			return sLog.With("correlation_id", id)

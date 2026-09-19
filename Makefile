@@ -41,7 +41,7 @@ database_migration:
 	make dm
 
 ft:
-	go build -v ./.. & go test github.com/danyel/ecommerce/test/integration && go test github.com/danyel/ecommerce/test/mock
+	go build -v ./... && go test ./test/integration && go test ./test/mock
 
 full_tests:
 	make ft

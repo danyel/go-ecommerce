@@ -5,7 +5,7 @@ import (
 
 	Configuration "github.com/danyel/ecommerce/cmd/config"
 	Logger "github.com/danyel/ecommerce/cmd/logger"
-	Reservation "github.com/danyel/ecommerce/internal/product"
+	Reservation "github.com/danyel/ecommerce/internal/commandbus"
 )
 
 type StartApplicationContextFactory interface {

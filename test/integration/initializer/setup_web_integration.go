@@ -15,9 +15,7 @@ import (
 	Logger "github.com/danyel/ecommerce/cmd/logger"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	ApplicationRouter "github.com/danyel/ecommerce/cmd/router"
-	Management "github.com/danyel/ecommerce/internal/management"
-	Product "github.com/danyel/ecommerce/internal/product"
-	ShoppingBasket "github.com/danyel/ecommerce/internal/shoppingbasket"
+	Model "github.com/danyel/ecommerce/internal/model"
 	TestUtils "github.com/danyel/ecommerce/test/testutils"
 	Uuid "github.com/google/uuid"
 	Assert "github.com/stretchr/testify/assert"
@@ -53,7 +51,7 @@ func (webIntegration *WebIntegration) WithAuth(ID string, roles []string, hexSec
 	return webIntegration
 }
 
-func (webIntegration *WebIntegration) ProductManagementPostProducts(createProduct *Product.CreateProductDTO) *WebIntegration {
+func (webIntegration *WebIntegration) ProductManagementPostProducts(createProduct *Model.CreateProductDTO) *WebIntegration {
 	return webIntegration.Post(webIntegration.forURL(ProductManagementProductsURL), createProduct)
 }
 
@@ -65,7 +63,7 @@ func (webIntegration *WebIntegration) GetTranslations(language string) *WebInteg
 	return webIntegration.Get(webIntegration.forURL(baseURL))
 }
 
-func (webIntegration *WebIntegration) ManagementPostTranslations(createCms *Management.CreateCms) *WebIntegration {
+func (webIntegration *WebIntegration) ManagementPostTranslations(createCms *Model.CreateCms) *WebIntegration {
 	return webIntegration.Post(webIntegration.forURL(ManagementTranslationsURL), createCms)
 }
 
@@ -77,7 +75,7 @@ func (webIntegration *WebIntegration) ShoppingBasketCreate() *WebIntegration {
 	return webIntegration.Post(webIntegration.forURL(ShoppingBasketShoppingBasketsURL), nil)
 }
 
-func (webIntegration *WebIntegration) ShoppingBasketAddItem(ID string, updateShoppingBasketItem ShoppingBasket.UpdateShoppingBasketItemDTO) *WebIntegration {
+func (webIntegration *WebIntegration) ShoppingBasketAddItem(ID string, updateShoppingBasketItem Model.UpdateShoppingBasketItemDTO) *WebIntegration {
 	return webIntegration.Put(webIntegration.forURL(ShoppingBasketShoppingBasketsURL+ApplicationRouter.SLASH+ID), updateShoppingBasketItem)
 }
 
