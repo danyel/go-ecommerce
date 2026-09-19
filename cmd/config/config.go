@@ -17,6 +17,7 @@ const (
 	dbDatabase      = "DB_DATABASE"
 	dbSchema        = "DB_SCHEMA"
 	jwtSecret       = "JWT_SECRET"
+	googleClientID  = "GOOGLE_CLIENT_ID"
 	brokerProtocol  = "BROKER_PROTOCOL"
 	brokerAddress   = "BROKER_ADDRESS"
 	brokerPort      = "BROKER_PORT"
@@ -35,8 +36,9 @@ var (
 )
 
 type ServerConfiguration struct {
-	Addr      string
-	JwtSecret string
+	Addr           string
+	JwtSecret      string
+	GoogleClientID string
 }
 
 type DatabaseConfiguration struct {
@@ -100,8 +102,9 @@ func NewServerConfiguration() *ServerConfiguration {
 			secret = generated
 		}
 		serverConfigurationInstance = ServerConfiguration{
-			Addr:      OS.Getenv(applicationPort),
-			JwtSecret: secret,
+			Addr:           OS.Getenv(applicationPort),
+			JwtSecret:      secret,
+			GoogleClientID: OS.Getenv(googleClientID),
 		}
 	})
 

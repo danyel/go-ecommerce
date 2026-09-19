@@ -7,6 +7,7 @@ import type {
 } from '../../domain/shopping-basket/model.tsx';
 import {useGlobalState} from '../../state/global-state.tsx';
 import ApiClient from "../../domain/common/api-client.tsx";
+import {useNavigate} from 'react-router-dom';
 
 
 export interface ShoppingBasketComponentProperties {
@@ -16,6 +17,7 @@ export interface ShoppingBasketComponentProperties {
 
 const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
     const globalStateType = useGlobalState();
+    const navigate = useNavigate();
     const [shoppingBasket, setShoppingBasket] = useState<ShoppingBasket>(globalStateType.shoppingBasket);
 
     useEffect(() => {
@@ -128,7 +130,10 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
                                                 className='text-lg font-semibold'>{shoppingBasket.total_price.inclusive} €</span>
                                         </div>
                                         {/* todo checkout action */}
-                                        <button
+                                        <button onClick={() => {
+                                            props.changeShoppingBasketVisibility(false);
+                                            navigate('/checkout');
+                                        }}
                                             className='w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition'>
                                             Proceed to checkout
                                         </button>

@@ -14,7 +14,7 @@ export default defineConfig(
                         console.log(path);
                         return path; },
                     configure: (proxy, options) => {
-                        proxy.on('proxyReq', (_, req, _re) => {
+                        proxy.on('proxyReq', (_, req) => {
                             console.log(`[PROXY] ${req.method} ${req.url} -> ${options.target}${req.url}`);
                         });
                     }

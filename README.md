@@ -150,6 +150,12 @@ make ui
 
 Access the application on http://localhost:5173/
 
+### Authentication and frontend navigation
+
+Public product, category, translation-read, and basket-read endpoints remain available anonymously. Creating or changing a basket and the checkout route require an `Authorization: Bearer <app-session-token>` header. Google login is exposed at `POST /api/auth/v1/google` with `{ "id_token": "<Google ID token>" }`; configure `GOOGLE_CLIENT_ID` with the web client ID and never commit credentials. The backend verifies the Google signature using Google's certificate endpoint, issuer, audience, expiry, and verified-email claims before issuing the application session token.
+
+The React app uses the same bearer token for API mutations, provides category links and filtering, and protects checkout. `gocommerce/src/state/event-bus.ts` is an extensible in-process event bus for updating interested components; no SSE/WebSocket transport is enabled because the current backend has no compatible event stream. The development account linker is intentionally in-memory and must be replaced with a persistent `UserLinker` implementation before using multiple application instances or relying on account links across restarts.
+
 ### Run the test
 
 ###### Integration tests

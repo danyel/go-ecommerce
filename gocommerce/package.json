@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
    "dev": "vite --host",
-    "build": "tsc -b && vite build",
+    "build": "node ./node_modules/typescript/bin/tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -36,7 +36,6 @@
     "globals": "^16.3.0",
     "js-cookies": "^1.0.4",
     "tailwindcss": "^4.1.16",
-    "tsc": "^2.0.4",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",
     "vite": "^8.2.1"

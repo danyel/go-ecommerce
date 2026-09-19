@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
+import {useSearchParams} from 'react-router-dom';
 import type {Product, ProductDTO} from '../../domain/product/model.tsx';
 import {ChevronDown} from 'lucide-react';
 import {useGlobalState} from '../../state/global-state.tsx';
@@ -10,11 +11,17 @@ import type {
 import Cookies from 'js-cookie';
 import ApiClient from "../../domain/common/api-client.tsx";
 import ProductMapper from "../../domain/product/mapper.tsx";
+import type {Category} from '../../domain/product/model.tsx';
+import {ApiError} from '../../domain/common/api-client.tsx';
 
 const ProductsPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [singleFetch, setSingleFetch] = useState<boolean>(false);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const selectedCategory = searchParams.get('category') ?? '';
     const globalStateType = useGlobalState();
+    const visibleProducts = useMemo(() => selectedCategory ? products.filter(product => product.category.id === selectedCategory) : products, [products, selectedCategory]);
     const addToCart = async (product: Product) => {
         const updateShoppingBasketItem: UpdateShoppingBasketItem = {product_id: product.id, quantity: 1};
         let shoppingBasketId = globalStateType.shoppingBasket.id;
@@ -24,11 +31,22 @@ const ProductsPage = () => {
                 updateShoppingBasketItem.quantity = found.quantity + 1;
             }
         } else {
-            const newShoppingBasket = await ApiClient.POST<ShoppingBasket, ShoppingBasket>('/api/shopping-basket/v1/shopping-baskets', undefined);
-            shoppingBasketId = newShoppingBasket.id;
+            try {
+                const newShoppingBasket = await ApiClient.POST<ShoppingBasket, ShoppingBasket>('/api/shopping-basket/v1/shopping-baskets', undefined);
+                shoppingBasketId = newShoppingBasket.id;
+            } catch (error) {
+                if (error instanceof ApiError && error.status === 401) window.location.assign('/login');
+                return;
+            }
         }
         console.log('Current shopping basket:', globalStateType.shoppingBasket);
-        const updatedShoppingBasket = await ApiClient.PUT<ShoppingBasket, UpdateShoppingBasketItem>(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId}`, updateShoppingBasketItem);
+        let updatedShoppingBasket: ShoppingBasket;
+        try {
+            updatedShoppingBasket = await ApiClient.PUT<ShoppingBasket, UpdateShoppingBasketItem>(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId}`, updateShoppingBasketItem);
+        } catch (error) {
+            if (error instanceof ApiError && error.status === 401) window.location.assign('/login');
+            return;
+        }
         console.log('updatedShoppingBasket', updatedShoppingBasket);
         Cookies.set('shopping_basket_id', shoppingBasketId);
         globalStateType.setShoppingBasket(updatedShoppingBasket);
@@ -47,6 +65,9 @@ const ProductsPage = () => {
                 });
         }
     }, [products, singleFetch]);
+    useEffect(() => {
+        ApiClient.GET<Category[]>('/api/management/v1/categories').then(setCategories).catch(() => setCategories([]));
+    }, []);
     useEffect(() => {
         globalStateType.shoppingBasket?.items?.forEach((shoppingBasketItem: ShoppingBasketItem) =>
             setProducts((prevState: Product[]) =>
@@ -68,17 +89,22 @@ const ProductsPage = () => {
             <div
                 className='bg-white rounded-lg shadow-sm p-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
                 <p className='text-gray-600'>
-                    Showing <span className='font-semibold'>{products.length}</span> products
+                    Showing <span className='font-semibold'>{visibleProducts.length}</span> products
                 </p>
                 <div className='flex items-center gap-2'>
-                    <label className='text-sm text-gray-600'>Sort by:</label>
-                    <button className='flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50'>
-                        Best Match <ChevronDown size={16}/>
-                    </button>
-                </div>
+                        <label className='text-sm text-gray-600' htmlFor='category-filter'>Category:</label>
+                        <select id='category-filter' value={selectedCategory} onChange={event => {
+                            if (event.target.value) setSearchParams({category: event.target.value});
+                            else setSearchParams({});
+                        }} className='border rounded-lg px-3 py-2'>
+                            <option value=''>All categories</option>
+                            {categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+                        </select>
+                        <ChevronDown size={16}/>
+                    </div>
             </div>
             <div className='grid grid-cols-4 sm:grid-cols-2 xl:grid-cols-3 gap-6'>
-                {products.map((product) => (
+                {visibleProducts.map((product) => (
                     <div
                         key={product.id}
                         className='bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden'
@@ -121,6 +147,7 @@ const ProductsPage = () => {
                     </div>
                 ))}
             </div>
+            {visibleProducts.length === 0 && <p className='text-gray-500 text-center py-8'>No products found for this category.</p>}
         </main>
     );
 };

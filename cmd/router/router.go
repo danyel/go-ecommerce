@@ -9,6 +9,7 @@ import (
 	Logger "github.com/danyel/ecommerce/cmd/logger"
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
 	Category "github.com/danyel/ecommerce/internal/handler"
+	Security "github.com/danyel/ecommerce/internal/security"
 	Router "github.com/go-chi/chi/v5"
 	Middleware "github.com/go-chi/chi/v5/middleware"
 )
@@ -73,6 +74,9 @@ type apiRouter struct {
 	serverConfiguration      *Configuration.ServerConfiguration
 	webHandlerContextFactory Factory.WebHandlerContextFactory
 	rootRouter               *Router.Mux
+	securityRegistry         *Security.ProviderRegistry
+	sessionIssuer            Security.SessionIssuer
+	authWebHandler           *Category.AuthWebHandler
 }
 
 // configureLog all configuration for logging is configured here
@@ -81,7 +85,9 @@ func (apiRouter *apiRouter) configureLog() {
 	apiRouter.rootRouter.Use(Middleware.Logger)
 	apiRouter.rootRouter.Use(Middleware.Recoverer)
 	apiRouter.rootRouter.Use(ApplicationMiddleware.CorrelationIDMiddleware)
-	//apiRouter.Use(ApplicationMiddleware.JwtAuthMiddleware(apiRouter.ServerConfiguration.JwtSecret))
+	apiRouter.sessionIssuer = Security.NewEncryptedSessionIssuer(apiRouter.serverConfiguration.JwtSecret)
+	apiRouter.securityRegistry = Security.NewProviderRegistry(Security.NewGoogleProvider(apiRouter.serverConfiguration.GoogleClientID))
+	apiRouter.authWebHandler = Category.NewAuthWebHandler(apiRouter.securityRegistry, Security.NewMemoryUserLinker(), apiRouter.sessionIssuer)
 }
 
 // configureAPIRouting All API routing defined here
@@ -93,20 +99,29 @@ func (apiRouter *apiRouter) configureAPIRouting() {
 		productManagement(router, webHandlerContextFactory.ProductManagementWebHandler())
 		management(router, webHandlerContextFactory.ManagementWebHandler())
 		cms(router, webHandlerContextFactory.CmsWebHandler())
-		shoppingBasket(router, webHandlerContextFactory.ShoppingBasketWebHandler())
+		shoppingBasket(router, webHandlerContextFactory.ShoppingBasketWebHandler(), apiRouter.sessionIssuer)
+		auth(router, apiRouter.authWebHandler)
+	})
+}
+
+func auth(router Router.Router, authWebHandler *Category.AuthWebHandler) Router.Router {
+	return router.Route("/auth", func(authRouter Router.Router) {
+		authRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
+			versionOneRouter.Post("/google", authWebHandler.HandleGoogleLogin)
+		})
 	})
 }
 
 // shoppingBasket Shopping Basket api /api/shopping-basket
-func shoppingBasket(router Router.Router, shoppingBasketWebHandler Category.ShoppingBasketWebHandler) Router.Router {
+func shoppingBasket(router Router.Router, shoppingBasketWebHandler Category.ShoppingBasketWebHandler, issuer Security.SessionIssuer) Router.Router {
 	return router.Route(ShoppingBasketRootContext, func(shoppingBasketRouter Router.Router) {
 		shoppingBasketRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ShoppingBasketsRootContext, func(shoppingBasketsRouter Router.Router) {
-				shoppingBasketsRouter.Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
+				shoppingBasketsRouter.With(Security.RequireAuthentication(issuer)).Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
 				shoppingBasketsRouter.Route(ByID, func(byIdRouter Router.Router) {
 					Logger.Log.Debug("Shopping Basket By Id")
 					byIdRouter.Get(SLASH, shoppingBasketWebHandler.HandleGetShoppingBasketByIDV1)
-					byIdRouter.Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
+					byIdRouter.With(Security.RequireAuthentication(issuer)).Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
 				})
 			})
 		})
@@ -173,6 +188,8 @@ func management(router Router.Router, managementWebHandler Category.ManagementWe
 	return router.Route(ManagementRootContext, func(managementRootRouter Router.Router) {
 		managementRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(CategoriesRootContext, func(categoriesRootRouter Router.Router) {
+				categoriesRootRouter.Get(SLASH, managementWebHandler.HandleGetCategoriesV1)
+				// Keep the historical /api suffix available for existing clients.
 				categoriesRootRouter.Get(BaseContextPath, managementWebHandler.HandleGetCategoriesV1)
 			})
 			versionOneRouter.Post(TranslationsRootContext, managementWebHandler.HandleCreateTranslationsV1)
