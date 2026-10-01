@@ -7,6 +7,7 @@ import type {
 } from '../../domain/shopping-basket/model.tsx';
 import {useGlobalState} from '../../state/global-state.tsx';
 import ApiClient from "../../domain/common/api-client.tsx";
+import {useNavigate} from 'react-router-dom';
 
 
 export interface ShoppingBasketComponentProperties {
@@ -16,6 +17,7 @@ export interface ShoppingBasketComponentProperties {
 
 const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
     const globalStateType = useGlobalState();
+    const navigate = useNavigate();
     const [shoppingBasket, setShoppingBasket] = useState<ShoppingBasket>(globalStateType.shoppingBasket);
 
     useEffect(() => {
@@ -23,7 +25,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
         if (!globalStateType.shoppingBasket.id) {
             setShoppingBasket(globalStateType.shoppingBasket);
         }
-    }, [globalStateType.shoppingBasket, globalStateType.shoppingBasket.id]);
+    }, [globalStateType.shoppingBasket]);
 
     const addItem = (shoppingBasketItem: ShoppingBasketItem) => {
         updateShoppingBasketItem({
@@ -33,11 +35,10 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
     };
 
     function updateShoppingBasketItem(updateShoppingBasketItem: UpdateShoppingBasketItem) {
-        console.log(globalStateType.shoppingBasket);
+        console.log('Updating the shopping basket', globalStateType.shoppingBasket);
         ApiClient.PUT<ShoppingBasket, UpdateShoppingBasketItem>(`/api/shopping-basket/v1/shopping-baskets/${globalStateType.shoppingBasket.id}`, updateShoppingBasketItem)
-            .then((data: ShoppingBasket) => {
-                globalStateType.setShoppingBasket(data);
-                setShoppingBasket(data);
+            .then((shoppingBasket: ShoppingBasket) => {
+                globalStateType.setShoppingBasket(shoppingBasket);
             });
     }
 
@@ -53,7 +54,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
             setShoppingBasket(prev => ({
                 ...prev,
                 items: prev.items.map(i =>
-                    i.id === shoppingBasketItem.id ? {...i, quantity} : i
+                    i.product_id === shoppingBasketItem.product_id ? {...i, quantity} : i
                 )
             }));
             updateShoppingBasketItem({
@@ -98,7 +99,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
                                                          className='w-20 h-20 object-cover rounded'/>
                                                     <div className='flex-1'>
                                                         <h3 className='font-medium'>{shoppingBasketItem.name}</h3>
-                                                        <p className='font-semibold mt-1'>{shoppingBasketItem.price}</p>
+                                                        <p className='font-semibold mt-1'>{shoppingBasketItem.base_price.inclusive} €</p>
                                                     </div>
                                                     {/*    add or remove items form the shopping basket*/}
                                                     <div className='flex gap-2'>
@@ -129,7 +130,10 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
                                                 className='text-lg font-semibold'>{shoppingBasket.total_price.inclusive} €</span>
                                         </div>
                                         {/* todo checkout action */}
-                                        <button
+                                        <button onClick={() => {
+                                            props.changeShoppingBasketVisibility(false);
+                                            navigate('/checkout');
+                                        }}
                                             className='w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition'>
                                             Proceed to checkout
                                         </button>

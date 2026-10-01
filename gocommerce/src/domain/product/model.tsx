@@ -32,6 +32,7 @@ export interface Price {
 export interface Category {
   id: string;
   name: string;
+  children?: Category[];
 }
 
 export interface CreateProduct {

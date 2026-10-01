@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react';
 import {type Context, createContext, type ReactNode, useContext, useState} from 'react';
 import type {ShoppingBasket} from '../domain/shopping-basket/model.tsx';
@@ -15,7 +16,7 @@ export const GlobalStateProvider: React.FC<{ children: React.ReactNode }> = ({ch
     const defaultShoppingBasket: Partial<ShoppingBasket> = {
         items: []
     };
-    // @ts-ignore
+    // @ts-expect-error Partial state is intentionally initialized before a basket exists.
     const [shoppingBasket, setShoppingBasket] = useState<ShoppingBasket>(defaultShoppingBasket);
     return (
         <GlobalStateContext.Provider value={{setShoppingBasket: setShoppingBasket, shoppingBasket: shoppingBasket}}>

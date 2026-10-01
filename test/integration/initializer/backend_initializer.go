@@ -3,6 +3,8 @@ package initializer
 import (
 	Context "context"
 	SQL "database/sql"
+	Error "errors"
+	Fmt "fmt"
 	OS "os"
 	Testing "testing"
 
@@ -74,22 +76,24 @@ func (backendInitializer *BackendInitializer) initializeRabbitMqTestContainer() 
 }
 
 func (backendInitializer *BackendInitializer) initializePostgresTestContainer() error {
-	postgresContainer, err := Postgres.Run(*backendInitializer.context,
+	postgresContainer, err := Postgres.Run(
+		*backendInitializer.context,
 		"postgres:18-alpine",
 		Postgres.WithDatabase(Configuration.Database().Database),
 		Postgres.WithUsername(Configuration.Database().Username),
 		Postgres.WithPassword(Configuration.Database().Password),
 		Postgres.BasicWaitStrategies(),
 	)
+	if err != nil {
+		return err
+	}
 
 	if postgresContainer == nil {
-		Logger.Log.Fatalf("failed to start container")
-		OS.Exit(0)
+		return Error.New("could not create postgress container")
 	}
 	port, err := postgresContainer.MappedPort(*backendInitializer.context, "5432/tcp")
-
 	if err != nil {
-		Logger.Log.Fatalf("failed to fetch port: %v", err)
+		return Fmt.Errorf("failed to fetch port: %v", err)
 	}
 
 	Configuration.Database().Port = port.Port()
@@ -127,6 +131,20 @@ func (backendInitializer *BackendInitializer) initializeMigrationScripts(postgre
 
 	if err := Goose.Up(connection, "../../migrations"); err != nil {
 		Logger.Log.Fatalf("goose migration failed: %v", err)
+	}
+	// Integration fixtures assert aggregate behavior in isolation. The
+	// application baseline still seeds the demo catalog for real deployments.
+	for _, statement := range []string{
+		"DELETE FROM ecommerce.shopping_basket_items",
+		"DELETE FROM ecommerce.reservations",
+		"DELETE FROM ecommerce.shopping_baskets",
+		"DELETE FROM ecommerce.products",
+		"DELETE FROM ecommerce.cms",
+		"DELETE FROM ecommerce.categories",
+	} {
+		if _, err := connection.Exec(statement); err != nil {
+			Logger.Log.Fatalf("failed to reset integration fixture data: %v", err)
+		}
 	}
 }
 

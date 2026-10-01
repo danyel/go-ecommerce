@@ -5,9 +5,9 @@ export interface ShoppingBasket {
 }
 
 export interface ShoppingBasketItem {
-    id: string;
     name: string;
-    price: number;
+    base_price: Price;
+    total_price: Price;
     image_url: string;
     quantity: number;
     product_id: string;
