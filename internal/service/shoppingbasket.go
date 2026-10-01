@@ -63,13 +63,16 @@ func (shoppingBasketService *shoppingBasketService) Update(ID Uuid.UUID, update 
 		Price:            float64(product.Price.Inclusive),
 		Quantity:         update.Quantity,
 	}
+	if update.Quantity == 0 && currentItem.ID == Uuid.Nil {
+		return nil
+	}
 	product.Stock += Domain.StockAdjustment(currentItem.Quantity, update.Quantity)
 
 	if err := shoppingBasketService.productService.Update(product); err != nil {
 		return err
 	}
 
-	if shoppingBasketItemModel.ID == Uuid.Nil {
+	if shoppingBasketItemModel.ID == Uuid.Nil && update.Quantity > 0 {
 		err = shoppingBasketService.shoppingBasketItemRepository.Create(&shoppingBasketItemModel)
 	} else if shoppingBasketItemModel.ID != Uuid.Nil {
 		if shoppingBasketItemModel.Quantity > 0 {

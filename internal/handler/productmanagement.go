@@ -44,7 +44,7 @@ func (productManagementWebHandler *productManagementWebHandler) HandleGetProduct
 func (productManagementWebHandler *productManagementWebHandler) HandleDeleteProductV1(response Http.ResponseWriter, request *Http.Request) {
 	var productID Uuid.UUID
 	var err error
-	productIDToParse := Router.URLParam(request, "productID")
+	productIDToParse := Router.URLParam(request, "ID")
 	if productID, err = Uuid.Parse(productIDToParse); err != nil {
 		BadRequest(response, request, BadRequestTitle, make(map[string]any))
 		return
@@ -61,6 +61,7 @@ func (productManagementWebHandler *productManagementWebHandler) HandleUpdateProd
 	productID, err := GetID(request)
 	if err != nil {
 		StatusNotFound(response, request)
+		return
 	}
 	var updateProduct Model.UpdateProductDTO
 	var details map[string]any
@@ -82,6 +83,7 @@ func (productManagementWebHandler *productManagementWebHandler) HandleCreateProd
 
 	if details, err = ValidateRequest(request, &createProduct); err != nil {
 		BadRequest(response, request, BadRequestTitle, details)
+		return
 	}
 
 	if ID, err = productManagementWebHandler.productManagementService.CreateProduct(createProduct); err != nil {

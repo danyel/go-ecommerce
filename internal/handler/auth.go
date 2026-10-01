@@ -1,20 +1,21 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
+	JSON "encoding/json"
+	Http "net/http"
 
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
-	"github.com/danyel/ecommerce/internal/security"
+	Security "github.com/danyel/ecommerce/internal/security"
 )
 
 type AuthWebHandler struct {
-	registry *security.ProviderRegistry
-	linker   security.UserLinker
-	issuer   security.SessionIssuer
+	registry *Security.ProviderRegistry
+	linker   Security.UserLinker
+	issuer   Security.SessionIssuer
 }
 
-type googleLoginRequest struct {
+// Renamed to represent a generic SSO login structure
+type ssoLoginRequest struct {
 	IDToken string `json:"id_token"`
 }
 
@@ -24,35 +25,46 @@ type loginResponse struct {
 	Provider string `json:"provider"`
 }
 
-func NewAuthWebHandler(registry *security.ProviderRegistry, linker security.UserLinker, issuer security.SessionIssuer) *AuthWebHandler {
+func NewAuthWebHandler(registry *Security.ProviderRegistry, linker Security.UserLinker, issuer Security.SessionIssuer) *AuthWebHandler {
 	return &AuthWebHandler{registry: registry, linker: linker, issuer: issuer}
 }
 
-func (handler *AuthWebHandler) HandleGoogleLogin(response http.ResponseWriter, request *http.Request) {
-	var login googleLoginRequest
-	if err := json.NewDecoder(request.Body).Decode(&login); err != nil || login.IDToken == "" {
-		http.Error(response, "Invalid Google login request", http.StatusBadRequest)
+// HandleSSOLogin replaces HandleGoogleLogin to support any configured enterprise provider
+func (handler *AuthWebHandler) HandleSSOLogin(response Http.ResponseWriter, request *Http.Request) {
+	var login ssoLoginRequest
+	if err := JSON.NewDecoder(request.Body).Decode(&login); err != nil || login.IDToken == "" {
+		Http.Error(response, "Invalid SSO login request", Http.StatusBadRequest)
 		return
 	}
-	provider, ok := handler.registry.Provider("google")
+
+	// Looks for the generic "sso" registry configuration we established earlier
+	provider, ok := handler.registry.Provider("sso")
 	if !ok {
-		http.Error(response, "Google login is not configured", http.StatusServiceUnavailable)
+		Http.Error(response, "SSO login is not configured", Http.StatusServiceUnavailable)
 		return
 	}
+
 	identity, err := provider.Verify(request.Context(), login.IDToken)
 	if err != nil {
-		http.Error(response, "Google identity could not be verified", http.StatusUnauthorized)
+		Http.Error(response, "SSO identity could not be verified", Http.StatusUnauthorized)
 		return
 	}
+
 	userID, err := handler.linker.Link(request.Context(), identity)
 	if err != nil {
-		http.Error(response, "Could not link account", http.StatusInternalServerError)
+		Http.Error(response, "Could not link account", Http.StatusInternalServerError)
 		return
 	}
+
 	token, err := handler.issuer.Issue(&ApplicationMiddleware.UserClaims{UserID: userID, Roles: []string{"USER"}})
 	if err != nil {
-		http.Error(response, "Could not create application session", http.StatusInternalServerError)
+		Http.Error(response, "Could not create application session", Http.StatusInternalServerError)
 		return
 	}
-	WriteResponse(http.StatusOK, response, request, loginResponse{Token: token, UserID: userID, Provider: identity.Provider})
+
+	WriteResponse(Http.StatusOK, response, request, loginResponse{
+		Token:    token,
+		UserID:   userID,
+		Provider: identity.Provider,
+	})
 }

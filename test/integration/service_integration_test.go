@@ -28,7 +28,7 @@ func TestServiceIntegration(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Create Category", func(unitTest *Testing.T) {
-			category := Category.CategoryModel{Name: "test", Children: []*Category.CategoryModel{}}
+			category := Category.CategoryModel{Name: "test-parent", Children: []*Category.CategoryModel{}}
 			err := categoryRepository.Create(&category)
 			Assert.Nil(unitTest, err)
 		})
@@ -52,7 +52,7 @@ func TestServiceIntegration(unitTest *Testing.T) {
 		})
 
 		unitTest.Run("Delete translation", func(unitTest *Testing.T) {
-			cms := &Category.CmsModel{Code: "code", Language: "nl_be", Value: "Value_nl"}
+			cms := &Category.CmsModel{Code: "delete_code", Language: "nl_be", Value: "Value_nl"}
 			err := cmsRepository.Create(cms)
 			Assert.Nil(unitTest, err)
 			err = cmsRepository.Delete(cms.ID)
@@ -111,7 +111,7 @@ func TestServiceIntegration(unitTest *Testing.T) {
 		categoryRepository := Category.NewCrudRepository[Category.CategoryModel](backendInitializer.DatabaseConnection())
 
 		unitTest.Run("Create Product ", func(unitTest *Testing.T) {
-			categoryModel := Category.CategoryModel{Name: "test", Children: []*Category.CategoryModel{}}
+			categoryModel := Category.CategoryModel{Name: "test-product", Children: []*Category.CategoryModel{}}
 			err := categoryRepository.Create(&categoryModel)
 			Assert.Nil(unitTest, err)
 			product := Category.ProductModel{

@@ -1,6 +1,7 @@
 package service
 
 import (
+	Errors "errors"
 	Model "github.com/danyel/ecommerce/internal/model"
 	Persistence "github.com/danyel/ecommerce/internal/persistence"
 	Types "github.com/danyel/ecommerce/internal/types"
@@ -19,17 +20,16 @@ type reservationService struct {
 }
 
 func (reservationService *reservationService) FindAll() []Model.Reservation {
-	reservationModels := reservationService.reservationRepository.FindAll(Persistence.SearchCriteria{Preloads: []string{"Children"}})
+	reservationModels := reservationService.reservationRepository.FindAll(Persistence.SearchCriteria{})
 	return mapReservations(reservationModels)
 }
 
 func (reservationService *reservationService) Find(reservationID Uuid.UUID) (Model.Reservation, error) {
-	var reservation Model.Reservation
 	reservationModel, err := reservationService.reservationRepository.FindByID(reservationID)
 	if err != nil {
-		return reservation, err
+		return Model.Reservation{}, err
 	}
-	return mapReservation(reservationModel), err
+	return mapReservation(reservationModel), nil
 }
 
 func (reservationService *reservationService) Create(reservation Model.Reservation) (Uuid.UUID, error) {
@@ -49,7 +49,7 @@ func (reservationService *reservationService) Create(reservation Model.Reservati
 func (reservationService *reservationService) Update(shoppingBasketID Uuid.UUID, productID Uuid.UUID, quantity int) error {
 	clause := make([]any, 2)
 	clause[0] = shoppingBasketID.String()
-	clause[0] = productID.String()
+	clause[1] = productID.String()
 	reservations := reservationService.reservationRepository.FindAll(Persistence.SearchCriteria{
 		WhereClause: Persistence.WhereClause{
 			Query:  "shopping_basket_id = ? AND product_id = ?",
@@ -63,11 +63,12 @@ func (reservationService *reservationService) Update(shoppingBasketID Uuid.UUID,
 		Quantity:         quantity,
 	}
 
+	if quantity <= 0 {
+		return Errors.New("reservation quantity must be positive")
+	}
 	if len(reservations) == 0 {
 		err := reservationService.reservationRepository.Create(reservation)
-		if err != nil {
-			return err
-		}
+		return err
 	} else {
 		reservation = reservations[0]
 		reservation.Quantity = quantity

@@ -3,11 +3,7 @@ import {useSearchParams} from 'react-router-dom';
 import type {Product, ProductDTO} from '../../domain/product/model.tsx';
 import {ChevronDown} from 'lucide-react';
 import {useGlobalState} from '../../state/global-state.tsx';
-import type {
-    ShoppingBasket,
-    ShoppingBasketItem,
-    UpdateShoppingBasketItem
-} from '../../domain/shopping-basket/model.tsx';
+import type {ShoppingBasket, UpdateShoppingBasketItem} from '../../domain/shopping-basket/model.tsx';
 import Cookies from 'js-cookie';
 import ApiClient from "../../domain/common/api-client.tsx";
 import ProductMapper from "../../domain/product/mapper.tsx";
@@ -37,7 +33,7 @@ const ProductsPage = () => {
                 const newShoppingBasket = await ApiClient.POST<ShoppingBasket, ShoppingBasket>('/api/shopping-basket/v1/shopping-baskets', undefined);
                 shoppingBasketId = newShoppingBasket.id;
             } catch (error) {
-                if (error instanceof ApiError && error.status === 401) window.location.assign('/login');
+                // if (error instanceof ApiError && error.status === 401) window.location.assign('/login');
                 return;
             }
         }
@@ -46,7 +42,7 @@ const ProductsPage = () => {
         try {
             updatedShoppingBasket = await ApiClient.PUT<ShoppingBasket, UpdateShoppingBasketItem>(`/api/shopping-basket/v1/shopping-baskets/${shoppingBasketId}`, updateShoppingBasketItem);
         } catch (error) {
-            if (error instanceof ApiError && error.status === 401) window.location.assign('/login');
+            // if (error instanceof ApiError && error.status === 401) window.location.assign('/login');
             return;
         }
         console.log('updatedShoppingBasket', updatedShoppingBasket);
@@ -70,22 +66,6 @@ const ProductsPage = () => {
     useEffect(() => {
         ApiClient.GET<Page<Category>>('/api/management/v1/categories?page=1&page_size=50').then(data => setCategories(data.items)).catch(() => setCategories([]));
     }, []);
-    useEffect(() => {
-        globalStateType.shoppingBasket?.items?.forEach((shoppingBasketItem: ShoppingBasketItem) =>
-            setProducts((prevState: Product[]) =>
-                prevState.map((product: Product) => {
-                    if (product.id === shoppingBasketItem.id) {
-                        return {
-                            ...product,
-                            stock: shoppingBasketItem.remaining
-                        };
-                    }
-                    return product;
-                })
-            )
-        );
-    }, [globalStateType.shoppingBasket]);
-
     return (
         <main className='flex-1'>
             <div

@@ -175,10 +175,10 @@ business controls, and operational monitoring.
 
 ### Demo catalog
 
-The script `data/catalog_seed.sql` adds an original demonstration catalog with
-a computer-store category hierarchy and 31 products. It uses placeholder
-images and does not copy product content from a third-party retailer. Apply
-the migrations first, then load the optional demo data with:
+The Goose baseline installs an original deterministic demonstration catalog with
+a computer-store hierarchy and three products. It uses placeholder images and
+does not copy product content from a third-party retailer. The equivalent
+idempotent SQL is also available in `data/catalog_seed.sql`:
 
 ```shell
 make migration
@@ -202,19 +202,30 @@ make mock_tests
 | Functionality                     | Endpoint                                           |
 |-----------------------------------|----------------------------------------------------|
 | create shopping basket            | POST /api/shopping-basket/v1/shopping-baskets      |
-| update shopping basket item       | POST /api/shopping-basket/v1/shopping-baskets/{id} |
+| update shopping basket item       | PUT /api/shopping-basket/v1/shopping-baskets/{id}  |
 | get shopping basket               | GET  /api/shopping-basket/v1/shopping-baskets/{id} |
 | product management get products   | GET /api/product-management/v1/products            |
 | product management create product | POST /api/product-management/v1/products           |
 | product management get product    | GET /api/product-management/v1/products/{id}       |
 | product management delete product | DELETE /api/product-management/v1/products/{id}    |
 | product management update product | PUT /api/product-management/v1/products/{id}       |
-| get categories                    | GET /api/category/v1/categories                    |
+| get categories                    | GET /api/management/v1/categories                 |
+| create category                   | POST /api/category/v1/categories                   |
 | get translations                  | GET  /api/cms/v1/translations                      |
 | get translation                   | GET /api/cms/v1/translations/{language}/{code}     |
+| Google login                      | POST /api/auth/v1/google                           |
 | management add translation        | POST /api/management/v1/translations               |
 | get products                      | GET /api/product/v1/products                       |
 | get product                       | GET /api/product/v1/products/{id}                  |
+
+### Schema architecture
+
+The clean-install baseline creates normalized users, external identities and
+sessions, hierarchical categories, decimal products with JSON metadata, owned
+shopping baskets and unique basket lines, keyed stock reservations, and an
+outbox for post-commit events. Product/category/CMS reads remain public;
+basket mutations and all catalog/content writes require authentication, with
+catalog writes restricted to `ADMIN` or `CATALOG_MANAGER` roles.
 
 ### Makefile commands
 

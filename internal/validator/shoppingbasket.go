@@ -108,7 +108,7 @@ func (validator *validator) ValidateItem(ID Types.ID, updateShoppingBasketItem M
 		}
 	}
 	availableStock := product.Stock + currentQuantity
-	if availableStock == 0 && updateShoppingBasketItem.Quantity > 0 {
+	if product.Stock == 0 && updateShoppingBasketItem.Quantity > currentQuantity {
 		details := make(map[string]any, 1)
 		details["product_stock"] = Fmt.Sprintf("'%s' is out of stock", product.Name)
 		return Domain.ProblemDetail{

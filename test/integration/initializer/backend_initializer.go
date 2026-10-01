@@ -132,6 +132,20 @@ func (backendInitializer *BackendInitializer) initializeMigrationScripts(postgre
 	if err := Goose.Up(connection, "../../migrations"); err != nil {
 		Logger.Log.Fatalf("goose migration failed: %v", err)
 	}
+	// Integration fixtures assert aggregate behavior in isolation. The
+	// application baseline still seeds the demo catalog for real deployments.
+	for _, statement := range []string{
+		"DELETE FROM ecommerce.shopping_basket_items",
+		"DELETE FROM ecommerce.reservations",
+		"DELETE FROM ecommerce.shopping_baskets",
+		"DELETE FROM ecommerce.products",
+		"DELETE FROM ecommerce.cms",
+		"DELETE FROM ecommerce.categories",
+	} {
+		if _, err := connection.Exec(statement); err != nil {
+			Logger.Log.Fatalf("failed to reset integration fixture data: %v", err)
+		}
+	}
 }
 
 func (backendInitializer *BackendInitializer) connect() (*Database.DB, error) {

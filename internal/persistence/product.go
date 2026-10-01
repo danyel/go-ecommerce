@@ -18,12 +18,13 @@ type ProductModel struct {
 	CategoryID  Uuid.UUID
 	ImageURL    string
 	Stock       int
+	Metadata    []byte `gorm:"type:jsonb;not null;default:'{}'"`
 	CreatedAt   Time.Time
 	UpdatedAt   Time.Time
 }
 
 func (productModel *ProductModel) TableName() string {
-	return "products"
+	return "ecommerce.products"
 }
 
 func (productModel *ProductModel) BeforeCreate(_ *Database.DB) (err error) {

@@ -54,7 +54,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
             setShoppingBasket(prev => ({
                 ...prev,
                 items: prev.items.map(i =>
-                    i.id === shoppingBasketItem.id ? {...i, quantity} : i
+                    i.product_id === shoppingBasketItem.product_id ? {...i, quantity} : i
                 )
             }));
             updateShoppingBasketItem({
@@ -99,7 +99,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
                                                          className='w-20 h-20 object-cover rounded'/>
                                                     <div className='flex-1'>
                                                         <h3 className='font-medium'>{shoppingBasketItem.name}</h3>
-                                                        <p className='font-semibold mt-1'>{shoppingBasketItem.price}</p>
+                                                        <p className='font-semibold mt-1'>{shoppingBasketItem.base_price.inclusive} €</p>
                                                     </div>
                                                     {/*    add or remove items form the shopping basket*/}
                                                     <div className='flex gap-2'>
@@ -111,7 +111,7 @@ const ShoppingBasketComponent = (props: ShoppingBasketComponentProperties) => {
                                                                    const newValue = Number((e.target as HTMLInputElement).value);
                                                                    onQuantityChange(shoppingBasketItem, newValue);
                                                                }}/>
-                                                        <button className='text-red-500 hover:text-red-700' disabled={shoppingBasketItem.remaining === 0}>
+                                                        <button className='text-red-500 hover:text-red-700'>
                                                             <Plus onClick={() => addItem(shoppingBasketItem)}/>
                                                         </button>
                                                     </div>

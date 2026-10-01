@@ -56,22 +56,22 @@ func TestWebHandler(unitTest *Testing.T) {
 	}
 	productRepository.Insert(productModel)
 
+	var createdProductID Types.ID
 	unitTest.Run("Product h", func(unitTest *Testing.T) {
 		unitTest.Run("CreateProduct", func(unitTest *Testing.T) {
 			createProduct := &Model.CreateProductDTO{
 				Brand:       "ASUS",
 				Name:        "90YV0L71_M0NA00_NAME",
 				Description: "90YV0L71_M0NA00_DESCRIPTION",
-				Code:        "90YV0L71-M0NA00",
+				Code:        "90YV0L71-M0NA00-CREATED",
 				Price:       669,
 				CategoryID:  Types.NewID(categoryModel.ID),
 				ImageURL:    "https://www.megekko.nl/productimg/1699548/nw/1_ASUS-Prime-Radeon-RX-9070-XT-16GB-OC-Videokaart.jpg",
 			}
-			var ID Types.ID
 			webIntegration.ProductManagementPostProducts(createProduct).
-				GetResponseBody(&ID).
+				GetResponseBody(&createdProductID).
 				AssertStatusCreated().
-				IsNotNil(ID.ID)
+				IsNotNil(createdProductID.ID)
 		})
 	})
 
@@ -197,6 +197,7 @@ func TestWebHandler(unitTest *Testing.T) {
 		unitTest.Run("Add Item To Shopping Basket", func(unitTest *Testing.T) {
 			updateShoppingBasketItem := Model.UpdateShoppingBasketItemDTO{
 				ProductID: Types.NewID(productModel.ID),
+				Quantity:  1,
 			}
 			webIntegration.ShoppingBasketAddItem(shoppingBasket.ID.ID.String(), updateShoppingBasketItem).
 				AssertStatusOk()

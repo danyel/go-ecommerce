@@ -18,7 +18,7 @@ type CmsModel struct {
 }
 
 func (cmsModel *CmsModel) TableName() string {
-	return "cms"
+	return "ecommerce.cms"
 }
 
 func (cmsModel *CmsModel) BeforeCreate(_ *Database.DB) (err error) {

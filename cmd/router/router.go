@@ -87,9 +87,9 @@ func (apiRouter *apiRouter) configureLog() {
 	apiRouter.rootRouter.Use(ApplicationMiddleware.CorrelationIDMiddleware)
 	apiRouter.rootRouter.Use(ApplicationMiddleware.SecurityHeaders(apiRouter.serverConfiguration.AllowedOrigins))
 	apiRouter.rootRouter.Use(ApplicationMiddleware.NewRateLimiter(apiRouter.serverConfiguration.RateLimitRequests, apiRouter.serverConfiguration.RateLimitWindow).Middleware)
-	apiRouter.sessionIssuer = Security.NewEncryptedSessionIssuer(apiRouter.serverConfiguration.JwtSecret)
-	apiRouter.securityRegistry = Security.NewProviderRegistry(Security.NewGoogleProvider(apiRouter.serverConfiguration.GoogleClientID))
-	apiRouter.authWebHandler = Category.NewAuthWebHandler(apiRouter.securityRegistry, Security.NewMemoryUserLinker(), apiRouter.sessionIssuer)
+	//apiRouter.sessionIssuer = Security.NewEncryptedSessionIssuer(apiRouter.serverConfiguration.JwtSecret)
+	//apiRouter.securityRegistry = Security.NewProviderRegistry(Security.NewSSOProvider("https://accounts.google.com", "https://www.googleapis.com/oauth2/v1/certs", apiRouter.serverConfiguration.GoogleClientID))
+	//apiRouter.authWebHandler = Category.NewAuthWebHandler(apiRouter.securityRegistry, Security.NewMemoryUserLinker(), apiRouter.sessionIssuer)
 }
 
 // configureAPIRouting All API routing defined here
@@ -103,9 +103,9 @@ func (apiRouter *apiRouter) configureAPIRouting() {
 	})
 	apiRouter.rootRouter.Route(BaseContextPath, func(router Router.Router) {
 		product(router, webHandlerContextFactory.ProductWebHandler())
-		category(router, webHandlerContextFactory.CategoryWebHandler())
-		productManagement(router, webHandlerContextFactory.ProductManagementWebHandler())
-		management(router, webHandlerContextFactory.ManagementWebHandler())
+		category(router, webHandlerContextFactory.CategoryWebHandler(), apiRouter.sessionIssuer)
+		productManagement(router, webHandlerContextFactory.ProductManagementWebHandler(), apiRouter.sessionIssuer)
+		management(router, webHandlerContextFactory.ManagementWebHandler(), apiRouter.sessionIssuer)
 		cms(router, webHandlerContextFactory.CmsWebHandler())
 		shoppingBasket(router, webHandlerContextFactory.ShoppingBasketWebHandler(), apiRouter.sessionIssuer)
 		auth(router, apiRouter.authWebHandler)
@@ -115,7 +115,7 @@ func (apiRouter *apiRouter) configureAPIRouting() {
 func auth(router Router.Router, authWebHandler *Category.AuthWebHandler) Router.Router {
 	return router.Route("/auth", func(authRouter Router.Router) {
 		authRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
-			versionOneRouter.Post("/google", authWebHandler.HandleGoogleLogin)
+			versionOneRouter.Post("/sso", authWebHandler.HandleSSOLogin)
 		})
 	})
 }
@@ -125,11 +125,13 @@ func shoppingBasket(router Router.Router, shoppingBasketWebHandler Category.Shop
 	return router.Route(ShoppingBasketRootContext, func(shoppingBasketRouter Router.Router) {
 		shoppingBasketRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ShoppingBasketsRootContext, func(shoppingBasketsRouter Router.Router) {
-				shoppingBasketsRouter.With(Security.RequireAuthentication(issuer)).Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
+				//shoppingBasketsRouter.With(Security.RequireAuthentication(issuer)).Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
+				shoppingBasketsRouter.Post(SLASH, shoppingBasketWebHandler.HandleCreateShoppingBasketV1)
 				shoppingBasketsRouter.Route(ByID, func(byIdRouter Router.Router) {
 					Logger.Log.Debug("Shopping Basket By Id")
 					byIdRouter.Get(SLASH, shoppingBasketWebHandler.HandleGetShoppingBasketByIDV1)
-					byIdRouter.With(Security.RequireAuthentication(issuer)).Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
+					byIdRouter.Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
+					//byIdRouter.With(Security.RequireAuthentication(issuer)).Put(SLASH, shoppingBasketWebHandler.HandleUpdateShoppingBasketItemV1)
 				})
 			})
 		})
@@ -137,16 +139,19 @@ func shoppingBasket(router Router.Router, shoppingBasketWebHandler Category.Shop
 }
 
 // productManagement Product Management api /api/product-management
-func productManagement(router Router.Router, productManagementWebHandler Category.ProductManagementWebHandler) Router.Router {
+func productManagement(router Router.Router, productManagementWebHandler Category.ProductManagementWebHandler, issuer Security.SessionIssuer) Router.Router {
 	return router.Route(ProductManagementRootContext, func(productManagementRootRouter Router.Router) {
 		productManagementRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(ProductsRootContext, func(productsRootRouter Router.Router) {
 				productsRootRouter.Get(SLASH, productManagementWebHandler.HandleGetProductsV1)
+				//productsRootRouter.With(Security.RequireAnyRole(issuer, "ADMIN", "CATALOG_MANAGER")).Post(SLASH, productManagementWebHandler.HandleCreateProductV1)
 				productsRootRouter.Post(SLASH, productManagementWebHandler.HandleCreateProductV1)
 				productsRootRouter.Route(ByID, func(byIdRouter Router.Router) {
 					byIdRouter.Get(SLASH, productManagementWebHandler.HandleGetProductV1)
 					byIdRouter.Delete(SLASH, productManagementWebHandler.HandleDeleteProductV1)
+					//byIdRouter.With(Security.RequireAnyRole(issuer, "ADMIN", "CATALOG_MANAGER")).Delete(SLASH, productManagementWebHandler.HandleDeleteProductV1)
 					byIdRouter.Put(SLASH, productManagementWebHandler.HandleUpdateProductV1)
+					//byIdRouter.With(Security.RequireAnyRole(issuer, "ADMIN", "CATALOG_MANAGER")).Put(SLASH, productManagementWebHandler.HandleUpdateProductV1)
 				})
 			})
 		})
@@ -154,13 +159,15 @@ func productManagement(router Router.Router, productManagementWebHandler Categor
 }
 
 // category api /api/category
-func category(router Router.Router, categoryWebHandler Category.CategoryWebHandler) Router.Router {
+func category(router Router.Router, categoryWebHandler Category.CategoryWebHandler, issuer Security.SessionIssuer) Router.Router {
 	return router.Route(CategoryRootContext, func(categoryRootRouter Router.Router) {
 		categoryRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(CategoriesRootContext, func(categoriesRootRouter Router.Router) {
-				categoriesRootRouter.Post(BaseContextPath, categoryWebHandler.HandleCreateCategoryV1)
+				categoriesRootRouter.Post(SLASH, categoryWebHandler.HandleCreateCategoryV1)
+				//categoriesRootRouter.With(Security.RequireAnyRole(issuer, "ADMIN", "CATALOG_MANAGER")).Post(SLASH, categoryWebHandler.HandleCreateCategoryV1)
 			})
 			versionOneRouter.Post(TranslationsRootContext, categoryWebHandler.HandleCreateTranslationsV1)
+			//versionOneRouter.With(Security.RequireAnyRole(issuer, "ADMIN", "CATALOG_MANAGER")).Post(TranslationsRootContext, categoryWebHandler.HandleCreateTranslationsV1)
 		})
 	})
 }
@@ -192,7 +199,7 @@ func product(router Router.Router, productWebHandler Category.IProductWebHandler
 }
 
 // management api /api/management
-func management(router Router.Router, managementWebHandler Category.ManagementWebHandler) Router.Router {
+func management(router Router.Router, managementWebHandler Category.ManagementWebHandler, issuer Security.SessionIssuer) Router.Router {
 	return router.Route(ManagementRootContext, func(managementRootRouter Router.Router) {
 		managementRootRouter.Route(VersionOne, func(versionOneRouter Router.Router) {
 			versionOneRouter.Route(CategoriesRootContext, func(categoriesRootRouter Router.Router) {
@@ -200,6 +207,7 @@ func management(router Router.Router, managementWebHandler Category.ManagementWe
 				// Keep the historical /api suffix available for existing clients.
 				categoriesRootRouter.Get(BaseContextPath, managementWebHandler.HandleGetCategoriesV1)
 			})
+			//versionOneRouter.With(Security.RequireAnyRole(issuer, "ADMIN", "CATALOG_MANAGER")).Post(TranslationsRootContext, managementWebHandler.HandleCreateTranslationsV1)
 			versionOneRouter.Post(TranslationsRootContext, managementWebHandler.HandleCreateTranslationsV1)
 		})
 	})

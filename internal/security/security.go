@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	ApplicationMiddleware "github.com/danyel/ecommerce/cmd/middleware"
@@ -56,6 +57,7 @@ type UserLinker interface {
 // because it never accepts an unverified identity and makes its limitation explicit.
 type MemoryUserLinker struct {
 	users map[string]string
+	mu    sync.RWMutex
 }
 
 func NewMemoryUserLinker() *MemoryUserLinker {
@@ -67,10 +69,18 @@ func (linker *MemoryUserLinker) Link(_ context.Context, identity Identity) (stri
 		return "", errors.New("identity is incomplete")
 	}
 	key := identity.Provider + ":" + identity.Subject
+	linker.mu.RLock()
 	if userID, ok := linker.users[key]; ok {
+		linker.mu.RUnlock()
 		return userID, nil
 	}
+	linker.mu.RUnlock()
 	userID := key
+	linker.mu.Lock()
+	defer linker.mu.Unlock()
+	if existing, ok := linker.users[key]; ok {
+		return existing, nil
+	}
 	linker.users[key] = userID
 	return userID, nil
 }
@@ -155,6 +165,7 @@ func RequireAuthentication(issuer SessionIssuer) func(http.Handler) http.Handler
 				http.Error(response, "Unauthorized: Missing or malformed token", http.StatusUnauthorized)
 				return
 			}
+
 			token := strings.TrimSpace(strings.TrimPrefix(header, "Bearer "))
 			if token == "" {
 				http.Error(response, "Unauthorized: Missing or malformed token", http.StatusUnauthorized)
@@ -168,5 +179,26 @@ func RequireAuthentication(issuer SessionIssuer) func(http.Handler) http.Handler
 			ctx := context.WithValue(request.Context(), ClaimsContextKey, claims)
 			next.ServeHTTP(response, request.WithContext(ctx))
 		})
+	}
+}
+
+func RequireAnyRole(issuer SessionIssuer, roles ...string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return RequireAuthentication(issuer)(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			claims, ok := ClaimsFromContext(request.Context())
+			if !ok {
+				http.Error(response, "Forbidden: Insufficient permissions", http.StatusForbidden)
+				return
+			}
+			for _, required := range roles {
+				for _, actual := range claims.Roles {
+					if actual == required {
+						next.ServeHTTP(response, request)
+						return
+					}
+				}
+			}
+			http.Error(response, "Forbidden: Insufficient permissions", http.StatusForbidden)
+		}))
 	}
 }

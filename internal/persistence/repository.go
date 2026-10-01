@@ -127,7 +127,9 @@ func (crudRepository *crudRepository[T]) Paginate(criteria SearchCriteria) ([]T,
 	if criteria.WhereClause.Query != "" {
 		base = base.Where(criteria.WhereClause.Query, criteria.WhereClause.Params...)
 	}
-	base.Count(&total)
+	if result := base.Count(&total); result.Error != nil {
+		return results, 0
+	}
 
 	// Apply preloads & pagination
 	if criteria.WhereClause.Query != "" {

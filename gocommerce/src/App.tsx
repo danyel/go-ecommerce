@@ -8,7 +8,6 @@ import {useGlobalState} from './state/global-state.tsx';
 import type {ShoppingBasket} from './domain/shopping-basket/model.tsx';
 import ApiClient from "./domain/common/api-client.tsx";
 import ProtectedRoute from './component/auth/protected-route.tsx';
-import LoginPage from './page/auth/login.tsx';
 import CategoriesPage from './page/catalog/categories.tsx';
 import RouteDirectory from './page/generic/route-directory.tsx';
 
@@ -35,8 +34,9 @@ const App = () => {
                         <Route path='/' element={<Navigate to='/product/products' replace/>}/>
                         <Route path='/product/products' element={<ProductsPage/>}/>
                         <Route path='/management/categories' element={<CategoriesPage/>}/>
-                        <Route path='/login' element={<LoginPage/>}/>
-                        <Route path='/product-management/products' element={<RouteDirectory title='Product management'/>}/>
+                        {/*<Route path='/login' element={<LoginPage/>}/>*/}
+                        <Route path='/product-management/products'
+                               element={<RouteDirectory title='Product management'/>}/>
                         <Route path='/cms/translations' element={<RouteDirectory title='Translations'/>}/>
                         <Route element={<ProtectedRoute/>}>
                             <Route path='/checkout' element={<RouteDirectory title='Checkout'/>}/>

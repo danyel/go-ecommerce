@@ -9,7 +9,7 @@ export interface LoginResponse {
 export interface AuthContextValue {
     token: string | null;
     isAuthenticated: boolean;
-    loginWithGoogle: (idToken: string) => Promise<void>;
+    loginWithSSO: (idToken: string) => Promise<void>;
     logout: () => void;
 }
 

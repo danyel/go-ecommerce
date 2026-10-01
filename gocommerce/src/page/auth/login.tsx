@@ -15,7 +15,7 @@ const LoginPage = () => {
         <textarea value={idToken} onChange={event => setIDToken(event.target.value)} className='w-full border rounded p-2 min-h-28' placeholder='Google ID token'/>
         <button className='mt-4 bg-blue-600 text-white px-4 py-2 rounded' onClick={() => {
             setError('');
-            auth.loginWithGoogle(idToken).then(() => navigate('/checkout')).catch((reason: unknown) => {
+            auth.loginWithSSO(idToken).then(() => navigate('/checkout')).catch((reason: unknown) => {
                 setError(reason instanceof ApiError ? `Login failed (${reason.status})` : 'Login failed');
             });
         }}>Continue</button>
